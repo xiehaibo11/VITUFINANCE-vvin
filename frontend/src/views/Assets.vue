@@ -329,23 +329,17 @@
             @scroll.passive="handleDocGalleryScroll"
           >
             <div class="doc-gallery-inner">
-              <picture
+              <!-- Direct img tags for better compatibility with TokenPocket browser -->
+              <img
                 v-for="(pageUrl, index) in visibleWhitepaperPages"
                 :key="index"
-                class="doc-gallery-picture"
-              >
-                <source :srcset="toWhitepaperWebpUrl(pageUrl)" type="image/webp" />
-                <img 
-                  :src="pageUrl"
-                  :alt="`Page ${index + 1}`"
-                  class="doc-gallery-page"
-                  width="1241"
-                  height="1755"
-                  :loading="index === 0 ? 'eager' : 'lazy'"
-                  decoding="async"
-                  :fetchpriority="index === 0 ? 'high' : 'low'"
-                />
-              </picture>
+                :src="pageUrl"
+                :alt="`Page ${index + 1}`"
+                class="doc-gallery-page"
+                :loading="index === 0 ? 'eager' : 'lazy'"
+                decoding="async"
+                @error="handleImageError($event, index)"
+              />
             </div>
           </div>
           
@@ -1166,6 +1160,13 @@ const openDocument = (docKey) => {
       }, 0)
     }
   }
+}
+
+// Handle image loading error (for debugging)
+const handleImageError = (event, index) => {
+  console.error(`[Whitepaper] Failed to load page ${index + 1}:`, event.target?.src)
+  // Set a placeholder or hide the broken image
+  event.target.style.display = 'none'
 }
 
 // 关闭文档查看器
