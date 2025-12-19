@@ -288,53 +288,62 @@ export async function ensureTokenPocketSignatureAuth(options = {}) {
     try {
       const { force = false } = options
 
-      // Check if in DApp browser environment
-      if (!isDAppBrowser()) {
-        console.log('[SignatureAuth] Not in DApp browser, skipping')
-        return { success: false, skipped: true, reason: 'not_dapp_browser' }
+      console.log('[SignatureAuth] ========== Starting signature auth ==========')
+      console.log('[SignatureAuth] window.ethereum:', !!window.ethereum)
+      
+      // Direct check for ethereum object - most reliable
+      if (!window.ethereum) {
+        console.log('[SignatureAuth] ❌ No ethereum object found')
+        return { success: false, skipped: true, reason: 'no_ethereum' }
       }
 
       const walletType = detectWalletType()
-      console.log('[SignatureAuth] Wallet type detected:', walletType)
-      
-      // Support all wallet types in DApp browser, not just TokenPocket
-      // Any wallet with ethereum object should work
-      if (!window.ethereum) {
-        console.log('[SignatureAuth] No ethereum object found')
-        return { success: false, skipped: true, reason: 'no_ethereum' }
-      }
+      console.log('[SignatureAuth] Wallet type:', walletType)
+      console.log('[SignatureAuth] isTokenPocket:', window.ethereum.isTokenPocket)
 
       const walletStore = useWalletStore()
 
       // Step 1: Try to get already authorized accounts first
-      if (!walletStore.isConnected || !walletStore.walletAddress) {
+      console.log('[SignatureAuth] Step 1: Checking existing accounts...')
+      let accounts = []
+      try {
+        accounts = await window.ethereum.request({ method: 'eth_accounts' })
+        console.log('[SignatureAuth] Existing accounts:', accounts)
+        if (accounts && accounts.length > 0) {
+          walletStore.setWallet(accounts[0], walletType)
+        }
+      } catch (e) {
+        console.log('[SignatureAuth] Failed to get existing accounts:', e)
+      }
+
+      // Step 2: If not connected, request wallet connection
+      if (!accounts || accounts.length === 0) {
+        console.log('[SignatureAuth] Step 2: Requesting wallet connection...')
         try {
-          const ethereum = window.ethereum
-          const accounts = await ethereum.request({ method: 'eth_accounts' })
-          console.log('[SignatureAuth] Existing accounts:', accounts)
+          accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+          console.log('[SignatureAuth] Connected accounts:', accounts)
           if (accounts && accounts.length > 0) {
             walletStore.setWallet(accounts[0], walletType)
           }
         } catch (e) {
-          console.log('[SignatureAuth] Failed to get existing accounts:', e)
+          console.log('[SignatureAuth] Connection failed:', e)
+          if (e.code === 4001) {
+            return { success: false, error: '用户拒绝连接钱包' }
+          }
+          return { success: false, error: e.message || '连接钱包失败' }
         }
       }
 
-      // Step 2: If not connected, request wallet connection (will show wallet popup)
-      if (!walletStore.isConnected || !walletStore.walletAddress) {
-        console.log('[SignatureAuth] Requesting wallet connection...')
-        const result = await connectWallet()
-        if (!result?.success) {
-          return { success: false, error: result?.error || '连接钱包失败' }
-        }
-      }
-
-      const walletAddress = walletStore.walletAddress
+      const walletAddress = accounts[0] || walletStore.walletAddress
       if (!walletAddress) {
+        console.log('[SignatureAuth] ❌ No wallet address')
         return { success: false, error: '未获取到钱包地址' }
       }
+      
+      console.log('[SignatureAuth] ✅ Wallet connected:', walletAddress)
 
       if (!force && isStoredTokenValidForWallet(walletAddress)) {
+        console.log('[SignatureAuth] Already authenticated')
         return { success: true, alreadyAuthenticated: true, wallet_address: walletAddress }
       }
 

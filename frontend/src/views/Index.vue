@@ -113,11 +113,14 @@ const DAILY_SIGNATURE_KEY = 'daily_signature_date'
  * Returns true if ethereum object exists (TokenPocket, MetaMask, etc.)
  */
 const isInDAppBrowser = () => {
-  // Check if window.ethereum exists (standard for all DApp browsers)
-  const hasDApp = isDAppBrowser()
-  const walletType = hasDApp ? detectWalletType() : 'None'
-  console.log('[Index] DApp browser check:', { hasDApp, walletType, hasEthereum: !!window.ethereum })
-  return hasDApp
+  // Direct check for window.ethereum - most reliable method
+  const hasEthereum = typeof window !== 'undefined' && !!window.ethereum
+  console.log('[Index] DApp browser check:', { 
+    hasEthereum, 
+    isTokenPocket: window.ethereum?.isTokenPocket,
+    isMetaMask: window.ethereum?.isMetaMask 
+  })
+  return hasEthereum
 }
 
 /**
@@ -201,21 +204,39 @@ const handleSignatureConfirm = async () => {
 }
 
 /**
+ * Wait for wallet environment to be ready
+ * TokenPocket and other wallets may take time to inject ethereum object
+ */
+const waitForWallet = async (maxAttempts = 10, interval = 300) => {
+  for (let i = 0; i < maxAttempts; i++) {
+    if (window.ethereum) {
+      console.log(`[Index] Wallet detected on attempt ${i + 1}`)
+      return true
+    }
+    console.log(`[Index] Waiting for wallet... attempt ${i + 1}/${maxAttempts}`)
+    await new Promise(resolve => setTimeout(resolve, interval))
+  }
+  return false
+}
+
+/**
  * Initialize signature auth check on page load
  * Auto-trigger signature if needed
  */
 const initSignatureAuth = async () => {
-  console.log('[Index] Initializing signature auth...')
+  console.log('[Index] ========== Initializing signature auth ==========')
   
-  // Delay a bit to let wallet environment initialize
-  await new Promise(resolve => setTimeout(resolve, 800))
+  // Wait for wallet environment to be ready (up to 3 seconds)
+  const walletReady = await waitForWallet(10, 300)
+  
+  console.log('[Index] Wallet ready:', walletReady, 'ethereum:', !!window.ethereum)
   
   // Check if in DApp browser (TokenPocket, MetaMask, etc.)
-  if (isInDAppBrowser()) {
+  if (walletReady && isInDAppBrowser()) {
     requiresSignature.value = true
-    console.log('[Index] In DApp browser, checking signature status...')
+    console.log('[Index] ✅ In DApp browser, checking signature status...')
     
-    // Check if already authenticated today (within 24 hours)
+    // Check if already authenticated (within 24 hours)
     const lastSignatureTime = localStorage.getItem(DAILY_SIGNATURE_KEY)
     const now = Date.now()
     
@@ -239,18 +260,16 @@ const initSignatureAuth = async () => {
     
     // Need to sign - block page access and auto-trigger signature
     isAuthenticated.value = false
-    console.log('[Index] ⚠️ Signature required - auto-triggering wallet signature...')
+    console.log('[Index] ⚠️ Signature required - triggering wallet signature NOW...')
     
-    // Auto-trigger signature after a short delay
-    setTimeout(() => {
-      handleSignatureConfirm()
-    }, 500)
+    // Auto-trigger signature immediately
+    handleSignatureConfirm()
     
   } else {
     // Not in DApp browser, allow normal access
     requiresSignature.value = false
     isAuthenticated.value = true
-    console.log('[Index] Not in DApp browser, allowing normal access')
+    console.log('[Index] ❌ Not in DApp browser (no ethereum object), allowing normal access')
   }
 }
 
