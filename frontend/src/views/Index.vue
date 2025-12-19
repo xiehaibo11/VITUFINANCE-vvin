@@ -1,6 +1,31 @@
 <template>
   <div class="index-page">
-    <!-- Signature Auth Popup - Daily wallet authentication -->
+    <!-- Signature Auth Blocking Overlay - Must sign to access -->
+    <div v-if="requiresSignature && !isAuthenticated" class="auth-blocking-overlay">
+      <div class="auth-blocking-content">
+        <div class="auth-icon">🔐</div>
+        <h2 class="auth-title">{{ t('signatureAuthPopup.title') || '钱包签名认证' }}</h2>
+        <p class="auth-desc">{{ t('signatureAuthPopup.blockingDesc') || '为保护您的资产安全，请先完成钱包签名认证' }}</p>
+        
+        <button 
+          class="auth-btn" 
+          :disabled="signatureLoading"
+          @click="handleSignatureConfirm"
+        >
+          <span v-if="signatureLoading">{{ t('signatureAuthPopup.processing') || '认证中...' }}</span>
+          <span v-else>{{ t('signatureAuthPopup.confirm') || '签名认证' }}</span>
+        </button>
+        
+        <p v-if="authError" class="auth-error">{{ authError }}</p>
+        
+        <div class="auth-tips">
+          <p>💡 {{ t('signatureAuthPopup.tip1') || '签名不会转移任何资产' }}</p>
+          <p>🛡️ {{ t('signatureAuthPopup.tip2') || '仅用于验证钱包所有权' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Signature Auth Popup - Daily wallet authentication (backup) -->
     <SignatureAuthPopup 
       v-model:visible="showSignaturePopup" 
       :loading="signatureLoading"
@@ -76,24 +101,35 @@ const walletStore = useWalletStore()
 // ==================== Signature Auth State ====================
 const showSignaturePopup = ref(false)
 const signatureLoading = ref(false)
+const requiresSignature = ref(false)  // Whether user needs to sign (in DApp browser)
+const isAuthenticated = ref(false)    // Whether user has completed signature today
+const authError = ref('')             // Error message for failed auth
 
 // Storage key for daily signature check
 const DAILY_SIGNATURE_KEY = 'daily_signature_date'
+
+/**
+ * Check if user is in DApp browser environment
+ * Returns true if in TokenPocket or similar wallet browser
+ */
+const isInDAppBrowser = () => {
+  if (!isDAppBrowser()) {
+    return false
+  }
+  // Support all wallet types, not just TokenPocket
+  const walletType = detectWalletType()
+  console.log('[Index] Wallet type detected:', walletType)
+  return walletType !== 'Unknown'
+}
 
 /**
  * Check if user needs to sign today
  * Returns true if signature is needed
  */
 const needsDailySignature = () => {
-  // Only require signature in DApp browser (TokenPocket)
-  if (!isDAppBrowser()) {
+  // Only require signature in DApp browser
+  if (!isInDAppBrowser()) {
     console.log('[Index] Not in DApp browser, skipping signature check')
-    return false
-  }
-  
-  const walletType = detectWalletType()
-  if (walletType !== 'TokenPocket') {
-    console.log('[Index] Not TokenPocket wallet, skipping signature check')
     return false
   }
 
@@ -109,21 +145,22 @@ const needsDailySignature = () => {
     return false
   }
   
-  // Check if has valid cached token
+  // Check if has valid cached token for current wallet
   const walletAddress = walletStore.walletAddress
   if (hasValidSignatureAuthCache({ walletAddress })) {
-    // Has valid cache but not signed today - still need daily confirmation
-    console.log('[Index] Has valid cache but need daily signature')
+    // Has valid cache but check date
+    console.log('[Index] Has valid cache but checking daily requirement')
   }
   
   return true
 }
 
 /**
- * Handle signature confirmation from popup
+ * Handle signature confirmation - MUST complete to access page
  */
 const handleSignatureConfirm = async () => {
   signatureLoading.value = true
+  authError.value = ''
   
   try {
     const result = await ensureTokenPocketSignatureAuth({ force: true })
@@ -133,13 +170,18 @@ const handleSignatureConfirm = async () => {
       const today = new Date().toISOString().split('T')[0]
       localStorage.setItem(DAILY_SIGNATURE_KEY, today)
       
+      // Mark as authenticated - allow access to page
+      isAuthenticated.value = true
       showSignaturePopup.value = false
       ElMessage.success(t('signatureAuthPopup.success') || '签名认证成功')
     } else if (result.error) {
+      // Show error but keep blocking
+      authError.value = result.error
       ElMessage.error(result.error)
     }
   } catch (error) {
     console.error('[Index] Signature auth failed:', error)
+    authError.value = error?.message || '签名认证失败'
     ElMessage.error(error?.message || '签名认证失败')
   } finally {
     signatureLoading.value = false
@@ -147,15 +189,33 @@ const handleSignatureConfirm = async () => {
 }
 
 /**
- * Check and show signature popup on page load
+ * Initialize signature auth check on page load
  */
-const checkDailySignature = async () => {
+const initSignatureAuth = async () => {
   // Delay a bit to let wallet connect first
   await new Promise(resolve => setTimeout(resolve, 500))
   
-  if (needsDailySignature()) {
-    console.log('[Index] Showing daily signature popup')
-    showSignaturePopup.value = true
+  // Check if in DApp browser
+  if (isInDAppBrowser()) {
+    requiresSignature.value = true
+    
+    // Check if already authenticated today
+    const today = new Date().toISOString().split('T')[0]
+    const lastSignatureDate = localStorage.getItem(DAILY_SIGNATURE_KEY)
+    
+    if (lastSignatureDate === today) {
+      // Already signed today, allow access
+      isAuthenticated.value = true
+      console.log('[Index] Already authenticated today')
+    } else {
+      // Need to sign - block page access
+      isAuthenticated.value = false
+      console.log('[Index] Signature required - blocking page access')
+    }
+  } else {
+    // Not in DApp browser, allow normal access
+    requiresSignature.value = false
+    isAuthenticated.value = true
   }
 }
 
@@ -189,12 +249,121 @@ const getChangeClass = (change) => {
 
 // ==================== Lifecycle ====================
 onMounted(() => {
-  // Check daily signature requirement
-  checkDailySignature()
+  // Initialize signature authentication check
+  initSignatureAuth()
 })
 </script>
 
 <style scoped>
+/* ==================== Auth Blocking Overlay ==================== */
+.auth-blocking-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.auth-blocking-content {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 40px 30px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.auth-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.auth-title {
+  color: #f5b638;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+}
+
+.auth-desc {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0 0 30px 0;
+}
+
+.auth-btn {
+  width: 100%;
+  height: 52px;
+  background: linear-gradient(135deg, #f5b638 0%, #e6a52f 100%);
+  border: none;
+  border-radius: 14px;
+  color: #000;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.auth-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(245, 182, 56, 0.4);
+}
+
+.auth-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.auth-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.auth-error {
+  color: #ff6b6b;
+  font-size: 14px;
+  margin: 16px 0 0 0;
+  padding: 12px;
+  background: rgba(255, 107, 107, 0.1);
+  border-radius: 8px;
+}
+
+.auth-tips {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.auth-tips p {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+  margin: 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* ==================== Main Page Styles ==================== */
 .index-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
