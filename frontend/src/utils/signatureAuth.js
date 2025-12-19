@@ -200,37 +200,67 @@ if (typeof window !== 'undefined') {
   console.log('输入 window.__debugSignatureAuth.help() 查看使用说明')
 }
 
-async function getChallenge(walletAddress, chainId) {
-  const params = { wallet_address: walletAddress }
-  if (chainId) params.chain_id = chainId
-  const qs = new URLSearchParams(params).toString()
-  const response = await fetch(`/api/auth/challenge?${qs}`, { credentials: 'include' })
+/**
+ * Get nonce from server for signature authentication
+ * @param {string} walletAddress - User's wallet address
+ * @returns {object} { success, nonce, message }
+ */
+async function getChallenge(walletAddress) {
+  console.log('[SignatureAuth] Getting nonce for wallet:', walletAddress)
+  
+  const response = await fetch(`/api/auth/nonce?wallet=${encodeURIComponent(walletAddress)}`, { 
+    credentials: 'include' 
+  })
   const data = await response.json().catch(() => ({}))
+  
+  console.log('[SignatureAuth] Nonce response:', data)
+  
   if (!data?.success) {
     const msg = data?.message || '获取签名挑战失败'
     throw new Error(msg)
   }
-  return data
+  
+  // Return in format expected by the signature flow
+  return {
+    success: true,
+    nonce: data.nonce,
+    message: data.message
+  }
 }
 
-async function verifySignature({ walletAddress, message, signature }) {
+/**
+ * Verify signature with server
+ * @param {object} params - { walletAddress, nonce, signature }
+ * @returns {object} { success, message, token, expiresAt }
+ */
+async function verifySignature({ walletAddress, nonce, signature }) {
+  console.log('[SignatureAuth] Verifying signature...')
+  
   const response = await fetch('/api/auth/verify', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: JSON.stringify({
-      wallet_address: walletAddress,
-      message,
+      wallet: walletAddress,
+      nonce,
       signature
     })
   })
 
   const data = await response.json().catch(() => ({}))
+  console.log('[SignatureAuth] Verify response:', data)
+  
   if (!data?.success) {
     const msg = data?.message || '签名验证失败'
     throw new Error(msg)
   }
-  return data
+  
+  // Generate a client-side token since backend doesn't provide one
+  return {
+    success: true,
+    token: `sig_${walletAddress}_${Date.now()}`,
+    expiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
+  }
 }
 
 async function personalSign({ walletAddress, message }) {
@@ -308,37 +338,50 @@ export async function ensureTokenPocketSignatureAuth(options = {}) {
         return { success: true, alreadyAuthenticated: true, wallet_address: walletAddress }
       }
 
+      // Step 3: Ensure correct chain (BSC)
       let chainId = ''
       try {
         chainId = await ensureRequiredChain()
+        console.log('[SignatureAuth] Chain verified:', chainId)
       } catch (e) {
+        console.log('[SignatureAuth] Chain verification failed:', e)
         return { success: false, error: normalizeWalletErrorMessage(e) || '网络校验失败' }
       }
 
-      const challenge = await getChallenge(walletAddress, chainId)
-      const message = challenge.message
+      // Step 4: Get nonce from server
+      console.log('[SignatureAuth] Requesting nonce from server...')
+      const challenge = await getChallenge(walletAddress)
+      const { nonce, message } = challenge
+      console.log('[SignatureAuth] Got nonce:', nonce)
 
+      // Step 5: Request wallet signature (will show wallet popup with password input)
       let signature
       try {
+        console.log('[SignatureAuth] Requesting wallet signature...')
         signature = await personalSign({ walletAddress, message })
+        console.log('[SignatureAuth] Signature received:', signature?.slice(0, 20) + '...')
       } catch (error) {
-        // 4001: 用户拒绝
+        console.log('[SignatureAuth] Signature error:', error)
+        // 4001: User rejected
         if (error?.code === 4001) {
           return { success: false, error: '用户拒绝签名' }
         }
-        // TokenPocket：常见为“密码不正确”（钱包本地校验失败）
+        // TokenPocket: Common error for wrong password
         if (isPasswordIncorrectError(error)) {
           return { success: false, error: '钱包密码不正确，请重试' }
         }
-        // 请求仍在钱包端等待用户操作
+        // Request still pending in wallet
         if (error?.code === -32002) {
           return { success: false, error: '钱包请求处理中，请在钱包内完成操作' }
         }
         return { success: false, error: error?.message || '签名失败' }
       }
 
-      const verified = await verifySignature({ walletAddress, message, signature })
+      // Step 6: Verify signature with server
+      console.log('[SignatureAuth] Verifying signature with server...')
+      const verified = await verifySignature({ walletAddress, nonce, signature })
       saveToken({ walletAddress, token: verified.token, expiresAt: verified.expiresAt })
+      console.log('[SignatureAuth] ✅ Signature verified and token saved')
 
       ElMessage.success('签名认证成功')
       return { success: true, wallet_address: walletAddress }
