@@ -1,7 +1,7 @@
 # ============================================================
-# VituFinance Internal Proxy Configuration
-# For Clash Verge / Clash Meta / Clash for Windows
-# Real nodes from LanPangYun subscription
+# VituFinance Self-Hosted Proxy Configuration
+# Server: 154.89.152.210
+# For internal use only
 # ============================================================
 
 mixed-port: 7897
@@ -25,169 +25,55 @@ dns:
     - https://cloudflare-dns.com/dns-query
 
 # ============================================================
-# Real Proxy Servers - LanPangYun Nodes
+# Self-Hosted Proxy Servers on VituFinance Server
 # ============================================================
 proxies:
-  # 🇸🇬 Singapore Nodes
-  - name: "🇸🇬 新加坡01"
+  # AES-128-GCM node (fast, secure)
+  - name: "🚀 VituFinance-AES"
     type: ss
-    server: shrimp-door-9527.gym0boy.com
-    port: 57258
-    cipher: chacha20-ietf-poly1305
-    password: "7616fc88-860a-4f7f-ad8f-b659c30ec8ef"
-    udp: true
-
-  - name: "🇸🇬 新加坡02"
-    type: ss
-    server: shrimp-door-9527.gym0boy.com
-    port: 57259
-    cipher: chacha20-ietf-poly1305
-    password: "7616fc88-860a-4f7f-ad8f-b659c30ec8ef"
-    udp: true
-
-  - name: "🇸🇬 新加坡03"
-    type: ss
-    server: shrimp-door-9527.gym0boy.com
-    port: 47436
-    cipher: chacha20-ietf-poly1305
-    password: "7616fc88-860a-4f7f-ad8f-b659c30ec8ef"
-    udp: true
-
-  - name: "🇸🇬 新加坡04"
-    type: ss
-    server: shrimp-door-9527.gym0boy.com
-    port: 47437
-    cipher: chacha20-ietf-poly1305
-    password: "7616fc88-860a-4f7f-ad8f-b659c30ec8ef"
-    udp: true
-
-  - name: "🇸🇬 新加坡05"
-    type: ss
-    server: shrimp-door-9527.gym0boy.com
-    port: 20620
-    cipher: chacha20-ietf-poly1305
-    password: "7616fc88-860a-4f7f-ad8f-b659c30ec8ef"
-    udp: true
-
-  # 🇭🇰 Hong Kong Nodes
-  - name: "🇭🇰 香港01"
-    type: ss
-    server: shrimp-door-9527.gym0boy.com
-    port: 55551
+    server: 154.89.152.210
+    port: 18388
     cipher: aes-128-gcm
-    password: "7616fc88-860a-4f7f-ad8f-b659c30ec8ef"
+    password: "NfCWpBYylZEBza6etdsrb0xiYaZY2G9j"
     udp: true
 
-  - name: "🇭🇰 香港02"
+  # ChaCha20 node (best for mobile)
+  - name: "📱 VituFinance-ChaCha"
     type: ss
-    server: shrimp-door-9527.gym0boy.com
-    port: 55552
-    cipher: aes-128-gcm
-    password: "7616fc88-860a-4f7f-ad8f-b659c30ec8ef"
-    udp: true
-
-  - name: "🇭🇰 香港03"
-    type: ss
-    server: shrimp-door-9527.gym0boy.com
-    port: 55553
-    cipher: aes-128-gcm
-    password: "7616fc88-860a-4f7f-ad8f-b659c30ec8ef"
-    udp: true
-
-  # 🇯🇵 Japan Nodes
-  - name: "🇯🇵 日本01"
-    type: ss
-    server: shrimp-door-9527.gym0boy.com
-    port: 44816
+    server: 154.89.152.210
+    port: 18389
     cipher: chacha20-ietf-poly1305
-    password: "7616fc88-860a-4f7f-ad8f-b659c30ec8ef"
+    password: "NfCWpBYylZEBza6etdsrb0xiYaZY2G9j"
     udp: true
 
-  - name: "🇯🇵 日本02"
+  # AES-256-GCM node (most secure)
+  - name: "🔒 VituFinance-AES256"
     type: ss
-    server: shrimp-door-9527.gym0boy.com
-    port: 44817
-    cipher: chacha20-ietf-poly1305
-    password: "7616fc88-860a-4f7f-ad8f-b659c30ec8ef"
-    udp: true
-
-  - name: "🇯🇵 日本03"
-    type: ss
-    server: shrimp-door-9527.gym0boy.com
-    port: 47427
-    cipher: chacha20-ietf-poly1305
-    password: "7616fc88-860a-4f7f-ad8f-b659c30ec8ef"
-    udp: true
-
-  # 🇨🇳 Taiwan Nodes
-  - name: "🇨🇳 台湾01"
-    type: ss
-    server: shrimp-door-9527.gym0boy.com
-    port: 44723
-    cipher: chacha20-ietf-poly1305
-    password: "7616fc88-860a-4f7f-ad8f-b659c30ec8ef"
-    udp: true
-
-  - name: "🇨🇳 台湾02"
-    type: ss
-    server: shrimp-door-9527.gym0boy.com
-    port: 47424
-    cipher: chacha20-ietf-poly1305
-    password: "7616fc88-860a-4f7f-ad8f-b659c30ec8ef"
-    udp: true
-
-  # 🇺🇸 USA Nodes
-  - name: "🇺🇸 美国01"
-    type: ss
-    server: shrimp-door-9527.gym0boy.com
-    port: 47845
-    cipher: chacha20-ietf-poly1305
-    password: "7616fc88-860a-4f7f-ad8f-b659c30ec8ef"
-    udp: true
-
-  - name: "🇺🇸 美国02"
-    type: ss
-    server: shrimp-door-9527.gym0boy.com
-    port: 47846
-    cipher: chacha20-ietf-poly1305
-    password: "7616fc88-860a-4f7f-ad8f-b659c30ec8ef"
+    server: 154.89.152.210
+    port: 18390
+    cipher: aes-256-gcm
+    password: "NfCWpBYylZEBza6etdsrb0xiYaZY2G9j"
     udp: true
 
 # ============================================================
-# Proxy Groups - Singapore as default
+# Proxy Groups
 # ============================================================
 proxy-groups:
   - name: "🚀 节点选择"
     type: select
     proxies:
-      - "🇸🇬 新加坡01"
-      - "🇸🇬 新加坡02"
-      - "🇸🇬 新加坡03"
-      - "🇸🇬 新加坡04"
-      - "🇸🇬 新加坡05"
+      - "🚀 VituFinance-AES"
+      - "📱 VituFinance-ChaCha"
+      - "🔒 VituFinance-AES256"
       - "♻️ 自动选择"
-      - "🇭🇰 香港01"
-      - "🇭🇰 香港02"
-      - "🇭🇰 香港03"
-      - "🇯🇵 日本01"
-      - "🇯🇵 日本02"
-      - "🇯🇵 日本03"
-      - "🇨🇳 台湾01"
-      - "🇨🇳 台湾02"
-      - "🇺🇸 美国01"
-      - "🇺🇸 美国02"
       - DIRECT
 
   - name: "♻️ 自动选择"
     type: url-test
     proxies:
-      - "🇸🇬 新加坡01"
-      - "🇸🇬 新加坡02"
-      - "🇸🇬 新加坡03"
-      - "🇭🇰 香港01"
-      - "🇭🇰 香港02"
-      - "🇯🇵 日本01"
-      - "🇯🇵 日本02"
+      - "🚀 VituFinance-AES"
+      - "📱 VituFinance-ChaCha"
+      - "🔒 VituFinance-AES256"
     url: http://www.gstatic.com/generate_204
     interval: 300
     tolerance: 50
@@ -196,18 +82,14 @@ proxy-groups:
     type: select
     proxies:
       - "🚀 节点选择"
-      - "🇸🇬 新加坡01"
-      - "🇭🇰 香港01"
-      - "🇯🇵 日本01"
-      - "🇺🇸 美国01"
+      - "🚀 VituFinance-AES"
       - DIRECT
 
   - name: "📲 电报消息"
     type: select
     proxies:
       - "🚀 节点选择"
-      - "🇸🇬 新加坡01"
-      - "🇭🇰 香港01"
+      - "🚀 VituFinance-AES"
       - DIRECT
 
   - name: "🐟 漏网之鱼"
@@ -220,6 +102,7 @@ proxy-groups:
 # Rules
 # ============================================================
 rules:
+  # Local network
   - DOMAIN-SUFFIX,local,DIRECT
   - IP-CIDR,127.0.0.0/8,DIRECT
   - IP-CIDR,172.16.0.0/12,DIRECT
@@ -227,36 +110,51 @@ rules:
   - IP-CIDR,10.0.0.0/8,DIRECT
   - IP-CIDR,100.64.0.0/10,DIRECT
 
+  # Telegram
   - DOMAIN-SUFFIX,telegram.org,📲 电报消息
   - DOMAIN-SUFFIX,t.me,📲 电报消息
   - IP-CIDR,91.108.0.0/16,📲 电报消息
   - IP-CIDR,149.154.160.0/20,📲 电报消息
 
+  # Google
   - DOMAIN-SUFFIX,google.com,🚀 节点选择
   - DOMAIN-SUFFIX,googleapis.com,🚀 节点选择
   - DOMAIN-SUFFIX,youtube.com,📺 流媒体
   - DOMAIN-SUFFIX,ytimg.com,📺 流媒体
+  - DOMAIN-SUFFIX,googlevideo.com,📺 流媒体
 
+  # Streaming
   - DOMAIN-SUFFIX,netflix.com,📺 流媒体
   - DOMAIN-SUFFIX,nflxvideo.net,📺 流媒体
   - DOMAIN-SUFFIX,disney.com,📺 流媒体
   - DOMAIN-SUFFIX,disneyplus.com,📺 流媒体
 
+  # Social Media
   - DOMAIN-SUFFIX,twitter.com,🚀 节点选择
   - DOMAIN-SUFFIX,x.com,🚀 节点选择
   - DOMAIN-SUFFIX,facebook.com,🚀 节点选择
   - DOMAIN-SUFFIX,instagram.com,🚀 节点选择
 
+  # AI Services
   - DOMAIN-SUFFIX,openai.com,🚀 节点选择
   - DOMAIN-SUFFIX,claude.ai,🚀 节点选择
   - DOMAIN-SUFFIX,anthropic.com,🚀 节点选择
+  - DOMAIN-SUFFIX,chatgpt.com,🚀 节点选择
 
+  # GitHub
+  - DOMAIN-SUFFIX,github.com,🚀 节点选择
+  - DOMAIN-SUFFIX,githubusercontent.com,🚀 节点选择
+
+  # China direct
   - DOMAIN-SUFFIX,cn,DIRECT
   - DOMAIN-SUFFIX,baidu.com,DIRECT
   - DOMAIN-SUFFIX,taobao.com,DIRECT
   - DOMAIN-SUFFIX,aliyun.com,DIRECT
   - DOMAIN-SUFFIX,qq.com,DIRECT
   - DOMAIN-SUFFIX,weixin.qq.com,DIRECT
+  - DOMAIN-SUFFIX,bilibili.com,DIRECT
+  - DOMAIN-SUFFIX,zhihu.com,DIRECT
   - GEOIP,CN,DIRECT
 
+  # Final rule
   - MATCH,🐟 漏网之鱼
