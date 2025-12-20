@@ -1,7 +1,7 @@
 # ============================================================
 # VituFinance Self-Hosted Proxy Configuration
-# Server: 154.89.152.210
-# For internal use only
+# Server Location: Hong Kong 🇭🇰
+# IP: 154.89.152.210
 # ============================================================
 
 mixed-port: 7897
@@ -25,11 +25,11 @@ dns:
     - https://cloudflare-dns.com/dns-query
 
 # ============================================================
-# Self-Hosted Proxy Servers on VituFinance Server
+# Self-Hosted Proxy Servers - Hong Kong
 # ============================================================
 proxies:
-  # AES-128-GCM node (fast, secure)
-  - name: "🚀 VituFinance-AES"
+  # Hong Kong - AES-128-GCM (fast)
+  - name: "🇭🇰 香港01 | AES"
     type: ss
     server: 154.89.152.210
     port: 18388
@@ -37,8 +37,8 @@ proxies:
     password: "NfCWpBYylZEBza6etdsrb0xiYaZY2G9j"
     udp: true
 
-  # ChaCha20 node (best for mobile)
-  - name: "📱 VituFinance-ChaCha"
+  # Hong Kong - ChaCha20 (mobile optimized)
+  - name: "🇭🇰 香港02 | ChaCha20"
     type: ss
     server: 154.89.152.210
     port: 18389
@@ -46,8 +46,8 @@ proxies:
     password: "NfCWpBYylZEBza6etdsrb0xiYaZY2G9j"
     udp: true
 
-  # AES-256-GCM node (most secure)
-  - name: "🔒 VituFinance-AES256"
+  # Hong Kong - AES-256-GCM (most secure)
+  - name: "🇭🇰 香港03 | AES256"
     type: ss
     server: 154.89.152.210
     port: 18390
@@ -62,18 +62,18 @@ proxy-groups:
   - name: "🚀 节点选择"
     type: select
     proxies:
-      - "🚀 VituFinance-AES"
-      - "📱 VituFinance-ChaCha"
-      - "🔒 VituFinance-AES256"
+      - "🇭🇰 香港01 | AES"
+      - "🇭🇰 香港02 | ChaCha20"
+      - "🇭🇰 香港03 | AES256"
       - "♻️ 自动选择"
       - DIRECT
 
   - name: "♻️ 自动选择"
     type: url-test
     proxies:
-      - "🚀 VituFinance-AES"
-      - "📱 VituFinance-ChaCha"
-      - "🔒 VituFinance-AES256"
+      - "🇭🇰 香港01 | AES"
+      - "🇭🇰 香港02 | ChaCha20"
+      - "🇭🇰 香港03 | AES256"
     url: http://www.gstatic.com/generate_204
     interval: 300
     tolerance: 50
@@ -82,14 +82,14 @@ proxy-groups:
     type: select
     proxies:
       - "🚀 节点选择"
-      - "🚀 VituFinance-AES"
+      - "🇭🇰 香港01 | AES"
       - DIRECT
 
   - name: "📲 电报消息"
     type: select
     proxies:
       - "🚀 节点选择"
-      - "🚀 VituFinance-AES"
+      - "🇭🇰 香港01 | AES"
       - DIRECT
 
   - name: "🐟 漏网之鱼"
@@ -102,7 +102,6 @@ proxy-groups:
 # Rules
 # ============================================================
 rules:
-  # Local network
   - DOMAIN-SUFFIX,local,DIRECT
   - IP-CIDR,127.0.0.0/8,DIRECT
   - IP-CIDR,172.16.0.0/12,DIRECT
@@ -110,42 +109,35 @@ rules:
   - IP-CIDR,10.0.0.0/8,DIRECT
   - IP-CIDR,100.64.0.0/10,DIRECT
 
-  # Telegram
   - DOMAIN-SUFFIX,telegram.org,📲 电报消息
   - DOMAIN-SUFFIX,t.me,📲 电报消息
   - IP-CIDR,91.108.0.0/16,📲 电报消息
   - IP-CIDR,149.154.160.0/20,📲 电报消息
 
-  # Google
   - DOMAIN-SUFFIX,google.com,🚀 节点选择
   - DOMAIN-SUFFIX,googleapis.com,🚀 节点选择
   - DOMAIN-SUFFIX,youtube.com,📺 流媒体
   - DOMAIN-SUFFIX,ytimg.com,📺 流媒体
   - DOMAIN-SUFFIX,googlevideo.com,📺 流媒体
 
-  # Streaming
   - DOMAIN-SUFFIX,netflix.com,📺 流媒体
   - DOMAIN-SUFFIX,nflxvideo.net,📺 流媒体
   - DOMAIN-SUFFIX,disney.com,📺 流媒体
   - DOMAIN-SUFFIX,disneyplus.com,📺 流媒体
 
-  # Social Media
   - DOMAIN-SUFFIX,twitter.com,🚀 节点选择
   - DOMAIN-SUFFIX,x.com,🚀 节点选择
   - DOMAIN-SUFFIX,facebook.com,🚀 节点选择
   - DOMAIN-SUFFIX,instagram.com,🚀 节点选择
 
-  # AI Services
   - DOMAIN-SUFFIX,openai.com,🚀 节点选择
   - DOMAIN-SUFFIX,claude.ai,🚀 节点选择
   - DOMAIN-SUFFIX,anthropic.com,🚀 节点选择
   - DOMAIN-SUFFIX,chatgpt.com,🚀 节点选择
 
-  # GitHub
   - DOMAIN-SUFFIX,github.com,🚀 节点选择
   - DOMAIN-SUFFIX,githubusercontent.com,🚀 节点选择
 
-  # China direct
   - DOMAIN-SUFFIX,cn,DIRECT
   - DOMAIN-SUFFIX,baidu.com,DIRECT
   - DOMAIN-SUFFIX,taobao.com,DIRECT
@@ -156,5 +148,4 @@ rules:
   - DOMAIN-SUFFIX,zhihu.com,DIRECT
   - GEOIP,CN,DIRECT
 
-  # Final rule
   - MATCH,🐟 漏网之鱼
