@@ -234,29 +234,31 @@ const loadTotalAmount = async () => {
   }
 }
 
-// CEX 机器人数据（使用小时数 durationHours 作为基准）
+// CEX 机器人数据（使用小时数 durationHours 作为基准）- 2024-12-21 修复收益率
+// 收益计算公式: totalReturn = price + (price × dailyProfit% × days)
 const cexRobots = ref([
   { id: 'binance_01', name: 'Binance Ai Bot', nameKey: 'robotPage.robotName', logo: '/static/CEX-Robots/图标.png', orders: 5, dailyProfit: 2.0, totalReturn: 20.4, durationHours: 24, limit: 1, price: 20 },
   { id: 'coinbase_01', name: 'Coinbase Ai Bot', nameKey: 'robotPage.coinbaseRobotName', logo: '/static/CEX-Robots/3.png', orders: 8, dailyProfit: 2.0, totalReturn: 106, durationHours: 72, limit: 1, price: 100 },
   { id: 'okx_01', name: 'OKX Ai Bot', nameKey: 'robotPage.okxRobotName', logo: '/static/CEX-Robots/6.png', orders: 12, dailyProfit: 2.0, totalReturn: 312, durationHours: 48, limit: 1, price: 300 },
   { id: 'bybit_01', name: 'Bybit Ai Bot', nameKey: 'robotPage.bybitRobotName', logo: '/static/CEX-Robots/5.png', orders: 15, dailyProfit: 1.5, totalReturn: 884, durationHours: 168, limit: 2, price: 800 },
-  { id: 'upbit_01', name: 'Upbit Ai Bot', nameKey: 'robotPage.upbitRobotName', logo: '/static/CEX-Robots/7.png', orders: 18, dailyProfit: 1.8, totalReturn: 2032, durationHours: 360, limit: 2, price: 1600 },
-  { id: 'bitfinex_01', name: 'Bitfinex Ai Bot', nameKey: 'robotPage.bitfinexRobotName', logo: '/static/CEX-Robots/2.png', orders: 25, dailyProfit: 2.0, totalReturn: 5120, durationHours: 720, limit: 2, price: 3200 },
-  { id: 'kucoin_01', name: 'Kucoin Ai Bot', nameKey: 'robotPage.kucoinRobotName', logo: '/static/CEX-Robots/15.png', orders: 30, dailyProfit: 2.2, totalReturn: 13532, durationHours: 1080, limit: 2, price: 6800 },
-  { id: 'bitget_01', name: 'Bitget Ai Bot', nameKey: 'robotPage.bitgetRobotName', logo: '/static/CEX-Robots/14.png', orders: 45, dailyProfit: 2.5, totalReturn: 32500, durationHours: 2160, limit: 2, price: 10000 },
-  { id: 'gate_01', name: 'Gate Ai Bot', nameKey: 'robotPage.gateRobotName', logo: '/static/CEX-Robots/9.png', orders: 50, dailyProfit: 3.0, totalReturn: 92000, durationHours: 2880, limit: 2, price: 20000 },
-  { id: 'binance_02', name: 'Binance Ai Bot-01', nameKey: 'robotPage.binanceBot01Name', logo: '/static/CEX-Robots/图标.png', orders: 60, dailyProfit: 4.2, totalReturn: 400608, durationHours: 4320, limit: 2, price: 46800 }
+  { id: 'upbit_01', name: 'Upbit Ai Bot', nameKey: 'robotPage.upbitRobotName', logo: '/static/CEX-Robots/7.png', orders: 18, dailyProfit: 1.2, totalReturn: 1888, durationHours: 360, limit: 2, price: 1600 },
+  { id: 'bitfinex_01', name: 'Bitfinex Ai Bot', nameKey: 'robotPage.bitfinexRobotName', logo: '/static/CEX-Robots/2.png', orders: 25, dailyProfit: 0.8, totalReturn: 3968, durationHours: 720, limit: 2, price: 3200 },
+  { id: 'kucoin_01', name: 'Kucoin Ai Bot', nameKey: 'robotPage.kucoinRobotName', logo: '/static/CEX-Robots/15.png', orders: 30, dailyProfit: 0.5, totalReturn: 8330, durationHours: 1080, limit: 2, price: 6800 },
+  { id: 'bitget_01', name: 'Bitget Ai Bot', nameKey: 'robotPage.bitgetRobotName', logo: '/static/CEX-Robots/14.png', orders: 45, dailyProfit: 0.5, totalReturn: 14500, durationHours: 2160, limit: 2, price: 10000 },
+  { id: 'gate_01', name: 'Gate Ai Bot', nameKey: 'robotPage.gateRobotName', logo: '/static/CEX-Robots/9.png', orders: 50, dailyProfit: 0.5, totalReturn: 32000, durationHours: 2880, limit: 2, price: 20000 },
+  { id: 'binance_02', name: 'Binance Ai Bot-01', nameKey: 'robotPage.binanceBot01Name', logo: '/static/CEX-Robots/图标.png', orders: 60, dailyProfit: 0.5, totalReturn: 88920, durationHours: 4320, limit: 2, price: 46800 }
 ])
 
-// DEX 机器人数据（使用小时数 durationHours 作为基准）
+// DEX 机器人数据（使用小时数 durationHours 作为基准）- 2024-12-21 修复收益率
+// 收益计算公式: totalReturn = price + (price × dailyProfit% × days)
 const dexRobots = ref([
-  { id: 'pancake_01', name: 'PancakeSwap Ai Bot', nameKey: 'robotPage.pancakeSwapRobotName', logo: '/static/DEX-Robots/1.png', orders: 6, dailyProfit: 1.8, totalReturn: 1540, durationHours: 720, limit: 1, price: 1000, showNote: true },
-  { id: 'uniswap_01', name: 'Uniswap Ai Bot', nameKey: 'robotPage.uniswapRobotName', logo: '/static/DEX-Robots/2.png', orders: 10, dailyProfit: 2.0, totalReturn: 3200, durationHours: 720, limit: 1, price: 2000, showNote: true },
-  { id: 'baseswap_01', name: 'BaseSwap Ai Bot', nameKey: 'robotPage.baseSwapRobotName', logo: '/static/DEX-Robots/3.png', orders: 15, dailyProfit: 2.2, totalReturn: 4980, durationHours: 720, limit: 1, price: 3000, showNote: true },
-  { id: 'sushiswap_01', name: 'SushiSwap Ai Bot', nameKey: 'robotPage.sushiSwapRobotName', logo: '/static/DEX-Robots/4.png', orders: 20, dailyProfit: 2.5, totalReturn: 12500, durationHours: 1440, limit: 1, price: 5000, showNote: true },
-  { id: 'jupiter_01', name: 'Jupiter Ai Bot', nameKey: 'robotPage.jupiterRobotName', logo: '/static/DEX-Robots/5.png', orders: 30, dailyProfit: 2.8, totalReturn: 26800, durationHours: 1440, limit: 1, price: 10000, showNote: true },
-  { id: 'curve_01', name: 'Curve Ai Bot', nameKey: 'robotPage.curveRobotName', logo: '/static/DEX-Robots/6.png', orders: 50, dailyProfit: 3.5, totalReturn: 61500, durationHours: 720, limit: 1, price: 30000, showNote: true, locked: true },
-  { id: 'dodo_01', name: 'DODO Ai Bot', nameKey: 'robotPage.dodoRobotName', logo: '/static/DEX-Robots/7.png', orders: 60, dailyProfit: 4.0, totalReturn: 132000, durationHours: 720, limit: 1, price: 60000, showNote: true, locked: true }
+  { id: 'pancake_01', name: 'PancakeSwap Ai Bot', nameKey: 'robotPage.pancakeSwapRobotName', logo: '/static/DEX-Robots/1.png', orders: 6, dailyProfit: 0.6, totalReturn: 1180, durationHours: 720, limit: 1, price: 1000, showNote: true },
+  { id: 'uniswap_01', name: 'Uniswap Ai Bot', nameKey: 'robotPage.uniswapRobotName', logo: '/static/DEX-Robots/2.png', orders: 10, dailyProfit: 0.6, totalReturn: 2360, durationHours: 720, limit: 1, price: 2000, showNote: true },
+  { id: 'baseswap_01', name: 'BaseSwap Ai Bot', nameKey: 'robotPage.baseSwapRobotName', logo: '/static/DEX-Robots/3.png', orders: 15, dailyProfit: 0.6, totalReturn: 3540, durationHours: 720, limit: 1, price: 3000, showNote: true },
+  { id: 'sushiswap_01', name: 'SushiSwap Ai Bot', nameKey: 'robotPage.sushiSwapRobotName', logo: '/static/DEX-Robots/4.png', orders: 20, dailyProfit: 0.5, totalReturn: 6500, durationHours: 1440, limit: 1, price: 5000, showNote: true },
+  { id: 'jupiter_01', name: 'Jupiter Ai Bot', nameKey: 'robotPage.jupiterRobotName', logo: '/static/DEX-Robots/5.png', orders: 30, dailyProfit: 0.5, totalReturn: 13000, durationHours: 1440, limit: 1, price: 10000, showNote: true },
+  { id: 'curve_01', name: 'Curve Ai Bot', nameKey: 'robotPage.curveRobotName', logo: '/static/DEX-Robots/6.png', orders: 50, dailyProfit: 0.3, totalReturn: 32700, durationHours: 720, limit: 1, price: 30000, showNote: true, locked: true },
+  { id: 'dodo_01', name: 'DODO Ai Bot', nameKey: 'robotPage.dodoRobotName', logo: '/static/DEX-Robots/7.png', orders: 60, dailyProfit: 0.15, totalReturn: 62700, durationHours: 720, limit: 1, price: 60000, showNote: true, locked: true }
 ])
 
 // 格式化金额显示

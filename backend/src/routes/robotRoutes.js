@@ -232,11 +232,19 @@ router.post('/api/robot/purchase', sensitiveLimiter, async (req, res) => {
             }
         }
         
-        // 5. 查询用户余额
+        // 5. 查询用户余额（同时检查是否被冻结）
         const userBalance = await dbQuery(
-            'SELECT usdt_balance FROM user_balances WHERE wallet_address = ?',
+            'SELECT usdt_balance, is_banned FROM user_balances WHERE wallet_address = ?',
             [walletAddr]
         );
+        
+        // 检查账户是否被冻结
+        if (userBalance.length > 0 && userBalance[0].is_banned === 1) {
+            return res.status(403).json({
+                success: false,
+                message: 'Your account has been suspended. Please contact support.'
+            });
+        }
         
         // #region agent log
         fetch('http://localhost:7242/ingest/10a0bbc0-f589-4d17-9d7f-29d4e679320a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'robotRoutes.js:226',message:'Robot purchase - balance check',data:{wallet:walletAddr.slice(0,10),balance:userBalance.length>0?parseFloat(userBalance[0].usdt_balance):null,robotPrice,robotName:robot_name},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
@@ -464,6 +472,18 @@ router.post('/api/robot/quantify', quantifyLimiter, async (req, res) => {
             });
         }
         
+        // 1.5 检查账户是否被冻结
+        const userStatus = await dbQuery(
+            'SELECT is_banned FROM user_balances WHERE wallet_address = ?',
+            [walletAddr]
+        );
+        if (userStatus.length > 0 && userStatus[0].is_banned === 1) {
+            return res.status(403).json({
+                success: false,
+                message: 'Your account has been suspended. Please contact support.'
+            });
+        }
+        
         // 2. 获取机器人购买记录（使用 end_time 判断是否到期）
         const robots = await dbQuery(
             `SELECT * FROM robot_purchases 
@@ -546,7 +566,21 @@ router.post('/api/robot/quantify', quantifyLimiter, async (req, res) => {
         }
         
         // 5. 处理 CEX/DEX/Grid 机器人（每次量化获得收益）
-        const earnings = calculateQuantifyEarnings(robot.robot_name, parseFloat(robot.price));
+        let earnings = calculateQuantifyEarnings(robot.robot_name, parseFloat(robot.price));
+        
+        // 安全检查：单次量化收益不能超过本金的5%（防止配置错误导致异常收益）
+        const maxEarnings = parseFloat(robot.price) * 0.05;
+        if (earnings > maxEarnings) {
+            console.warn(`[Quantify Security] Earnings ${earnings} exceeds max ${maxEarnings}, capping to max`);
+            earnings = maxEarnings;
+        }
+        
+        // 安全检查：单次量化收益不能超过500 USDT
+        const absoluteMaxEarnings = 500;
+        if (earnings > absoluteMaxEarnings) {
+            console.warn(`[Quantify Security] Earnings ${earnings} exceeds absolute max ${absoluteMaxEarnings}, capping`);
+            earnings = absoluteMaxEarnings;
+        }
         
         // 6. 插入量化记录
         await dbQuery(

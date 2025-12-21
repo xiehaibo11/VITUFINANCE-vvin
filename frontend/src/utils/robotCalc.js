@@ -14,32 +14,36 @@
 // ============================================================================
 
 /**
- * CEX机器人配置表
+ * CEX机器人配置表 - 2024-12-21 修复收益率（与后端同步）
+ * 收益计算公式: dailyEarning = price × dailyProfit%
+ * 总回报公式: totalReturn = price + (price × dailyProfit% × days)
  */
 export const CEX_ROBOTS = [
     { id: 'binance_01', name: 'Binance Ai Bot', price: 20, dailyProfit: 2.0, durationHours: 24 },
     { id: 'coinbase_01', name: 'Coinbase Ai Bot', price: 100, dailyProfit: 2.0, durationHours: 72 },
     { id: 'okx_01', name: 'OKX Ai Bot', price: 300, dailyProfit: 2.0, durationHours: 48 },
     { id: 'bybit_01', name: 'Bybit Ai Bot', price: 800, dailyProfit: 1.5, durationHours: 168 },
-    { id: 'upbit_01', name: 'Upbit Ai Bot', price: 1600, dailyProfit: 1.8, durationHours: 360 },
-    { id: 'bitfinex_01', name: 'Bitfinex Ai Bot', price: 3200, dailyProfit: 2.0, durationHours: 720 },
-    { id: 'kucoin_01', name: 'Kucoin Ai Bot', price: 6800, dailyProfit: 2.2, durationHours: 1080 },
-    { id: 'bitget_01', name: 'Bitget Ai Bot', price: 10000, dailyProfit: 2.5, durationHours: 2160 },
-    { id: 'gate_01', name: 'Gate Ai Bot', price: 20000, dailyProfit: 3.0, durationHours: 2880 },
-    { id: 'binance_02', name: 'Binance Ai Bot-01', price: 46800, dailyProfit: 4.2, durationHours: 4320 }
+    { id: 'upbit_01', name: 'Upbit Ai Bot', price: 1600, dailyProfit: 1.2, durationHours: 360 },
+    { id: 'bitfinex_01', name: 'Bitfinex Ai Bot', price: 3200, dailyProfit: 0.8, durationHours: 720 },
+    { id: 'kucoin_01', name: 'Kucoin Ai Bot', price: 6800, dailyProfit: 0.5, durationHours: 1080 },
+    { id: 'bitget_01', name: 'Bitget Ai Bot', price: 10000, dailyProfit: 0.5, durationHours: 2160 },
+    { id: 'gate_01', name: 'Gate Ai Bot', price: 20000, dailyProfit: 0.5, durationHours: 2880 },
+    { id: 'binance_02', name: 'Binance Ai Bot-01', price: 46800, dailyProfit: 0.5, durationHours: 4320 }
 ];
 
 /**
- * DEX机器人配置表
+ * DEX机器人配置表 - 2024-12-21 修复收益率（与后端同步）
+ * 收益计算公式: dailyEarning = price × dailyProfit%
+ * 总回报公式: totalReturn = price + (price × dailyProfit% × days)
  */
 export const DEX_ROBOTS = [
-    { id: 'pancake_01', name: 'PancakeSwap Ai Bot', price: 1000, dailyProfit: 1.8, durationHours: 720 },
-    { id: 'uniswap_01', name: 'Uniswap Ai Bot', price: 2000, dailyProfit: 2.0, durationHours: 720 },
-    { id: 'baseswap_01', name: 'BaseSwap Ai Bot', price: 3000, dailyProfit: 2.2, durationHours: 720 },
-    { id: 'sushiswap_01', name: 'SushiSwap Ai Bot', price: 5000, dailyProfit: 2.5, durationHours: 1440 },
-    { id: 'jupiter_01', name: 'Jupiter Ai Bot', price: 10000, dailyProfit: 2.8, durationHours: 1440 },
-    { id: 'curve_01', name: 'Curve Ai Bot', price: 30000, dailyProfit: 3.5, durationHours: 720 },
-    { id: 'dodo_01', name: 'DODO Ai Bot', price: 60000, dailyProfit: 4.0, durationHours: 720 }
+    { id: 'pancake_01', name: 'PancakeSwap Ai Bot', price: 1000, dailyProfit: 0.6, durationHours: 720 },
+    { id: 'uniswap_01', name: 'Uniswap Ai Bot', price: 2000, dailyProfit: 0.6, durationHours: 720 },
+    { id: 'baseswap_01', name: 'BaseSwap Ai Bot', price: 3000, dailyProfit: 0.6, durationHours: 720 },
+    { id: 'sushiswap_01', name: 'SushiSwap Ai Bot', price: 5000, dailyProfit: 0.5, durationHours: 1440 },
+    { id: 'jupiter_01', name: 'Jupiter Ai Bot', price: 10000, dailyProfit: 0.5, durationHours: 1440 },
+    { id: 'curve_01', name: 'Curve Ai Bot', price: 30000, dailyProfit: 0.3, durationHours: 720 },
+    { id: 'dodo_01', name: 'DODO Ai Bot', price: 60000, dailyProfit: 0.15, durationHours: 720 }
 ];
 
 // ============================================================================

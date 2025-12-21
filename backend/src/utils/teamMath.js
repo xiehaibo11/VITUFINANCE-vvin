@@ -1,35 +1,46 @@
 /**
- * 团队奖励数学模型 - Team Rewards Mathematical Model
+ * Team Rewards Mathematical Model
  * 
- * 本模块提供团队经纪人等级系统的数学计算、分析和验证工具
+ * Provides team broker level system calculation, analysis, and verification tools
  * 
- * 等级体系：
- * - 1级经纪人：直推5人，业绩>1,000 USDT
- * - 2级经纪人：直推10人，2名1级经纪人，业绩>5,000 USDT
- * - 3级经纪人：直推20人，2名2级经纪人，业绩>20,000 USDT
- * - 4级经纪人：直推30人，2名3级经纪人，业绩>80,000 USDT
- * - 5级经纪人：直推50人，2名4级经纪人，业绩>200,000 USDT
+ * 2024-12-21 FIX: Reduced dividend amounts to prevent company losses
+ * 
+ * Level System (after fix):
+ * - Level 1: 5 direct referrals, >1,000 USDT performance, 2 USDT/day
+ * - Level 2: 10 direct referrals, 2 L1 brokers, >5,000 USDT, 5 USDT/day
+ * - Level 3: 20 direct referrals, 2 L2 brokers, >20,000 USDT, 15 USDT/day
+ * - Level 4: 30 direct referrals, 2 L3 brokers, >80,000 USDT, 50 USDT/day
+ * - Level 5: 50 direct referrals, 2 L4 brokers, >200,000 USDT, 150 USDT/day
  */
 
 // ============================================================================
-// 常量定义 - 经纪人等级配置
+// Safety Limits Configuration
+// ============================================================================
+const TEAM_SAFETY_LIMITS = {
+    MAX_DAILY_DIVIDEND: 200,         // Max daily dividend 200 USDT
+    MAX_DAILY_WLD: 20,               // Max daily WLD 20 WLD
+    MAX_TOTAL_DAILY_PAYOUT: 5000,    // Platform max daily payout 5000 USDT
+};
+
+// ============================================================================
+// Constants - Broker Level Configuration (2024-12-21 FIXED - Much Lower!)
 // ============================================================================
 
 /**
- * 经纪人等级配置表
+ * Broker Level Configuration Table
  * 
- * 数学模型：
- * - minDirectReferrals: 最小直推人数要求 (购买>=20U机器人)
- * - minSubBrokers: 最小下级经纪人数量 (需要几名低一级经纪人)
- * - minTeamPerformance: 最小团队业绩要求 (USDT)
- * - dailyDividend: 每日分红 (USDT)
- * - monthlyIncome: 每月收入 (USDT)
- * - dailyWLD: 每日可兑换WLD数量
+ * Math Model:
+ * - minDirectReferrals: Min direct referrals (purchased >=20U robot)
+ * - minSubBrokers: Min sub-brokers (need N lower level brokers)
+ * - minTeamPerformance: Min team performance (USDT)
+ * - dailyDividend: Daily dividend (USDT) - MUCH REDUCED!
+ * - monthlyIncome: Monthly income (USDT)
+ * - dailyWLD: Daily WLD amount
  */
 const BROKER_LEVELS = [
     {
         level: 0,
-        name: '普通用户',
+        name: 'Regular User',
         minDirectReferrals: 0,
         minSubBrokers: 0,
         subBrokerLevel: 0,
@@ -40,94 +51,93 @@ const BROKER_LEVELS = [
     },
     {
         level: 1,
-        name: '一级经纪人',
-        minDirectReferrals: 5,      // 直推5人
-        minSubBrokers: 0,           // 无下级经纪人要求
-        subBrokerLevel: 0,          // 无要求
-        minTeamPerformance: 1000,   // 业绩>1,000 USDT
-        dailyDividend: 5,           // 每日分红5 USDT
-        monthlyIncome: 150,         // 每月150 USDT
-        dailyWLD: 1                 // 每日1 WLD
+        name: 'Level 1 Broker',
+        minDirectReferrals: 5,
+        minSubBrokers: 0,
+        subBrokerLevel: 0,
+        minTeamPerformance: 1000,
+        dailyDividend: 2,           // Fixed: was 5, now 2 USDT/day
+        monthlyIncome: 60,
+        dailyWLD: 0.5
     },
     {
         level: 2,
-        name: '二级经纪人',
-        minDirectReferrals: 10,     // 直推10人
-        minSubBrokers: 2,           // 需要2名下级经纪人
-        subBrokerLevel: 1,          // 需要1级经纪人
-        minTeamPerformance: 5000,   // 业绩>5,000 USDT
-        dailyDividend: 15,          // 每日分红15 USDT
-        monthlyIncome: 450,         // 每月450 USDT
-        dailyWLD: 2                 // 每日2 WLD
+        name: 'Level 2 Broker',
+        minDirectReferrals: 10,
+        minSubBrokers: 2,
+        subBrokerLevel: 1,
+        minTeamPerformance: 5000,
+        dailyDividend: 5,           // Fixed: was 15, now 5 USDT/day
+        monthlyIncome: 150,
+        dailyWLD: 1
     },
     {
         level: 3,
-        name: '三级经纪人',
-        minDirectReferrals: 20,     // 直推20人
-        minSubBrokers: 2,           // 需要2名下级经纪人
-        subBrokerLevel: 2,          // 需要2级经纪人
-        minTeamPerformance: 20000,  // 业绩>20,000 USDT
-        dailyDividend: 60,          // 每日分红60 USDT
-        monthlyIncome: 1800,        // 每月1,800 USDT
-        dailyWLD: 3                 // 每日3 WLD
+        name: 'Level 3 Broker',
+        minDirectReferrals: 20,
+        minSubBrokers: 2,
+        subBrokerLevel: 2,
+        minTeamPerformance: 20000,
+        dailyDividend: 15,          // Fixed: was 60, now 15 USDT/day
+        monthlyIncome: 450,
+        dailyWLD: 2
     },
     {
         level: 4,
-        name: '四级经纪人',
-        minDirectReferrals: 30,     // 直推30人
-        minSubBrokers: 2,           // 需要2名下级经纪人
-        subBrokerLevel: 3,          // 需要3级经纪人
-        minTeamPerformance: 80000,  // 业绩>80,000 USDT
-        dailyDividend: 300,         // 每日分红300 USDT
-        monthlyIncome: 9000,        // 每月9,000 USDT
-        dailyWLD: 5                 // 每日5 WLD
+        name: 'Level 4 Broker',
+        minDirectReferrals: 30,
+        minSubBrokers: 2,
+        subBrokerLevel: 3,
+        minTeamPerformance: 80000,
+        dailyDividend: 50,          // Fixed: was 300, now 50 USDT/day
+        monthlyIncome: 1500,
+        dailyWLD: 3
     },
     {
         level: 5,
-        name: '五级经纪人',
-        minDirectReferrals: 50,     // 直推50人
-        minSubBrokers: 2,           // 需要2名下级经纪人
-        subBrokerLevel: 4,          // 需要4级经纪人
-        minTeamPerformance: 200000, // 业绩>200,000 USDT
-        dailyDividend: 1000,        // 每日分红1,000 USDT
-        monthlyIncome: 30000,       // 每月30,000 USDT
-        dailyWLD: 10                // 每日10 WLD
+        name: 'Level 5 Broker',
+        minDirectReferrals: 50,
+        minSubBrokers: 2,
+        subBrokerLevel: 4,
+        minTeamPerformance: 200000,
+        dailyDividend: 150,         // Fixed: was 1000, now 150 USDT/day
+        monthlyIncome: 4500,
+        dailyWLD: 5
     }
 ];
 
 /**
- * 最低购买金额要求（只有>=20U的机器人才计入团队）
- * 注：与充值最低金额保持一致
+ * Minimum purchase amount requirement (only >=20U robots count for team)
  */
 const MIN_ROBOT_PURCHASE = 20;
 
 // ============================================================================
-// 核心计算函数
+// Core Calculation Functions
 // ============================================================================
 
 /**
- * 获取经纪人等级配置
+ * Get broker level configuration
  * 
- * @param {number} level - 等级 (0-5)
- * @returns {Object} 等级配置
+ * @param {number} level - Level (0-5)
+ * @returns {Object} Level configuration
  */
 function getBrokerLevelConfig(level) {
     if (level < 0 || level > 5) {
-        return BROKER_LEVELS[0]; // 返回普通用户配置
+        return BROKER_LEVELS[0];
     }
     return BROKER_LEVELS[level];
 }
 
 /**
- * 计算用户当前应该达到的经纪人等级
+ * Calculate user's current broker level
  * 
- * 算法：从最高级别向下检查，返回第一个满足条件的等级
+ * Algorithm: Check from highest to lowest, return first qualified level
  * 
- * @param {Object} userData - 用户数据
- * @param {number} userData.directReferrals - 合格直推人数 (购买>=100U机器人)
- * @param {number} userData.teamPerformance - 团队总业绩
- * @param {Array<number>} userData.subBrokerCounts - 各级别经纪人数量 [0级数量, 1级数量, 2级数量, ...]
- * @returns {Object} 等级评估结果
+ * @param {Object} userData - User data
+ * @param {number} userData.directReferrals - Qualified direct referrals
+ * @param {number} userData.teamPerformance - Team total performance
+ * @param {Array<number>} userData.subBrokerCounts - Sub-broker counts by level
+ * @returns {Object} Level evaluation result
  */
 function calculateBrokerLevel(userData) {
     const { directReferrals = 0, teamPerformance = 0, subBrokerCounts = [] } = userData;
@@ -135,7 +145,7 @@ function calculateBrokerLevel(userData) {
     let qualifiedLevel = 0;
     const evaluations = [];
     
-    // 从高到低检查各等级
+    // Check from high to low
     for (let level = 5; level >= 1; level--) {
         const config = BROKER_LEVELS[level];
         const evaluation = evaluateLevelRequirements(
@@ -156,37 +166,32 @@ function calculateBrokerLevel(userData) {
         currentLevel: qualifiedLevel,
         levelName: BROKER_LEVELS[qualifiedLevel].name,
         config: BROKER_LEVELS[qualifiedLevel],
-        evaluations: evaluations.reverse(), // 从1级到5级排列
+        evaluations: evaluations.reverse(),
         userData
     };
 }
 
 /**
- * 评估单个等级的要求是否满足
+ * Evaluate if single level requirements are met
  * 
- * 数学公式：
- * qualified = (directReferrals >= minDirectReferrals) 
- *          && (teamPerformance > minTeamPerformance)
- *          && (subBrokerCount >= minSubBrokers)
- * 
- * @param {number} level - 目标等级
- * @param {number} directReferrals - 合格直推人数
- * @param {number} teamPerformance - 团队总业绩
- * @param {Array<number>} subBrokerCounts - 各级别经纪人数量
- * @returns {Object} 评估结果
+ * @param {number} level - Target level
+ * @param {number} directReferrals - Qualified direct referrals
+ * @param {number} teamPerformance - Team total performance
+ * @param {Array<number>} subBrokerCounts - Sub-broker counts by level
+ * @returns {Object} Evaluation result
  */
 function evaluateLevelRequirements(level, directReferrals, teamPerformance, subBrokerCounts) {
     const config = BROKER_LEVELS[level];
     
-    // 检查直推人数
+    // Check direct referrals
     const directCheck = directReferrals >= config.minDirectReferrals;
     const directGap = Math.max(0, config.minDirectReferrals - directReferrals);
     
-    // 检查团队业绩
+    // Check team performance
     const performanceCheck = teamPerformance > config.minTeamPerformance;
     const performanceGap = Math.max(0, config.minTeamPerformance - teamPerformance + 1);
     
-    // 检查下级经纪人
+    // Check sub-brokers
     let subBrokerCheck = true;
     let subBrokerGap = 0;
     
@@ -233,16 +238,11 @@ function evaluateLevelRequirements(level, directReferrals, teamPerformance, subB
 }
 
 /**
- * 计算经纪人奖励
+ * Calculate broker rewards
  * 
- * 数学公式：
- * - 日奖励 = dailyDividend
- * - 月奖励 = monthlyIncome (= dailyDividend × 30)
- * - WLD奖励 = dailyWLD
- * 
- * @param {number} level - 经纪人等级
- * @param {number} days - 计算天数
- * @returns {Object} 奖励计算结果
+ * @param {number} level - Broker level
+ * @param {number} days - Number of days
+ * @returns {Object} Reward calculation result
  */
 function calculateBrokerRewards(level, days = 1) {
     const config = getBrokerLevelConfig(level);
@@ -261,21 +261,21 @@ function calculateBrokerRewards(level, days = 1) {
             income: config.monthlyIncome,
             days: 30,
             verification: config.dailyDividend * 30 === config.monthlyIncome 
-                ? '✓ 验证通过' 
-                : `⚠ 不一致: ${config.dailyDividend * 30} vs ${config.monthlyIncome}`
+                ? '✓ Verified' 
+                : `⚠ Mismatch: ${config.dailyDividend * 30} vs ${config.monthlyIncome}`
         }
     };
 }
 
 // ============================================================================
-// 升级/降级分析函数
+// Upgrade/Downgrade Analysis Functions
 // ============================================================================
 
 /**
- * 计算升级到下一等级需要的差距
+ * Calculate upgrade gap to next level
  * 
- * @param {Object} userData - 用户数据
- * @returns {Object} 升级差距分析
+ * @param {Object} userData - User data
+ * @returns {Object} Upgrade gap analysis
  */
 function calculateUpgradeGap(userData) {
     const currentResult = calculateBrokerLevel(userData);
@@ -284,9 +284,9 @@ function calculateUpgradeGap(userData) {
     if (currentLevel >= 5) {
         return {
             currentLevel: 5,
-            currentLevelName: '五级经纪人',
+            currentLevelName: 'Level 5 Broker',
             isMaxLevel: true,
-            message: '您已达到最高等级！'
+            message: 'You have reached the highest level!'
         };
     }
     
@@ -320,18 +320,18 @@ function calculateUpgradeGap(userData) {
 }
 
 /**
- * 检查是否会降级
+ * Check demotion risk
  * 
- * @param {number} currentLevel - 当前等级
- * @param {Object} userData - 用户数据
- * @returns {Object} 降级风险分析
+ * @param {number} currentLevel - Current level
+ * @param {Object} userData - User data
+ * @returns {Object} Demotion risk analysis
  */
 function checkDemotionRisk(currentLevel, userData) {
     if (currentLevel <= 0) {
         return {
             currentLevel: 0,
             atRisk: false,
-            message: '您是普通用户，无降级风险'
+            message: 'Regular user, no demotion risk'
         };
     }
     
@@ -345,7 +345,7 @@ function checkDemotionRisk(currentLevel, userData) {
             atRisk: true,
             willDemote: true,
             demotionLevels: currentLevel - newLevel,
-            reason: '未达到当前等级的维持条件',
+            reason: 'Requirements not met',
             requirements: newResult.evaluations[currentLevel - 1].checks
         };
     }
@@ -355,25 +355,23 @@ function checkDemotionRisk(currentLevel, userData) {
         newLevel,
         atRisk: false,
         willDemote: false,
-        message: '您的等级安全，无降级风险'
+        message: 'Level is safe, no demotion risk'
     };
 }
 
 // ============================================================================
-// 团队业绩分析函数
+// Team Performance Analysis Functions
 // ============================================================================
 
 /**
- * 分析团队结构
+ * Analyze team structure
  * 
- * @param {Array} teamMembers - 团队成员数据
- * @returns {Object} 团队结构分析
+ * @param {Array} teamMembers - Team member data
+ * @returns {Object} Team structure analysis
  */
 function analyzeTeamStructure(teamMembers) {
-    // 统计各等级经纪人数量
-    const brokerCounts = [0, 0, 0, 0, 0, 0]; // 0-5级
+    const brokerCounts = [0, 0, 0, 0, 0, 0];
     
-    // 统计合格成员（购买>=100U）
     let qualifiedMembers = 0;
     let totalPerformance = 0;
     
@@ -410,11 +408,11 @@ function analyzeTeamStructure(teamMembers) {
 }
 
 /**
- * 预测收益潜力
+ * Project earnings
  * 
- * @param {number} currentLevel - 当前等级
- * @param {number} projectedDays - 预测天数
- * @returns {Object} 收益预测
+ * @param {number} currentLevel - Current level
+ * @param {number} projectedDays - Projected days
+ * @returns {Object} Earnings projection
  */
 function projectEarnings(currentLevel, projectedDays = 30) {
     const config = getBrokerLevelConfig(currentLevel);
@@ -423,7 +421,6 @@ function projectEarnings(currentLevel, projectedDays = 30) {
     const projectedDividend = dailyTotal * projectedDays;
     const projectedWLD = config.dailyWLD * projectedDays;
     
-    // 与各等级对比
     const comparison = [];
     for (let level = 1; level <= 5; level++) {
         const levelConfig = BROKER_LEVELS[level];
@@ -453,20 +450,19 @@ function projectEarnings(currentLevel, projectedDays = 30) {
 }
 
 // ============================================================================
-// 数学公式推导
+// Math Formula Derivation
 // ============================================================================
 
 /**
- * 生成等级要求的数学公式
+ * Derive level requirement formulas
  */
 function deriveTeamFormulas() {
     return {
-        title: '团队经纪人等级数学模型',
+        title: 'Team Broker Level Math Model',
         
-        // 等级判定公式
         levelDetermination: {
             formula: 'L = max{n : C_direct(n) ∧ C_perf(n) ∧ C_broker(n)}',
-            description: '用户等级 = 满足所有条件的最高等级',
+            description: 'User level = highest level meeting all conditions',
             conditions: {
                 'C_direct(n)': 'directReferrals >= minDirectReferrals[n]',
                 'C_perf(n)': 'teamPerformance > minTeamPerformance[n]',
@@ -474,7 +470,6 @@ function deriveTeamFormulas() {
             }
         },
         
-        // 奖励计算公式
         rewardCalculation: {
             daily: 'R_daily = dailyDividend[L]',
             monthly: 'R_monthly = dailyDividend[L] × 30',
@@ -482,22 +477,21 @@ function deriveTeamFormulas() {
             total: 'R_total(days) = R_daily × days'
         },
         
-        // 等级配置表
         levelTable: BROKER_LEVELS.slice(1).map(config => ({
             level: config.level,
             name: config.name,
             directRequired: `≥ ${config.minDirectReferrals}`,
             performanceRequired: `> ${config.minTeamPerformance.toLocaleString()} USDT`,
             subBrokerRequired: config.minSubBrokers > 0 
-                ? `≥ ${config.minSubBrokers} 名 ${config.subBrokerLevel}级经纪人`
-                : '无',
-            rewards: `${config.dailyDividend}/日, ${config.monthlyIncome}/月, ${config.dailyWLD} WLD/日`
+                ? `≥ ${config.minSubBrokers} L${config.subBrokerLevel} brokers`
+                : 'None',
+            rewards: `${config.dailyDividend}/day, ${config.monthlyIncome}/month, ${config.dailyWLD} WLD/day`
         }))
     };
 }
 
 /**
- * 验证等级配置的数学一致性
+ * Validate level configuration consistency
  */
 function validateLevelConfiguration() {
     const issues = [];
@@ -505,30 +499,30 @@ function validateLevelConfiguration() {
     for (let i = 1; i <= 5; i++) {
         const config = BROKER_LEVELS[i];
         
-        // 验证月收入 = 日收入 × 30
+        // Verify monthly income = daily × 30
         const expectedMonthly = config.dailyDividend * 30;
         if (expectedMonthly !== config.monthlyIncome) {
             issues.push({
                 level: i,
-                issue: `月收入不一致: ${expectedMonthly} vs ${config.monthlyIncome}`,
+                issue: `Monthly income mismatch: ${expectedMonthly} vs ${config.monthlyIncome}`,
                 severity: 'warning'
             });
         }
         
-        // 验证等级递增
+        // Verify level progression
         if (i > 1) {
             const prevConfig = BROKER_LEVELS[i - 1];
             if (config.minDirectReferrals <= prevConfig.minDirectReferrals) {
                 issues.push({
                     level: i,
-                    issue: '直推要求未递增',
+                    issue: 'Direct referrals not increasing',
                     severity: 'error'
                 });
             }
             if (config.minTeamPerformance <= prevConfig.minTeamPerformance) {
                 issues.push({
                     level: i,
-                    issue: '业绩要求未递增',
+                    issue: 'Team performance not increasing',
                     severity: 'error'
                 });
             }
@@ -539,30 +533,26 @@ function validateLevelConfiguration() {
         valid: issues.filter(i => i.severity === 'error').length === 0,
         issues,
         summary: issues.length === 0 
-            ? '✓ 所有等级配置验证通过' 
-            : `⚠ 发现 ${issues.length} 个问题`
+            ? '✓ All level configs validated' 
+            : `⚠ Found ${issues.length} issues`
     };
 }
 
 // ============================================================================
-// 报告生成
+// Report Generation
 // ============================================================================
 
 /**
- * 生成完整的团队数学分析报告
+ * Generate complete team math analysis report
  */
 function generateTeamReport(userData = null) {
     const report = {
-        title: '团队经纪人等级系统分析报告',
+        title: 'Team Broker Level System Analysis Report',
         timestamp: new Date().toISOString(),
         
-        // 配置验证
         configValidation: validateLevelConfiguration(),
-        
-        // 数学公式
         formulas: deriveTeamFormulas(),
         
-        // 等级配置一览
         levelConfigs: BROKER_LEVELS.slice(1).map(config => ({
             level: config.level,
             name: config.name,
@@ -580,7 +570,6 @@ function generateTeamReport(userData = null) {
         }))
     };
     
-    // 如果提供了用户数据，添加用户分析
     if (userData) {
         report.userAnalysis = {
             levelEvaluation: calculateBrokerLevel(userData),
@@ -596,104 +585,36 @@ function generateTeamReport(userData = null) {
 }
 
 // ============================================================================
-// 导出模块
+// Export Module
 // ============================================================================
 
 export {
-    // 常量
+    // Safety limits
+    TEAM_SAFETY_LIMITS,
+    
+    // Constants
     BROKER_LEVELS,
     MIN_ROBOT_PURCHASE,
     
-    // 核心函数
+    // Core functions
     getBrokerLevelConfig,
     calculateBrokerLevel,
     evaluateLevelRequirements,
     calculateBrokerRewards,
     
-    // 升级/降级分析
+    // Upgrade/downgrade analysis
     calculateUpgradeGap,
     checkDemotionRisk,
     
-    // 团队分析
+    // Team analysis
     analyzeTeamStructure,
     projectEarnings,
     
-    // 数学公式
+    // Math formulas
     deriveTeamFormulas,
     validateLevelConfiguration,
     
-    // 报告生成
+    // Report generation
     generateTeamReport
 };
-
-// ============================================================================
-// 命令行测试
-// ============================================================================
-
-const isMainModule = import.meta.url === `file://${process.argv[1]}`;
-
-if (isMainModule) {
-    console.log('\n' + '='.repeat(60));
-    console.log('    团队经纪人等级系统 - 数学模型测试');
-    console.log('='.repeat(60) + '\n');
-
-    // 1. 配置验证
-    console.log('【1. 配置验证】');
-    const validation = validateLevelConfiguration();
-    console.log('   ' + validation.summary);
-    console.log('');
-
-    // 2. 等级配置一览
-    console.log('【2. 等级配置一览】');
-    console.log('   ┌──────┬──────────┬──────────┬────────────┬──────────┬──────────┬────────┐');
-    console.log('   │ 等级 │ 直推人数 │ 下级经纪 │ 团队业绩   │ 日分红   │ 月收入   │ 日WLD  │');
-    console.log('   ├──────┼──────────┼──────────┼────────────┼──────────┼──────────┼────────┤');
-    for (let i = 1; i <= 5; i++) {
-        const c = BROKER_LEVELS[i];
-        const subReq = c.minSubBrokers > 0 ? `${c.minSubBrokers}名${c.subBrokerLevel}级` : '-';
-        console.log(`   │  ${i}级 │ ≥${String(c.minDirectReferrals).padEnd(6)} │ ${subReq.padEnd(8)} │ >${String(c.minTeamPerformance).padStart(9)} │ ${String(c.dailyDividend).padStart(7)}$ │ ${String(c.monthlyIncome).padStart(7)}$ │ ${String(c.dailyWLD).padStart(5)}  │`);
-    }
-    console.log('   └──────┴──────────┴──────────┴────────────┴──────────┴──────────┴────────┘');
-    console.log('');
-
-    // 3. 模拟用户等级计算
-    console.log('【3. 模拟用户等级计算】');
-    const testUser = {
-        directReferrals: 12,        // 12个合格直推
-        teamPerformance: 8000,      // 8000 USDT业绩
-        subBrokerCounts: [5, 3, 0, 0, 0, 0]  // 5个普通用户，3个1级经纪人
-    };
-    console.log('   测试用户数据:');
-    console.log(`     - 合格直推: ${testUser.directReferrals}人`);
-    console.log(`     - 团队业绩: ${testUser.teamPerformance} USDT`);
-    console.log(`     - 1级经纪人: ${testUser.subBrokerCounts[1]}人`);
-    console.log('');
-
-    const result = calculateBrokerLevel(testUser);
-    console.log(`   计算结果: ${result.levelName} (${result.currentLevel}级)`);
-    console.log('');
-
-    // 4. 升级差距分析
-    console.log('【4. 升级差距分析】');
-    const upgradeGap = calculateUpgradeGap(testUser);
-    if (!upgradeGap.isMaxLevel) {
-        console.log(`   升级到 ${upgradeGap.nextLevelName} 还需要:`);
-        console.log(`     - 直推人数: +${upgradeGap.upgradeNeeded.directReferrals}人`);
-        console.log(`     - 团队业绩: +${upgradeGap.upgradeNeeded.teamPerformance} USDT`);
-        console.log(`     - 下级经纪人: +${upgradeGap.upgradeNeeded.subBrokers}人`);
-        console.log(`   升级后奖励增加:`);
-        console.log(`     - 日分红: +${upgradeGap.rewardIncrease.dailyDividend} USDT/天`);
-        console.log(`     - 月收入: +${upgradeGap.rewardIncrease.monthlyIncome} USDT/月`);
-    }
-    console.log('');
-
-    // 5. 30天收益预测
-    console.log('【5. 30天收益预测】');
-    const projection = projectEarnings(result.currentLevel, 30);
-    console.log(`   ${projection.levelName} 30天预计收益:`);
-    console.log(`     - 分红总计: ${projection.projected.dividendTotal} USDT`);
-    console.log(`     - WLD总计: ${projection.projected.wldTotal} WLD`);
-
-    console.log('\n' + '='.repeat(60) + '\n');
-}
 

@@ -214,15 +214,48 @@ const triggerCoinAnimation = (dayNumber) => {
 
 // 音频上下文（全局复用）
 let audioCtx = null
+// 标记是否已经有用户交互（浏览器要求用户交互后才能播放音频）
+let userInteracted = false
+
+// 初始化用户交互监听（只需要一次用户交互即可解锁音频）
+const initUserInteraction = () => {
+  if (userInteracted) return
+  
+  const unlockAudio = () => {
+    userInteracted = true
+    // 创建并立即恢复音频上下文
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume()
+    }
+    // 移除事件监听器
+    document.removeEventListener('click', unlockAudio)
+    document.removeEventListener('touchstart', unlockAudio)
+    document.removeEventListener('touchend', unlockAudio)
+  }
+  
+  document.addEventListener('click', unlockAudio)
+  document.addEventListener('touchstart', unlockAudio)
+  document.addEventListener('touchend', unlockAudio)
+}
 
 // 获取或创建音频上下文
 const getAudioContext = () => {
   if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+      console.log('[Audio] Created AudioContext, state:', audioCtx.state)
+    } catch (e) {
+      console.warn('[Audio] Failed to create AudioContext:', e)
+      return null
+    }
   }
-  // 如果音频上下文被挂起，恢复它
+  // 如果音频上下文被挂起，尝试恢复它
   if (audioCtx.state === 'suspended') {
-    audioCtx.resume()
+    audioCtx.resume().then(() => {
+      console.log('[Audio] AudioContext resumed')
+    }).catch(e => {
+      console.warn('[Audio] Failed to resume AudioContext:', e)
+    })
   }
   return audioCtx
 }
@@ -230,7 +263,27 @@ const getAudioContext = () => {
 // 播放金币领取音效（清脆悦耳的叮当声）
 const playCoinSound = () => {
   try {
+    // 检查是否支持 Web Audio API
+    if (!window.AudioContext && !window.webkitAudioContext) {
+      console.warn('[Audio] Web Audio API not supported')
+      return
+    }
+    
     const audioContext = getAudioContext()
+    if (!audioContext) {
+      console.warn('[Audio] AudioContext not available')
+      return
+    }
+    
+    // 检查音频上下文状态
+    if (audioContext.state === 'suspended') {
+      console.log('[Audio] AudioContext is suspended, attempting to resume...')
+      audioContext.resume().catch(e => {
+        console.warn('[Audio] Cannot resume AudioContext:', e.message)
+      })
+    }
+    
+    console.log('[Audio] Playing coin sound, context state:', audioContext.state)
     
     // 创建清脆的"叮"声
     const playDing = (delay, pitch = 1, vol = 0.25) => {
@@ -506,6 +559,8 @@ watch(
 onMounted(() => {
   resetToInitialState()
   loadCheckinStatus()
+  // 初始化用户交互监听，用于解锁音频播放
+  initUserInteraction()
 })
 </script>
 

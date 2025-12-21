@@ -111,6 +111,14 @@ import {
     getClientIP
 } from './src/security/securityMiddleware.js';
 
+// SQL注入防护模块导入
+import {
+    sqlInjectionMiddleware,
+    walletValidationMiddleware,
+    isValidWalletAddress as sqlIsValidWallet,
+    detectSqlInjection
+} from './src/security/sqlInjectionProtection.js';
+
 // 审计日志模块导入
 import {
     auditBalanceChange,
@@ -170,6 +178,9 @@ app.use(sessionMiddleware);
 
 // 全局输入清理中间件（必须在bodyParser之后）
 app.use(globalInputSanitizer);
+
+// SQL注入防护中间件（检测所有请求参数中的SQL注入模式）
+app.use(sqlInjectionMiddleware);
 
 // CSRF令牌中间件
 app.use(csrfTokenMiddleware);
@@ -2844,6 +2855,7 @@ app.get('/api/robot/quantify-history', async (req, res) => {
     try {
         const { wallet_address, limit = 50, offset = 0, period = 'all' } = req.query;
         
+        // Security: Validate wallet_address is required
         if (!wallet_address) {
             return res.status(400).json({
                 success: false,
@@ -2851,9 +2863,21 @@ app.get('/api/robot/quantify-history', async (req, res) => {
             });
         }
         
+        // Security: Validate wallet address format (must be valid Ethereum address)
+        const walletRegex = /^0x[a-fA-F0-9]{40}$/;
+        if (!walletRegex.test(wallet_address)) {
+            console.warn(`[Security] Invalid wallet format from ${req.ip}: ${wallet_address.substring(0, 50)}`);
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid wallet address format'
+            });
+        }
+        
         const walletAddr = wallet_address.toLowerCase();
-        const queryLimit = Math.min(parseInt(limit) || 50, 100); // 最多100条
-        const queryOffset = parseInt(offset) || 0;
+        
+        // Security: Sanitize limit and offset (prevent negative values)
+        const queryLimit = Math.max(1, Math.min(parseInt(limit) || 50, 100)); // 1-100
+        const queryOffset = Math.max(0, parseInt(offset) || 0); // >= 0
         
         // 根据时间范围构建日期条件
         let dateCondition = '';

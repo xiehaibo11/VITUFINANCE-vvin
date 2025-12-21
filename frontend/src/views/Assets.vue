@@ -1611,11 +1611,11 @@ const fetchPlatformBalance = async () => {
       totalTeamReward.value = data.data.total_team_reward || '0.0000'
       
       // 计算并更新总权益值（USDT + WLD 折算成 USDT）
-      // 目前 WLD 价格假设为 0（可以后续添加价格 API）
+      // 使用已获取的exchangeWldPrice来计算WLD的USDT价值
       const usdtBalance = parseFloat(data.data.usdt_balance) || 0
       const wldBalance = parseFloat(data.data.wld_balance) || 0
-      const wldPrice = 0 // TODO: 从价格 API 获取 WLD 价格
-      const totalEquity = usdtBalance + (wldBalance * wldPrice)
+      const currentWldPrice = exchangeWldPrice.value || 0 // Use real-time WLD price
+      const totalEquity = usdtBalance + (wldBalance * currentWldPrice)
       walletStore.setEquityValue(totalEquity.toFixed(4))
       
       console.log('[Assets] Platform balance fetched:', {

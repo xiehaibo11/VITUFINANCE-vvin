@@ -147,6 +147,21 @@ async function processExpiredRobot(robot) {
     const logPayload = {location:'robotExpiryCron.js:137',message:'Processing expired robot',data:{robotId:robot.id,robotName:robot.robot_name,robotType:robot.robot_type,price:parseFloat(robot.price),wallet:robot.wallet_address.slice(0,10),isQuantified:robot.is_quantified,totalProfit:parseFloat(robot.total_profit),expectedReturn:parseFloat(robot.expected_return||0)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'};await fetch('http://localhost:7242/ingest/10a0bbc0-f589-4d17-9d7f-29d4e679320a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logPayload)}).catch(()=>{});
     // #endregion
     
+    // 检查用户是否被冻结（冻结用户不发放返还）
+    const userStatus = await dbQuery(
+        'SELECT is_banned FROM user_balances WHERE wallet_address = ?',
+        [robot.wallet_address]
+    );
+    if (userStatus.length > 0 && userStatus[0].is_banned === 1) {
+        console.log(`[Cron] Skipping banned user ${robot.wallet_address.slice(0, 10)}...`);
+        // 只更新状态为expired，不返还资金
+        await dbQuery(
+            `UPDATE robot_purchases SET status = 'expired', updated_at = NOW() WHERE id = ?`,
+            [robot.id]
+        );
+        return { success: true, returnAmount: 0, skipped: true, reason: 'user_banned' };
+    }
+    
     const config = getRobotConfig(robot.robot_name);
     if (!config) {
         return { success: false, error: 'Config not found' };

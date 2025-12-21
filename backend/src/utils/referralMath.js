@@ -1,54 +1,81 @@
 /**
- * 推荐奖励数学模型 - Referral Rewards Mathematical Model
+ * Referral Rewards Mathematical Model
  * 
- * 本模块提供推荐奖励系统的数学计算、分析和验证工具
+ * Provides referral reward system calculation, analysis, and verification tools
  * 
- * 数学公式：
- * CEX: R_n = P × r_n，其中 r = [0.30, 0.10, 0.05, 0.01, 0.01, 0.01, 0.01, 0.01]
- * DEX: R_n = A × r_n，其中 r = [0.05, 0.03, 0.02]
+ * 2024-12-21 FIX: Original rates were too high causing company losses
+ * 
+ * Math Formulas:
+ * CEX: R_n = P × r_n, where r = [0.08, 0.04, 0.02, 0.005, 0.005, 0.005, 0.005, 0.005]
+ * DEX: R_n = A × r_n, where r = [0.02, 0.01, 0.005]
  */
 
 // ============================================================================
-// 常量定义 - 奖励比例配置
+// Safety Limits Configuration
+// ============================================================================
+const REFERRAL_SAFETY_LIMITS = {
+    MAX_SINGLE_REWARD: 50,              // Max single reward 50 USDT
+    MAX_DAILY_REWARD_PER_USER: 200,     // Max daily reward per user 200 USDT
+    MIN_PROFIT_FOR_REWARD: 0.01,        // Min profit to trigger reward 0.01 USDT
+    MAX_TOTAL_RATE: 0.20,               // Max total referral rate 20%
+};
+
+// ============================================================================
+// Constants - Reward Rate Configuration (FIXED - Much Lower!)
 // ============================================================================
 
 /**
- * CEX机器人推荐奖励比例（8级）
- * 总计：30% + 10% + 5% + 1%×5 = 50%
+ * CEX Robot Referral Reward Rates (8 levels)
+ * Original: 30% + 10% + 5% + 1%×5 = 50% ← TOO HIGH!
+ * Fixed: 8% + 4% + 2% + 0.5%×5 = 16.5%
  */
-const CEX_REFERRAL_RATES = [0.30, 0.10, 0.05, 0.01, 0.01, 0.01, 0.01, 0.01];
+const CEX_REFERRAL_RATES = [0.08, 0.04, 0.02, 0.005, 0.005, 0.005, 0.005, 0.005];
 
 /**
- * DEX机器人启动金额奖励比例（3级）
- * 总计：5% + 3% + 2% = 10%
+ * DEX Robot Launch Amount Reward Rates (3 levels)
+ * Original: 5% + 3% + 2% = 10% ← Too high
+ * Fixed: 2% + 1% + 0.5% = 3.5%
  */
-const DEX_REFERRAL_RATES = [0.05, 0.03, 0.02];
+const DEX_REFERRAL_RATES = [0.02, 0.01, 0.005];
 
 // ============================================================================
-// 核心数学计算函数
+// Core Math Calculation Functions (with safety limits)
 // ============================================================================
 
 /**
- * 计算单个级别的奖励金额
- * 公式: R = Amount × Rate
+ * Calculate reward amount for a single level (with safety limits)
+ * Formula: R = min(Amount × Rate, MAX_SINGLE_REWARD)
  * 
- * @param {number} amount - 基础金额（收益或启动金额）
- * @param {number} rate - 奖励比例（0-1之间的小数）
- * @returns {number} 奖励金额
+ * @param {number} amount - Base amount (profit or launch amount)
+ * @param {number} rate - Reward rate (0-1 decimal)
+ * @returns {number} Reward amount (with safety limits applied)
  */
 function calculateLevelReward(amount, rate) {
-    return amount * rate;
+    // Safety check: Skip if amount too small
+    if (amount < REFERRAL_SAFETY_LIMITS.MIN_PROFIT_FOR_REWARD) {
+        return 0;
+    }
+    
+    let reward = amount * rate;
+    
+    // Safety check: Cap single reward
+    if (reward > REFERRAL_SAFETY_LIMITS.MAX_SINGLE_REWARD) {
+        console.warn(`[SAFETY] Referral reward capped: original=${reward.toFixed(4)}, capped=${REFERRAL_SAFETY_LIMITS.MAX_SINGLE_REWARD}`);
+        reward = REFERRAL_SAFETY_LIMITS.MAX_SINGLE_REWARD;
+    }
+    
+    return parseFloat(reward.toFixed(4));
 }
 
 /**
- * 计算CEX机器人所有级别的推荐奖励分配
+ * Calculate CEX robot referral rewards for all levels
  * 
- * 数学模型：
- * 总奖励 = Σ(P × r_i)，i = 1 to 8
- * 其中 P = 量化收益，r_i = 第i级奖励比例
+ * Math Model:
+ * Total Reward = Σ(P × r_i), i = 1 to 8
+ * where P = quantify profit, r_i = level i reward rate
  * 
- * @param {number} profit - 量化收益金额
- * @returns {Object} 奖励分配详情
+ * @param {number} profit - Quantify profit amount
+ * @returns {Object} Reward distribution details
  */
 function calculateCexRewards(profit) {
     const rewards = [];
@@ -60,35 +87,35 @@ function calculateCexRewards(profit) {
         totalDistributed += rewardAmount;
 
         rewards.push({
-            level,                          // 级别
-            rate: rate,                     // 比例（小数）
-            ratePercent: rate * 100,        // 比例（百分比）
-            rewardAmount: rewardAmount,     // 奖励金额
-            formula: `${profit} × ${rate} = ${rewardAmount.toFixed(4)}` // 计算公式
+            level,
+            rate: rate,
+            ratePercent: rate * 100,
+            rewardAmount: rewardAmount,
+            formula: `${profit} × ${rate} = ${rewardAmount.toFixed(4)}`
         });
     }
 
     return {
-        type: 'CEX',                        // 机器人类型
-        baseAmount: profit,                 // 基础金额（量化收益）
-        totalLevels: 8,                     // 总级别数
-        rewards,                            // 各级奖励详情
-        totalDistributed,                   // 总分配金额
-        totalDistributedPercent: (totalDistributed / profit * 100).toFixed(2), // 总分配百分比
-        netProfit: profit - totalDistributed, // 用户净收益（平台保留）
-        summary: `量化收益 ${profit} USDT，分配给8级推荐人共 ${totalDistributed.toFixed(4)} USDT (${(totalDistributed / profit * 100).toFixed(2)}%)`
+        type: 'CEX',
+        baseAmount: profit,
+        totalLevels: 8,
+        rewards,
+        totalDistributed,
+        totalDistributedPercent: (totalDistributed / profit * 100).toFixed(2),
+        netProfit: profit - totalDistributed,
+        summary: `Quantify profit ${profit} USDT, distributed to 8-level referrers ${totalDistributed.toFixed(4)} USDT (${(totalDistributed / profit * 100).toFixed(2)}%)`
     };
 }
 
 /**
- * 计算DEX机器人所有级别的推荐奖励分配
+ * Calculate DEX robot referral rewards for all levels
  * 
- * 数学模型：
- * 总奖励 = Σ(A × r_i)，i = 1 to 3
- * 其中 A = 启动金额，r_i = 第i级奖励比例
+ * Math Model:
+ * Total Reward = Σ(A × r_i), i = 1 to 3
+ * where A = launch amount, r_i = level i reward rate
  * 
- * @param {number} purchaseAmount - 启动金额
- * @returns {Object} 奖励分配详情
+ * @param {number} purchaseAmount - Launch amount
+ * @returns {Object} Reward distribution details
  */
 function calculateDexRewards(purchaseAmount) {
     const rewards = [];
@@ -100,40 +127,36 @@ function calculateDexRewards(purchaseAmount) {
         totalDistributed += rewardAmount;
 
         rewards.push({
-            level,                          // 级别
-            rate: rate,                     // 比例（小数）
-            ratePercent: rate * 100,        // 比例（百分比）
-            rewardAmount: rewardAmount,     // 奖励金额
-            formula: `${purchaseAmount} × ${rate} = ${rewardAmount.toFixed(4)}` // 计算公式
+            level,
+            rate: rate,
+            ratePercent: rate * 100,
+            rewardAmount: rewardAmount,
+            formula: `${purchaseAmount} × ${rate} = ${rewardAmount.toFixed(4)}`
         });
     }
 
     return {
-        type: 'DEX',                        // 机器人类型
-        baseAmount: purchaseAmount,         // 基础金额（启动金额）
-        totalLevels: 3,                     // 总级别数
-        rewards,                            // 各级奖励详情
-        totalDistributed,                   // 总分配金额
-        totalDistributedPercent: (totalDistributed / purchaseAmount * 100).toFixed(2), // 总分配百分比
-        summary: `启动金额 ${purchaseAmount} USDT，分配给3级推荐人共 ${totalDistributed.toFixed(4)} USDT (${(totalDistributed / purchaseAmount * 100).toFixed(2)}%)`
+        type: 'DEX',
+        baseAmount: purchaseAmount,
+        totalLevels: 3,
+        rewards,
+        totalDistributed,
+        totalDistributedPercent: (totalDistributed / purchaseAmount * 100).toFixed(2),
+        summary: `Launch amount ${purchaseAmount} USDT, distributed to 3-level referrers ${totalDistributed.toFixed(4)} USDT (${(totalDistributed / purchaseAmount * 100).toFixed(2)}%)`
     };
 }
 
 // ============================================================================
-// 高级数学分析函数
+// Advanced Analysis Functions
 // ============================================================================
 
 /**
- * 计算推荐链的累积收益潜力
+ * Analyze referral chain earning potential
  * 
- * 数学模型 - 几何级数分析：
- * 假设每个人平均推荐 k 个人，则第n级有 k^(n-1) 个人
- * 每级收益 = k^(n-1) × 平均收益 × 该级奖励比例
- * 
- * @param {number} avgProfit - 平均每人量化收益
- * @param {number} avgReferrals - 平均每人推荐人数
- * @param {string} type - 'CEX' 或 'DEX'
- * @returns {Object} 累积收益分析
+ * @param {number} avgProfit - Average profit per person
+ * @param {number} avgReferrals - Average referrals per person
+ * @param {string} type - 'CEX' or 'DEX'
+ * @returns {Object} Cumulative earnings analysis
  */
 function analyzeReferralChainPotential(avgProfit, avgReferrals, type = 'CEX') {
     const rates = type === 'CEX' ? CEX_REFERRAL_RATES : DEX_REFERRAL_RATES;
@@ -142,11 +165,9 @@ function analyzeReferralChainPotential(avgProfit, avgReferrals, type = 'CEX') {
     let totalPotentialReward = 0;
 
     for (let level = 1; level <= maxLevel; level++) {
-        // 第n级人数 = k^(n-1)，其中 k = 平均推荐人数
         const peopleAtLevel = Math.pow(avgReferrals, level - 1);
         const rate = rates[level - 1];
         
-        // 该级别总收益 = 人数 × 平均收益 × 比例
         const levelTotalProfit = peopleAtLevel * avgProfit;
         const rewardFromLevel = levelTotalProfit * rate;
         totalPotentialReward += rewardFromLevel;
@@ -158,7 +179,7 @@ function analyzeReferralChainPotential(avgProfit, avgReferrals, type = 'CEX') {
             ratePercent: rate * 100,
             levelTotalProfit: levelTotalProfit,
             rewardFromLevel: rewardFromLevel,
-            formula: `${Math.round(peopleAtLevel)}人 × ${avgProfit} × ${rate * 100}% = ${rewardFromLevel.toFixed(4)}`
+            formula: `${Math.round(peopleAtLevel)} people × ${avgProfit} × ${rate * 100}% = ${rewardFromLevel.toFixed(4)}`
         });
     }
 
@@ -169,66 +190,72 @@ function analyzeReferralChainPotential(avgProfit, avgReferrals, type = 'CEX') {
         maxLevel,
         analysis,
         totalPotentialReward,
-        summary: `假设每人推荐${avgReferrals}人，每人收益${avgProfit}USDT，您可获得总奖励 ${totalPotentialReward.toFixed(4)} USDT`
+        summary: `Assuming ${avgReferrals} referrals per person, ${avgProfit} USDT profit each, total potential reward: ${totalPotentialReward.toFixed(4)} USDT`
     };
 }
 
 /**
- * 验证奖励分配的数学正确性
+ * Validate reward configuration correctness
  * 
- * 验证规则：
- * 1. CEX总分配比例必须等于50%
- * 2. DEX总分配比例必须等于10%
- * 3. 各级奖励金额 = 基础金额 × 比例
+ * Validation Rules (fixed 2024-12-21):
+ * 1. CEX total rate must be 16.5% (was 50%, too high!)
+ * 2. DEX total rate must be 3.5% (was 10%, high)
+ * 3. Total rate cannot exceed safety limit
  * 
- * @returns {Object} 验证结果
+ * @returns {Object} Validation result
  */
 function validateRewardConfiguration() {
-    // 计算CEX总比例
+    // Calculate CEX total rate
     const cexTotalRate = CEX_REFERRAL_RATES.reduce((sum, rate) => sum + rate, 0);
-    const cexExpectedRate = 0.50; // 期望50%
+    const cexExpectedRate = 0.165; // New config: 16.5%
 
-    // 计算DEX总比例
+    // Calculate DEX total rate
     const dexTotalRate = DEX_REFERRAL_RATES.reduce((sum, rate) => sum + rate, 0);
-    const dexExpectedRate = 0.10; // 期望10%
+    const dexExpectedRate = 0.035; // New config: 3.5%
 
-    // 精度验证（考虑浮点数误差）
-    const tolerance = 0.0001;
+    // Precision validation (consider floating point error)
+    const tolerance = 0.001;
     const cexValid = Math.abs(cexTotalRate - cexExpectedRate) < tolerance;
     const dexValid = Math.abs(dexTotalRate - dexExpectedRate) < tolerance;
+    
+    // Safety check: Total rate cannot exceed limit
+    const cexSafe = cexTotalRate <= REFERRAL_SAFETY_LIMITS.MAX_TOTAL_RATE;
+    const dexSafe = dexTotalRate <= REFERRAL_SAFETY_LIMITS.MAX_TOTAL_RATE;
 
     return {
         cex: {
             rates: CEX_REFERRAL_RATES,
             totalRate: cexTotalRate,
             totalPercent: (cexTotalRate * 100).toFixed(2) + '%',
-            expected: cexExpectedRate * 100 + '%',
+            expected: (cexExpectedRate * 100).toFixed(1) + '%',
             valid: cexValid,
-            message: cexValid ? '✓ CEX奖励配置正确' : '✗ CEX奖励配置错误'
+            safe: cexSafe,
+            message: cexValid && cexSafe ? '✓ CEX reward config correct and safe' : '✗ CEX reward config has issues'
         },
         dex: {
             rates: DEX_REFERRAL_RATES,
             totalRate: dexTotalRate,
             totalPercent: (dexTotalRate * 100).toFixed(2) + '%',
-            expected: dexExpectedRate * 100 + '%',
+            expected: (dexExpectedRate * 100).toFixed(1) + '%',
             valid: dexValid,
-            message: dexValid ? '✓ DEX奖励配置正确' : '✗ DEX奖励配置错误'
+            safe: dexSafe,
+            message: dexValid && dexSafe ? '✓ DEX reward config correct and safe' : '✗ DEX reward config has issues'
         },
+        safetyLimits: REFERRAL_SAFETY_LIMITS,
         allValid: cexValid && dexValid,
-        summary: cexValid && dexValid 
-            ? '✓ 所有奖励配置验证通过' 
-            : '✗ 部分奖励配置存在问题'
+        allSafe: cexSafe && dexSafe,
+        summary: cexValid && dexValid && cexSafe && dexSafe
+            ? '✓ All reward configs validated and safe' 
+            : '✗ Some reward configs have issues'
     };
 }
 
 /**
- * 计算用户作为推荐人可获得的预期收益
+ * Calculate expected rewards for a referrer
  * 
- * 场景：用户推荐了一批下级，计算预期奖励收入
- * 
- * @param {Array} downlineData - 下级数据数组 [{level: 1, count: 10, avgProfit: 100}, ...]
- * @param {string} type - 'CEX' 或 'DEX'
- * @returns {Object} 预期收益分析
+ * @param {Array} downlineData - Downline data array [{level: 1, count: 10, avgProfit: 100}, ...]
+ * @param {string} type - 'CEX' or 'DEX'
+ * @returns {Object} Expected earnings analysis
  */
 function calculateExpectedRewards(downlineData, type = 'CEX') {
     const rates = type === 'CEX' ? CEX_REFERRAL_RATES : DEX_REFERRAL_RATES;
@@ -239,7 +266,7 @@ function calculateExpectedRewards(downlineData, type = 'CEX') {
         const { level, count, avgProfit } = item;
         
         if (level < 1 || level > rates.length) {
-            continue; // 跳过无效级别
+            continue;
         }
 
         const rate = rates[level - 1];
@@ -255,7 +282,7 @@ function calculateExpectedRewards(downlineData, type = 'CEX') {
             ratePercent: rate * 100,
             totalLevelProfit,
             expectedReward,
-            formula: `${count}人 × ${avgProfit} × ${rate * 100}% = ${expectedReward.toFixed(4)}`
+            formula: `${count} people × ${avgProfit} × ${rate * 100}% = ${expectedReward.toFixed(4)}`
         });
     }
 
@@ -263,170 +290,112 @@ function calculateExpectedRewards(downlineData, type = 'CEX') {
         type,
         calculations,
         totalExpectedReward,
-        summary: `预期总奖励: ${totalExpectedReward.toFixed(4)} USDT`
+        summary: `Expected total reward: ${totalExpectedReward.toFixed(4)} USDT`
     };
 }
 
 /**
- * 生成完整的数学模型报告
+ * Generate complete math model report
  * 
- * @param {number} testAmount - 测试金额
- * @returns {Object} 完整报告
+ * @param {number} testAmount - Test amount
+ * @returns {Object} Complete report
  */
 function generateMathReport(testAmount = 1000) {
     return {
-        title: '推荐奖励系统数学模型分析报告',
+        title: 'Referral Reward System Math Model Analysis Report',
         timestamp: new Date().toISOString(),
         
-        // 配置验证
+        // Config validation
         configValidation: validateRewardConfiguration(),
         
-        // CEX示例计算
+        // CEX example calculation
         cexExample: calculateCexRewards(testAmount),
         
-        // DEX示例计算
+        // DEX example calculation
         dexExample: calculateDexRewards(testAmount),
         
-        // 推荐链潜力分析（假设每人推荐3人）
+        // Chain analysis (assuming 3 referrals per person)
         chainAnalysis: {
             cex: analyzeReferralChainPotential(testAmount, 3, 'CEX'),
             dex: analyzeReferralChainPotential(testAmount, 3, 'DEX')
         },
         
-        // 数学公式说明
+        // Math formula description
         formulas: {
             cex: {
-                description: 'CEX机器人量化收益奖励',
+                description: 'CEX robot quantify profit reward',
                 formula: 'R_n = P × r_n',
                 variables: {
-                    'R_n': '第n级推荐人获得的奖励',
-                    'P': '用户的量化收益（profit）',
-                    'r_n': '第n级的奖励比例'
+                    'R_n': 'Reward for level n referrer',
+                    'P': 'User quantify profit',
+                    'r_n': 'Level n reward rate'
                 },
-                rates: 'r = [30%, 10%, 5%, 1%, 1%, 1%, 1%, 1%]',
-                totalRate: '总分配比例 = Σr_n = 50%'
+                rates: 'r = [8%, 4%, 2%, 0.5%, 0.5%, 0.5%, 0.5%, 0.5%]',
+                totalRate: 'Total rate = Σr_n = 16.5%'
             },
             dex: {
-                description: 'DEX机器人启动金额奖励',
+                description: 'DEX robot launch amount reward',
                 formula: 'R_n = A × r_n',
                 variables: {
-                    'R_n': '第n级推荐人获得的奖励',
-                    'A': '用户的启动金额（purchase amount）',
-                    'r_n': '第n级的奖励比例'
+                    'R_n': 'Reward for level n referrer',
+                    'A': 'User purchase amount',
+                    'r_n': 'Level n reward rate'
                 },
-                rates: 'r = [5%, 3%, 2%]',
-                totalRate: '总分配比例 = Σr_n = 10%'
+                rates: 'r = [2%, 1%, 0.5%]',
+                totalRate: 'Total rate = Σr_n = 3.5%'
             }
         }
     };
 }
 
 // ============================================================================
-// 工具函数
+// Utility Functions
 // ============================================================================
 
 /**
- * 格式化金额显示
- * @param {number} amount - 金额
- * @param {number} decimals - 小数位数
- * @returns {string} 格式化后的金额
+ * Format amount display
+ * @param {number} amount - Amount
+ * @param {number} decimals - Decimal places
+ * @returns {string} Formatted amount
  */
 function formatAmount(amount, decimals = 4) {
     return amount.toFixed(decimals);
 }
 
 /**
- * 格式化百分比显示
- * @param {number} rate - 比例（0-1之间）
- * @returns {string} 格式化后的百分比
+ * Format percentage display
+ * @param {number} rate - Rate (0-1)
+ * @returns {string} Formatted percentage
  */
 function formatPercent(rate) {
     return (rate * 100).toFixed(2) + '%';
 }
 
 // ============================================================================
-// 导出模块（ES Module）
+// Export Module (ES Module)
 // ============================================================================
 
 export {
-    // 常量
+    // Safety limits
+    REFERRAL_SAFETY_LIMITS,
+    
+    // Constants
     CEX_REFERRAL_RATES,
     DEX_REFERRAL_RATES,
     
-    // 核心计算函数
+    // Core calculation functions
     calculateLevelReward,
     calculateCexRewards,
     calculateDexRewards,
     
-    // 高级分析函数
+    // Advanced analysis functions
     analyzeReferralChainPotential,
     validateRewardConfiguration,
     calculateExpectedRewards,
     generateMathReport,
     
-    // 工具函数
+    // Utility functions
     formatAmount,
     formatPercent
 };
-
-// ============================================================================
-// 命令行测试（直接运行本文件时执行）
-// ============================================================================
-
-// 检测是否作为主模块运行
-const isMainModule = import.meta.url === `file://${process.argv[1]}`;
-
-if (isMainModule) {
-    console.log('\n========================================');
-    console.log('    推荐奖励系统数学模型测试');
-    console.log('========================================\n');
-
-    // 1. 验证配置
-    console.log('1. 配置验证:');
-    const validation = validateRewardConfiguration();
-    console.log('   CEX:', validation.cex.message, validation.cex.totalPercent);
-    console.log('   DEX:', validation.dex.message, validation.dex.totalPercent);
-    console.log('');
-
-    // 2. CEX奖励计算示例
-    console.log('2. CEX奖励计算 (量化收益 1000 USDT):');
-    const cexResult = calculateCexRewards(1000);
-    cexResult.rewards.forEach(r => {
-        console.log(`   ${r.level}级: ${r.formula}`);
-    });
-    console.log('   ' + cexResult.summary);
-    console.log('');
-
-    // 3. DEX奖励计算示例
-    console.log('3. DEX奖励计算 (启动金额 1000 USDT):');
-    const dexResult = calculateDexRewards(1000);
-    dexResult.rewards.forEach(r => {
-        console.log(`   ${r.level}级: ${r.formula}`);
-    });
-    console.log('   ' + dexResult.summary);
-    console.log('');
-
-    // 4. 推荐链潜力分析
-    console.log('4. 推荐链潜力分析 (假设每人推荐3人, 收益100 USDT):');
-    const chainResult = analyzeReferralChainPotential(100, 3, 'CEX');
-    chainResult.analysis.forEach(a => {
-        console.log(`   ${a.level}级: ${a.formula}`);
-    });
-    console.log('   ' + chainResult.summary);
-    console.log('');
-
-    // 5. 预期收益计算
-    console.log('5. 预期收益计算示例:');
-    const expectedResult = calculateExpectedRewards([
-        { level: 1, count: 10, avgProfit: 100 },  // 10个直推，每人收益100
-        { level: 2, count: 30, avgProfit: 80 },   // 30个二级，每人收益80
-        { level: 3, count: 50, avgProfit: 60 }    // 50个三级，每人收益60
-    ], 'CEX');
-    expectedResult.calculations.forEach(c => {
-        console.log(`   ${c.level}级: ${c.formula}`);
-    });
-    console.log('   ' + expectedResult.summary);
-
-    console.log('\n========================================\n');
-}
 
