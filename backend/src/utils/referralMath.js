@@ -1,23 +1,28 @@
 /**
  * Referral Rewards Mathematical Model
- * 
+ *
  * Provides referral reward system calculation, analysis, and verification tools
- * 
- * 2024-12-21 FIX: Original rates were too high causing company losses
- * 
- * Math Formulas:
- * CEX: R_n = P × r_n, where r = [0.08, 0.04, 0.02, 0.005, 0.005, 0.005, 0.005, 0.005]
- * DEX: R_n = A × r_n, where r = [0.02, 0.01, 0.005]
+ *
+ * 2024-12-23 UPDATE: Restored correct rates per business requirements
+ *
+ * CEX/Grid/High Robots: Based on quantify PROFIT
+ *   - R_n = Profit × r_n
+ *   - r = [30%, 10%, 5%, 1%, 1%, 1%, 1%, 1%] = Total 50%
+ *
+ * DEX Robots: Based on LAUNCH AMOUNT (purchase amount)
+ *   - R_n = Amount × r_n
+ *   - r = [5%, 3%, 2%] = Total 10%
+ *   - Paid immediately on purchase
  */
 
 // ============================================================================
 // Safety Limits Configuration
 // ============================================================================
 const REFERRAL_SAFETY_LIMITS = {
-    MAX_SINGLE_REWARD: 50,              // Max single reward 50 USDT
-    MAX_DAILY_REWARD_PER_USER: 200,     // Max daily reward per user 200 USDT
+    MAX_SINGLE_REWARD: 500,             // Max single reward 500 USDT
+    MAX_DAILY_REWARD_PER_USER: 2000,    // Max daily reward per user 2000 USDT
     MIN_PROFIT_FOR_REWARD: 0.01,        // Min profit to trigger reward 0.01 USDT
-    MAX_TOTAL_RATE: 0.20,               // Max total referral rate 20%
+    MAX_TOTAL_RATE: 0.60,               // Max total referral rate 60%
 };
 
 // ============================================================================
@@ -25,18 +30,20 @@ const REFERRAL_SAFETY_LIMITS = {
 // ============================================================================
 
 /**
- * CEX Robot Referral Reward Rates (8 levels)
- * Original: 30% + 10% + 5% + 1%×5 = 50% ← TOO HIGH!
- * Fixed: 8% + 4% + 2% + 0.5%×5 = 16.5%
+ * CEX/Grid/High Robot Referral Reward Rates (8 levels)
+ * Based on quantify PROFIT (not purchase amount)
+ * 1级 30%, 2级 10%, 3级 5%, 4-8级 1% each
+ * Total: 30% + 10% + 5% + 1%×5 = 50%
  */
-const CEX_REFERRAL_RATES = [0.08, 0.04, 0.02, 0.005, 0.005, 0.005, 0.005, 0.005];
+const CEX_REFERRAL_RATES = [0.30, 0.10, 0.05, 0.01, 0.01, 0.01, 0.01, 0.01];
 
 /**
  * DEX Robot Launch Amount Reward Rates (3 levels)
- * Original: 5% + 3% + 2% = 10% ← Too high
- * Fixed: 2% + 1% + 0.5% = 3.5%
+ * Based on LAUNCH AMOUNT (purchase amount), paid immediately on purchase
+ * 1级 5%, 2级 3%, 3级 2%
+ * Total: 5% + 3% + 2% = 10%
  */
-const DEX_REFERRAL_RATES = [0.02, 0.01, 0.005];
+const DEX_REFERRAL_RATES = [0.05, 0.03, 0.02];
 
 // ============================================================================
 // Core Math Calculation Functions (with safety limits)
@@ -196,22 +203,22 @@ function analyzeReferralChainPotential(avgProfit, avgReferrals, type = 'CEX') {
 
 /**
  * Validate reward configuration correctness
- * 
- * Validation Rules (fixed 2024-12-21):
- * 1. CEX total rate must be 16.5% (was 50%, too high!)
- * 2. DEX total rate must be 3.5% (was 10%, high)
+ *
+ * Validation Rules (2024-12-23 UPDATE):
+ * 1. CEX total rate must be 50% (30% + 10% + 5% + 1%×5)
+ * 2. DEX total rate must be 10% (5% + 3% + 2%)
  * 3. Total rate cannot exceed safety limit
- * 
+ *
  * @returns {Object} Validation result
  */
 function validateRewardConfiguration() {
     // Calculate CEX total rate
     const cexTotalRate = CEX_REFERRAL_RATES.reduce((sum, rate) => sum + rate, 0);
-    const cexExpectedRate = 0.165; // New config: 16.5%
+    const cexExpectedRate = 0.50; // 50%: 30% + 10% + 5% + 1%×5
 
     // Calculate DEX total rate
     const dexTotalRate = DEX_REFERRAL_RATES.reduce((sum, rate) => sum + rate, 0);
-    const dexExpectedRate = 0.035; // New config: 3.5%
+    const dexExpectedRate = 0.10; // 10%: 5% + 3% + 2%
 
     // Precision validation (consider floating point error)
     const tolerance = 0.001;
@@ -323,26 +330,26 @@ function generateMathReport(testAmount = 1000) {
         // Math formula description
         formulas: {
             cex: {
-                description: 'CEX robot quantify profit reward',
+                description: 'CEX/Grid/High robot quantify profit reward',
                 formula: 'R_n = P × r_n',
                 variables: {
                     'R_n': 'Reward for level n referrer',
                     'P': 'User quantify profit',
                     'r_n': 'Level n reward rate'
                 },
-                rates: 'r = [8%, 4%, 2%, 0.5%, 0.5%, 0.5%, 0.5%, 0.5%]',
-                totalRate: 'Total rate = Σr_n = 16.5%'
+                rates: 'r = [30%, 10%, 5%, 1%, 1%, 1%, 1%, 1%]',
+                totalRate: 'Total rate = Σr_n = 50%'
             },
             dex: {
-                description: 'DEX robot launch amount reward',
+                description: 'DEX robot launch amount reward (immediate)',
                 formula: 'R_n = A × r_n',
                 variables: {
                     'R_n': 'Reward for level n referrer',
-                    'A': 'User purchase amount',
+                    'A': 'User launch amount',
                     'r_n': 'Level n reward rate'
                 },
-                rates: 'r = [2%, 1%, 0.5%]',
-                totalRate: 'Total rate = Σr_n = 3.5%'
+                rates: 'r = [5%, 3%, 2%]',
+                totalRate: 'Total rate = Σr_n = 10%'
             }
         }
     };

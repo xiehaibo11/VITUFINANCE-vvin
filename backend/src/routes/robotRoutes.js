@@ -399,14 +399,14 @@ router.post('/api/robot/purchase', sensitiveLimiter, async (req, res) => {
         fetch('http://localhost:7242/ingest/10a0bbc0-f589-4d17-9d7f-29d4e679320a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'robotRoutes.js:360',message:'Robot purchase - final balance',data:{wallet:walletAddr.slice(0,10),balanceAfter:updatedBalance.length>0?parseFloat(updatedBalance[0].usdt_balance):null,expectedBalance:currentBalance-robotPrice},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
         // #endregion
         
-        // 14. 立即发放推荐奖励（购买时立即发放，不等量化）
-        // CEX/Grid/High机器人: 按购买金额发放8级奖励 (16.5%)
-        // DEX机器人: 按购买金额发放3级奖励 (3.5%)
-        if (config.robot_type === 'cex' || config.robot_type === 'grid' || config.robot_type === 'high') {
-            await distributeCexPurchaseRewards(walletAddr, robot_name, robotPrice, robotPurchaseId);
-        } else if (config.robot_type === 'dex') {
+        // 14. 推荐奖励发放规则
+        // CEX/Grid机器人: 不在购买时发放，在量化收益时按收益的 30%/10%/5%/1% 发放
+        // High机器人: 不在购买时发放，到期后按收益比例发放
+        // DEX机器人: 购买时立即发放启动资金返点 5%/3%/2%
+        if (config.robot_type === 'dex') {
             await distributeDexPurchaseRewards(walletAddr, robot_name, robotPrice, robotPurchaseId);
         }
+        // CEX/Grid/High 不在购买时发放奖励
         
         // 15. 返回成功响应
         res.json({
@@ -1140,17 +1140,20 @@ async function processOneExpiredRobot(robot, walletAddr) {
             [(robot.robot_type === 'high' || robot.robot_type === 'dex') ? profitAmount : robot.total_profit, robot.id]
         );
         
-        // DEX/High 机器人：记录到期收益（推荐奖励已在购买时发放）
+        // DEX/High 机器人：到期后发放基于收益的推荐奖励
+        // DEX: 除了购买时的启动资金返点(5%/3%/2%)，到期还要发放收益的推荐奖励(30%/10%/5%/1%)
+        // High: 没有启动资金返点，只有到期后的收益推荐奖励(30%/10%/5%/1%)
         if ((robot.robot_type === 'high' || robot.robot_type === 'dex') && profitAmount > 0) {
             await dbQuery(
-                `INSERT INTO robot_earnings 
-                (wallet_address, robot_purchase_id, robot_name, earning_amount, created_at) 
+                `INSERT INTO robot_earnings
+                (wallet_address, robot_purchase_id, robot_name, earning_amount, created_at)
                 VALUES (?, ?, ?, ?, NOW())`,
                 [walletAddr, robot.id, robot.robot_name, profitAmount]
             );
-            
-            // 注意：推荐奖励已在购买时立即发放，到期不再重复发放
-            console.log(`[Expire] ${robot.robot_type.toUpperCase()} robot ${robot.id} earnings recorded, referral rewards already distributed at purchase`);
+
+            // 到期后发放基于收益的推荐奖励（30%/10%/5%/1%×5）
+            await distributeReferralRewards(walletAddr, robot, profitAmount);
+            console.log(`[Expire] ${robot.robot_type.toUpperCase()} robot ${robot.id} earnings recorded, referral rewards distributed based on profit ${profitAmount.toFixed(4)} USDT`);
         }
         
     } catch (error) {
@@ -1159,20 +1162,22 @@ async function processOneExpiredRobot(robot, walletAddr) {
 }
 
 /**
- * 发放推荐奖励（CEX/Grid/High 量化收益奖励 - 8级）
- * 
+ * 发放推荐奖励（CEX/Grid 量化收益奖励 - 8级）
+ *
  * 数学公式: R_n = P × r_n
- * 其中: R_n = 第n级奖励, P = 利润, r_n = 第n级比例
- * 比例: [8%, 4%, 2%, 0.5%×5] = 总计16.5% (2024-12-22 修复)
- * 
+ * 其中: R_n = 第n级奖励, P = 量化收益, r_n = 第n级比例
+ * 比例: [30%, 10%, 5%, 1%×5] = 总计50%
+ *
+ * 在每次量化产生收益时调用
+ *
  * @param {string} walletAddr - 用户钱包地址
  * @param {object} robot - 机器人记录
- * @param {number} profit - 利润金额
+ * @param {number} profit - 利润金额（量化收益）
  */
 async function distributeReferralRewards(walletAddr, robot, profit) {
     try {
         // 使用数学工具导入的CEX奖励比例（统一管理，避免硬编码）
-        // CEX_REFERRAL_RATES = [0.08, 0.04, 0.02, 0.005×5] = 16.5%
+        // CEX_REFERRAL_RATES = [0.30, 0.10, 0.05, 0.01×5] = 50%
         const maxLevel = CEX_REFERRAL_RATES.length; // 8级
         let currentWallet = walletAddr;
         
@@ -1307,17 +1312,17 @@ async function distributeCexPurchaseRewards(walletAddr, robotName, purchaseAmoun
 }
 
 /**
- * 发放DEX机器人购买奖励（启动金额奖励 - 3级）
- * 
+ * 发放DEX机器人购买奖励（启动金额返点 - 3级）
+ *
  * 数学公式: R_n = A × r_n
  * 其中: R_n = 第n级奖励, A = 启动金额, r_n = 第n级比例
- * 比例: [2%, 1%, 0.5%] = 总计3.5% (2024-12-22 修复)
- * 
- * DEX机器人推荐奖励规则：
- * - 1级：启动金额的2%
- * - 2级：启动金额的1%
- * - 3级：启动金额的0.5%
- * 
+ * 比例: [5%, 3%, 2%] = 总计10%
+ *
+ * DEX机器人推荐奖励规则（购买时立即发放）：
+ * - 1级：启动金额的5%
+ * - 2级：启动金额的3%
+ * - 3级：启动金额的2%
+ *
  * @param {string} walletAddr - 购买者钱包地址
  * @param {string} robotName - 机器人名称
  * @param {number} purchaseAmount - 购买金额
@@ -1325,7 +1330,7 @@ async function distributeCexPurchaseRewards(walletAddr, robotName, purchaseAmoun
 async function distributeDexPurchaseRewards(walletAddr, robotName, purchaseAmount, sourceId = null) {
     try {
         // 使用数学工具导入的DEX奖励比例（统一管理，避免硬编码）
-        // DEX_REFERRAL_RATES = [0.02, 0.01, 0.005] = 3.5%
+        // DEX_REFERRAL_RATES = [0.05, 0.03, 0.02] = 10%
         const maxLevel = DEX_REFERRAL_RATES.length; // 3级
         let currentWallet = walletAddr;
         

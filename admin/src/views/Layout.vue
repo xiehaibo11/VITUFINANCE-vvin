@@ -862,71 +862,73 @@ const enableSoundNotification = async () => {
 
 /**
  * 检查是否需要启用声音
+ * 默认尝试启用声音，如果浏览器阻止则会在播放时显示对话框
  */
 const checkSoundEnabled = () => {
   const enabled = localStorage.getItem('admin_sound_enabled')
-  if (!enabled) {
-    // 延迟显示声音启用对话框
-    setTimeout(() => {
-      showSoundEnableDialog.value = true
-    }, 2000)
-  } else {
+  if (enabled) {
     soundEnabled.value = true
-    // 注意：语音需要用户交互才能激活，这里只检查状态
-    // 如果语音设置已启用但未激活，会在用户点击通知弹窗时激活
   }
+  // 不主动显示启用对话框，等到有通知时再尝试播放
+  // 如果浏览器阻止自动播放，playNotificationSound 会显示对话框
 }
 
 // ==================== 充值通知功能 ====================
 
 /**
  * 播放提示音（持续1分钟循环播放）
+ * 不需要用户先点击"启用声音"，直接尝试播放
  */
 let soundLoopTimer = null
 let soundStartTime = null
 
 const playNotificationSound = () => {
-  if (notificationSound.value && soundEnabled.value) {
-    // 如果已经在播放，不重复启动
-    if (soundLoopTimer) return
-    
-    const duration = 60000 // 1分钟 = 60000毫秒
-    soundStartTime = Date.now()
-    
-    const playOnce = () => {
-      notificationSound.value.currentTime = 0
-      notificationSound.value.volume = 0.7
-      notificationSound.value.play().catch(err => {
-        console.log('无法播放提示音:', err.message)
-        if (!soundEnabled.value) {
-          showSoundEnableDialog.value = true
-        }
-      })
-    }
-    
-    // 首次播放
-    playOnce()
-    
-    // 监听播放结束，继续循环播放直到1分钟
-    const handleEnded = () => {
-      const elapsed = Date.now() - soundStartTime
-      if (elapsed < duration) {
-        setTimeout(() => {
-          playOnce()
-        }, 500) // 间隔500ms
-      } else {
-        // 1分钟结束，停止循环
-        stopNotificationSound()
+  if (!notificationSound.value) return
+  
+  // 如果已经在播放，不重复启动
+  if (soundLoopTimer) return
+  
+  const duration = 60000 // 1分钟 = 60000毫秒
+  soundStartTime = Date.now()
+  
+  const playOnce = () => {
+    notificationSound.value.currentTime = 0
+    notificationSound.value.volume = 0.7
+    notificationSound.value.play().then(() => {
+      // 播放成功，标记为已启用
+      soundEnabled.value = true
+      localStorage.setItem('admin_sound_enabled', 'true')
+    }).catch(err => {
+      console.log('无法播放提示音:', err.message)
+      // 浏览器阻止自动播放，显示启用对话框
+      if (!soundEnabled.value) {
+        showSoundEnableDialog.value = true
       }
-    }
-    
-    notificationSound.value.addEventListener('ended', handleEnded)
-    
-    // 设置1分钟后自动停止的定时器（保险）
-    soundLoopTimer = setTimeout(() => {
-      stopNotificationSound()
-    }, duration + 1000)
+    })
   }
+  
+  // 首次播放
+  playOnce()
+  
+  // 监听播放结束，继续循环播放直到1分钟
+  const handleEnded = () => {
+    const elapsed = Date.now() - soundStartTime
+    if (elapsed < duration) {
+      setTimeout(() => {
+        playOnce()
+      }, 500) // 间隔500ms
+    } else {
+      // 1分钟结束，停止循环
+      stopNotificationSound()
+    }
+  }
+  
+  notificationSound.value.addEventListener('ended', handleEnded)
+  
+  // 设置1分钟后自动停止的定时器（保险）
+  soundLoopTimer = setTimeout(() => {
+    stopNotificationSound()
+  }, duration + 1000)
 }
 
 /**
@@ -973,44 +975,42 @@ const checkNewDeposits = async () => {
         newDepositCount.value += newCount
         lastDepositId.value = lastId
         
-        // Add to pending list (returns true if not already confirmed)
         if (deposit) {
-          const canPopup = addPendingDeposit(deposit)
+          // 总是播放声音（不管是否已确认）
+          playNotificationSound()
           
-          // Show notification only if not already confirmed
+          // 语音播报：你有一笔充值订单来啦
+          speakNewDepositOrder().then(() => {
+            // 语音播报完成后，播放详细信息
+            setTimeout(() => {
+              speakDepositComplete(
+                deposit.wallet_address || deposit.user_id,
+                deposit.amount,
+                deposit.token || 'USDT'
+              )
+            }, 500)
+          }).catch(err => {
+            console.log('语音播报失败:', err)
+          })
+          
+          // 显示通知
+          ElNotification({
+            title: '💰 新充值通知',
+            message: `收到 ${deposit?.amount || ''} ${deposit?.token || 'USDT'} 充值`,
+            type: 'success',
+            duration: 5000,
+            onClick: () => {
+              router.push('/deposits')
+            }
+          })
+          
+          // Add to pending list and show popup only if not already confirmed
+          const canPopup = addPendingDeposit(deposit)
           if (canPopup) {
-            playNotificationSound()
-            
-            // 语音播报：你有一笔充值订单来啦
-            speakNewDepositOrder().then(() => {
-              // 语音播报完成后，播放详细信息
-              setTimeout(() => {
-                speakDepositComplete(
-                  deposit.wallet_address || deposit.user_id,
-                  deposit.amount,
-                  deposit.token || 'USDT'
-                )
-              }, 500)
-            }).catch(err => {
-              console.log('语音播报失败:', err)
-            })
-            
-            // 显示通知
-            ElNotification({
-              title: '💰 新充值通知',
-              message: `收到 ${deposit?.amount || ''} ${deposit?.token || 'USDT'} 充值`,
-              type: 'success',
-              duration: 5000,
-              onClick: () => {
-                router.push('/deposits')
-              }
-            })
-            
-            // 显示弹窗
             showDepositNotification.value = true
             console.log(`[Polling] 充值ID ${deposit.id} 已添加到待处理列表`)
           } else {
-            console.log(`[Polling] 充值ID ${deposit.id} 已确认或已存在，不再弹窗`)
+            console.log(`[Polling] 充值ID ${deposit.id} 已确认，不显示弹窗但仍播放声音`)
           }
         }
         
@@ -1050,39 +1050,37 @@ const checkNewWithdrawals = async () => {
         newWithdrawCount.value += newCount
         lastWithdrawId.value = lastId
         
-        // Add to pending list (returns true if not already confirmed)
         if (withdraw) {
-          const canPopup = addPendingWithdraw(withdraw)
+          // 总是播放声音（不管是否已确认）
+          playNotificationSound()
           
-          // Show notification only if not already confirmed
+          // 语音播报：用户ID提现金额
+          speakWithdrawRequest(
+            withdraw.wallet_address || withdraw.user_id,
+            withdraw.amount,
+            withdraw.token || 'USDT'
+          ).catch(err => {
+            console.log('语音播报失败:', err)
+          })
+          
+          // 显示通知
+          ElNotification({
+            title: '💸 新提款申请',
+            message: `用户申请提款 ${withdraw?.amount || ''} ${withdraw?.token || 'USDT'}`,
+            type: 'warning',
+            duration: 8000,
+            onClick: () => {
+              router.push('/withdrawals')
+            }
+          })
+          
+          // Add to pending list and show popup only if not already confirmed
+          const canPopup = addPendingWithdraw(withdraw)
           if (canPopup) {
-            playNotificationSound()
-            
-            // 语音播报：用户ID提现金额
-            speakWithdrawRequest(
-              withdraw.wallet_address || withdraw.user_id,
-              withdraw.amount,
-              withdraw.token || 'USDT'
-            ).catch(err => {
-              console.log('语音播报失败:', err)
-            })
-            
-            // 显示通知
-            ElNotification({
-              title: '💸 新提款申请',
-              message: `用户申请提款 ${withdraw?.amount || ''} ${withdraw?.token || 'USDT'}`,
-              type: 'warning',
-              duration: 8000,
-              onClick: () => {
-                router.push('/withdrawals')
-              }
-            })
-            
-            // 显示弹窗
             showWithdrawNotification.value = true
             console.log(`[Polling] 提款ID ${withdraw.id} 已添加到待处理列表`)
           } else {
-            console.log(`[Polling] 提款ID ${withdraw.id} 已确认或已存在，不再弹窗`)
+            console.log(`[Polling] 提款ID ${withdraw.id} 已确认，不显示弹窗但仍播放声音`)
           }
         }
         
