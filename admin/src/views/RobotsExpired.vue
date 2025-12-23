@@ -1085,35 +1085,6 @@ onMounted(() => {
       border-radius: 0;
     }
   }
-  
-  // Fix el-alert text visibility in dark mode
-  :deep(.el-alert) {
-    .el-alert__title {
-      color: var(--admin-text-primary) !important;
-      font-weight: 500;
-    }
-    
-    // Ensure proper background colors for different types in dark mode
-    &.el-alert--success {
-      background-color: rgba(103, 194, 58, 0.15) !important;
-      border: 1px solid rgba(103, 194, 58, 0.3) !important;
-    }
-    
-    &.el-alert--warning {
-      background-color: rgba(230, 162, 60, 0.15) !important;
-      border: 1px solid rgba(230, 162, 60, 0.3) !important;
-    }
-    
-    &.el-alert--error {
-      background-color: rgba(245, 108, 108, 0.15) !important;
-      border: 1px solid rgba(245, 108, 108, 0.3) !important;
-    }
-    
-    &.el-alert--info {
-      background-color: rgba(144, 147, 153, 0.15) !important;
-      border: 1px solid rgba(144, 147, 153, 0.3) !important;
-    }
-  }
 }
 
 .dialog-content-wrapper {

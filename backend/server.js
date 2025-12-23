@@ -2495,9 +2495,7 @@ app.post('/api/robot/quantify-old-deprecated', quantifyLimiter, async (req, res)
             // 标记为已量化（不立即返还收益，等到期）
             await dbQuery(
                 `UPDATE robot_purchases 
-                SET is_quantified = TRUE, 
-                    quantify_count = quantify_count + 1,
-                    updated_at = NOW() 
+                SET is_quantified = 1, updated_at = NOW() 
                 WHERE id = ?`,
                 [robot_purchase_id]
             );
@@ -2568,13 +2566,10 @@ app.post('/api/robot/quantify-old-deprecated', quantifyLimiter, async (req, res)
             [robot_purchase_id, walletAddr, robot.robot_name, earnings]
         );
         
-        // 更新机器人累计收益、量化状态和次数
+        // 更新机器人累计收益
         await dbQuery(
             `UPDATE robot_purchases 
-            SET total_profit = total_profit + ?, 
-                is_quantified = TRUE,
-                quantify_count = quantify_count + 1,
-                updated_at = NOW() 
+            SET total_profit = total_profit + ?, updated_at = NOW() 
             WHERE id = ?`,
             [earnings, robot_purchase_id]
         );

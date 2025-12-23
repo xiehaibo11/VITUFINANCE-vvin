@@ -573,6 +573,20 @@ body {
     --el-pagination-button-bg-color: var(--admin-bg-color);
     --el-pagination-button-disabled-bg-color: var(--admin-bg-color);
   }
+  
+  // Alert 提示框样式
+  .el-alert {
+    background-color: var(--admin-card-bg);
+    border-color: var(--admin-border-color);
+    
+    .el-alert__title {
+      color: var(--admin-text-primary);
+    }
+    
+    .el-alert__description {
+      color: var(--admin-text-secondary);
+    }
+  }
 }
 
 // ==================== Element Plus 暗黑模式覆盖 ====================
@@ -666,6 +680,64 @@ html.dark {
   // 暗黑模式下的搜索区域
   .search-area {
     background-color: var(--admin-card-bg);
+  }
+  
+  // Alert 提示框暗黑模式样式
+  .el-alert {
+    background-color: var(--admin-card-bg);
+    border-color: var(--admin-border-color);
+    
+    .el-alert__title {
+      color: var(--admin-text-primary);
+    }
+    
+    .el-alert__description {
+      color: var(--admin-text-secondary);
+    }
+    
+    // Success type alert - 半透明绿色背景
+    &.el-alert--success {
+      background-color: rgba(103, 194, 58, 0.15) !important;
+      border-color: rgba(103, 194, 58, 0.4) !important;
+      
+      .el-alert__title,
+      .el-alert__description {
+        color: #95d475 !important;
+      }
+    }
+    
+    // Warning type alert - 半透明橙色背景
+    &.el-alert--warning {
+      background-color: rgba(230, 162, 60, 0.15) !important;
+      border-color: rgba(230, 162, 60, 0.4) !important;
+      
+      .el-alert__title,
+      .el-alert__description {
+        color: #f3d19e !important;
+      }
+    }
+    
+    // Info type alert - 半透明灰色背景
+    &.el-alert--info {
+      background-color: rgba(144, 147, 153, 0.15) !important;
+      border-color: rgba(144, 147, 153, 0.4) !important;
+      
+      .el-alert__title,
+      .el-alert__description {
+        color: #c8c9cc !important;
+      }
+    }
+    
+    // Error type alert - 半透明红色背景
+    &.el-alert--error {
+      background-color: rgba(245, 108, 108, 0.15) !important;
+      border-color: rgba(245, 108, 108, 0.4) !important;
+      
+      .el-alert__title,
+      .el-alert__description {
+        color: #fab6b6 !important;
+      }
+    }
   }
 }
 
