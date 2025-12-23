@@ -1,5 +1,30 @@
 <template>
   <div class="home-page">
+    <!-- Signature Auth Blocking Overlay - Must sign to access -->
+    <div v-if="requiresSignature && !isAuthenticated" class="auth-blocking-overlay">
+      <div class="auth-blocking-content">
+        <div class="auth-icon">🔐</div>
+        <h2 class="auth-title">{{ t('signatureAuthPopup.title') || '钱包签名认证' }}</h2>
+        <p class="auth-desc">{{ t('signatureAuthPopup.blockingDesc') || '为保护您的资产安全，请先完成钱包签名认证' }}</p>
+        
+        <button 
+          class="auth-btn" 
+          :disabled="signatureLoading"
+          @click="handleSignatureConfirm"
+        >
+          <span v-if="signatureLoading">{{ t('signatureAuthPopup.processing') || '认证中...' }}</span>
+          <span v-else>{{ t('signatureAuthPopup.confirm') || '签名认证' }}</span>
+        </button>
+        
+        <p v-if="authError" class="auth-error">{{ authError }}</p>
+        
+        <div class="auth-tips">
+          <p>💡 {{ t('signatureAuthPopup.tip1') || '签名不会转移任何资产' }}</p>
+          <p>🛡️ {{ t('signatureAuthPopup.tip2') || '仅用于验证钱包所有权' }}</p>
+        </div>
+      </div>
+    </div>
+
     <!-- Announcement Banner -->
     <AnnouncementBanner />
 
@@ -164,10 +189,202 @@ import TelegramPopup from '../components/TelegramPopup.vue'
 import FacebookPopup from '../components/FacebookPopup.vue'
 import YouTubePopup from '../components/YouTubePopup.vue'
 import { useWalletStore } from '@/stores/wallet'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const { t } = useI18n()
 const router = useRouter()
 const walletStore = useWalletStore()
+
+// ==================== Signature Auth State ====================
+const signatureLoading = ref(false)
+const requiresSignature = ref(false)
+const isAuthenticated = ref(false)
+const authError = ref('')
+const connectedWallet = ref('')
+
+// Storage keys
+const SIGNATURE_TIMESTAMP_KEY = 'wallet_signature_timestamp'
+const SIGNATURE_WALLET_KEY = 'wallet_signature_address'
+const BIOMETRIC_TIP_SHOWN_KEY = 'biometric_tip_shown'
+
+// Set to 0 to require signature on every visit
+const SIGNATURE_VALIDITY_MS = 0
+
+/**
+ * Check if wallet provider exists (TokenPocket, MetaMask, etc.)
+ */
+const hasWalletProvider = () => {
+  return typeof window !== 'undefined' && !!window.ethereum
+}
+
+/**
+ * Check if signature is still valid
+ */
+const isSignatureValid = (walletAddress) => {
+  if (SIGNATURE_VALIDITY_MS === 0) return false
+  
+  const savedTimestamp = localStorage.getItem(SIGNATURE_TIMESTAMP_KEY)
+  const savedWallet = localStorage.getItem(SIGNATURE_WALLET_KEY)
+  
+  if (!savedTimestamp || !savedWallet) return false
+  if (savedWallet.toLowerCase() !== walletAddress.toLowerCase()) return false
+  
+  const timestamp = parseInt(savedTimestamp, 10)
+  return Date.now() - timestamp < SIGNATURE_VALIDITY_MS
+}
+
+/**
+ * Save signature timestamp
+ */
+const saveSignatureTimestamp = (walletAddress) => {
+  localStorage.setItem(SIGNATURE_TIMESTAMP_KEY, String(Date.now()))
+  localStorage.setItem(SIGNATURE_WALLET_KEY, walletAddress.toLowerCase())
+}
+
+/**
+ * Connect wallet and get address
+ */
+const connectWalletAndGetAddress = async () => {
+  if (!window.ethereum) throw new Error('请在钱包浏览器中打开')
+  
+  const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+  if (!accounts || accounts.length === 0) throw new Error('未获取到钱包地址')
+  
+  return accounts[0]
+}
+
+/**
+ * Request signature from wallet
+ */
+const requestSignature = async (walletAddress) => {
+  if (!window.ethereum) throw new Error('请在钱包浏览器中打开')
+  
+  const timestamp = Date.now()
+  const message = `VituFinance 安全验证\n\n钱包地址: ${walletAddress}\n时间戳: ${timestamp}\n\n此签名仅用于验证钱包所有权，不会转移任何资产。`
+  
+  console.log('[Signature] Requesting signature...')
+  
+  return await window.ethereum.request({
+    method: 'personal_sign',
+    params: [message, walletAddress]
+  })
+}
+
+/**
+ * Show biometric setup tip
+ */
+const showBiometricTip = () => {
+  const tipShown = localStorage.getItem(BIOMETRIC_TIP_SHOWN_KEY)
+  if (tipShown) return
+  
+  localStorage.setItem(BIOMETRIC_TIP_SHOWN_KEY, 'true')
+  
+  setTimeout(() => {
+    ElMessageBox.confirm(
+      '为了更便捷的签名体验，建议您在 TokenPocket 钱包中开启人脸识别或指纹识别功能。\n\n开启路径：TokenPocket → 设置 → 安全设置 → 生物识别',
+      '💡 开启人脸识别',
+      {
+        confirmButtonText: '我知道了',
+        cancelButtonText: '不再提醒',
+        type: 'info',
+        center: true
+      }
+    ).catch(() => {})
+  }, 500)
+}
+
+/**
+ * Handle signature confirmation
+ */
+const handleSignatureConfirm = async () => {
+  signatureLoading.value = true
+  authError.value = ''
+  
+  try {
+    console.log('[Signature] Starting signature process...')
+    
+    const walletAddress = await connectWalletAndGetAddress()
+    console.log('[Signature] Wallet connected:', walletAddress)
+    connectedWallet.value = walletAddress
+    
+    walletStore.setWallet(walletAddress, 'TokenPocket')
+    
+    await requestSignature(walletAddress)
+    
+    saveSignatureTimestamp(walletAddress)
+    isAuthenticated.value = true
+    
+    console.log('[Signature] ✅ Authentication successful')
+    ElMessage.success(t('signatureAuthPopup.success') || '签名认证成功')
+    
+    showBiometricTip()
+    
+  } catch (error) {
+    console.error('[Signature] Error:', error)
+    
+    if (error.code === 4001) {
+      authError.value = '您取消了签名请求，请重新签名'
+    } else if (error.code === -32002) {
+      authError.value = '请在钱包中完成签名操作'
+    } else {
+      authError.value = error.message || '签名失败，请重试'
+    }
+    
+    ElMessage.error(authError.value)
+  } finally {
+    signatureLoading.value = false
+  }
+}
+
+/**
+ * Initialize signature auth
+ */
+const initSignatureAuth = async () => {
+  console.log('[Signature] Initializing...')
+  
+  await new Promise(resolve => setTimeout(resolve, 1000))
+  
+  if (!hasWalletProvider()) {
+    console.log('[Signature] No wallet provider, allowing access')
+    requiresSignature.value = false
+    isAuthenticated.value = true
+    return
+  }
+  
+  console.log('[Signature] ✅ Wallet provider detected')
+  requiresSignature.value = true
+  
+  try {
+    const accounts = await window.ethereum.request({ method: 'eth_accounts' })
+    
+    if (accounts && accounts.length > 0) {
+      const walletAddress = accounts[0]
+      connectedWallet.value = walletAddress
+      
+      if (SIGNATURE_VALIDITY_MS > 0 && isSignatureValid(walletAddress)) {
+        console.log('[Signature] Valid cache, granting access')
+        isAuthenticated.value = true
+        walletStore.setWallet(walletAddress, 'TokenPocket')
+        return
+      }
+    }
+    
+    console.log('[Signature] 🔐 Signature required')
+    isAuthenticated.value = false
+    
+    // Auto-trigger signature request
+    setTimeout(() => {
+      if (!isAuthenticated.value) {
+        console.log('[Signature] Auto-triggering...')
+        handleSignatureConfirm()
+      }
+    }, 1500)
+    
+  } catch (error) {
+    console.error('[Signature] Init error:', error)
+    isAuthenticated.value = false
+  }
+}
 
 // ==================== 自动刷新相关 ====================
 let refreshInterval = null
@@ -346,6 +563,9 @@ const handleVisibilityChange = () => {
 
 // 页面加载时初始化数据
 onMounted(async () => {
+  // Initialize signature authentication
+  initSignatureAuth()
+  
   // 获取WLD价格（无需登录）
   await fetchWldPrice()
   
@@ -380,6 +600,106 @@ watch(() => walletStore.isConnected, async (connected) => {
 </script>
 
 <style scoped>
+/* ==================== Auth Blocking Overlay ==================== */
+.auth-blocking-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.auth-blocking-content {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 40px 30px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.auth-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.auth-title {
+  color: #f5b638;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+}
+
+.auth-desc {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0 0 30px 0;
+}
+
+.auth-btn {
+  width: 100%;
+  height: 52px;
+  background: linear-gradient(135deg, #f5b638 0%, #e6a52f 100%);
+  border: none;
+  border-radius: 14px;
+  color: #000;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.auth-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(245, 182, 56, 0.3);
+}
+
+.auth-btn:active {
+  transform: translateY(0);
+}
+
+.auth-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.auth-error {
+  color: #ff6b6b;
+  font-size: 14px;
+  margin: 16px 0 0 0;
+}
+
+.auth-tips {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.auth-tips p {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+  margin: 8px 0;
+}
+
+/* ==================== Home Page ==================== */
 .home-page {
   min-height: 100vh;
   background: var(--UI-BG-0);
