@@ -235,6 +235,8 @@
     "dodoRobotName": "DODO AI Bot",
     "dexRobotName": "DEX AI Robot",
     "toBeUnlocked": "Kilidi açılacak",
+    "unlockBy": "Satın al",
+    "toUnlock": "kilidi açmak için",
     "countdown": "Geri sayım",
     "depositReturnNote": "Depozito ve gelir vadede iade edilecektir",
     "arbitrageOrders": "Arbitraj emir sayısı",

@@ -224,6 +224,8 @@
     "jupiterRobotName": "Jupiter AI 機器人",
     "curveRobotName": "Curve AI 機器人",
     "toBeUnlocked": "待解鎖",
+    "unlockBy": "購買",
+    "toUnlock": "後解鎖",
     "countdown": "倒計時",
     "dodoRobotName": "DODO AI 機器人",
     "depositReturnNote": "到期後將返還本金和收益",

@@ -235,6 +235,8 @@
     "dodoRobotName": "DODO AI Bot",
     "dexRobotName": "DEX AI Roboter",
     "toBeUnlocked": "Wird freigeschaltet",
+    "unlockBy": "Kaufen",
+    "toUnlock": "zum Freischalten",
     "countdown": "Countdown",
     "depositReturnNote": "Einzahlung und Einkommen werden bei Fälligkeit zurückgegeben",
     "arbitrageOrders": "Anzahl der Arbitrage-Aufträge",

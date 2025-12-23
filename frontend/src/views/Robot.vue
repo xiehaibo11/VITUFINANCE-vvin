@@ -44,7 +44,7 @@
           />
         </div>
 
-        <!-- DEX-Robots 内容 -->
+        <!-- DEX-Robots Content -->
         <div v-else-if="activeTab === 'dex'" key="dex" class="robot-list">
           <RobotCard 
             v-for="robot in dexRobots" 
@@ -52,7 +52,8 @@
             :robot="robot"
             :purchased-count="getPurchasedCount(robot.id)"
             :is-loading="loadingRobots[robot.id]"
-            :is-locked="robot.locked"
+            :is-locked="isRobotLocked(robot)"
+            :unlock-robot-name="robot.unlockRobotName"
             @purchase="handleOpenClick"
           />
         </div>
@@ -249,16 +250,17 @@ const cexRobots = ref([
   { id: 'binance_02', name: 'Binance Ai Bot-01', nameKey: 'robotPage.binanceBot01Name', logo: '/static/CEX-Robots/图标.png', orders: 60, dailyProfit: 4.2, totalReturn: 400608, durationHours: 4320, limit: 2, price: 46800 }
 ])
 
-// DEX 机器人数据（使用小时数 durationHours 作为基准）- 2024-12-21 修复收益率
-// 收益计算公式: totalReturn = price + (price × dailyProfit% × days)
+// DEX Robot Data (using durationHours as base) - 2024-12-21 fixed yield rate
+// Yield formula: totalReturn = price + (price × dailyProfit% × days)
+// Unlock conditions: Curve unlocks after purchasing Jupiter, DODO unlocks after purchasing Curve
 const dexRobots = ref([
   { id: 'pancake_01', name: 'PancakeSwap Ai Bot', nameKey: 'robotPage.pancakeSwapRobotName', logo: '/static/DEX-Robots/1.png', orders: 6, dailyProfit: 1.8, totalReturn: 1540, durationHours: 720, limit: 1, price: 1000, showNote: true },
   { id: 'uniswap_01', name: 'Uniswap Ai Bot', nameKey: 'robotPage.uniswapRobotName', logo: '/static/DEX-Robots/2.png', orders: 10, dailyProfit: 2.0, totalReturn: 3200, durationHours: 720, limit: 1, price: 2000, showNote: true },
   { id: 'baseswap_01', name: 'BaseSwap Ai Bot', nameKey: 'robotPage.baseSwapRobotName', logo: '/static/DEX-Robots/3.png', orders: 15, dailyProfit: 2.2, totalReturn: 4980, durationHours: 720, limit: 1, price: 3000, showNote: true },
   { id: 'sushiswap_01', name: 'SushiSwap Ai Bot', nameKey: 'robotPage.sushiSwapRobotName', logo: '/static/DEX-Robots/4.png', orders: 20, dailyProfit: 2.5, totalReturn: 12500, durationHours: 1440, limit: 1, price: 5000, showNote: true },
   { id: 'jupiter_01', name: 'Jupiter Ai Bot', nameKey: 'robotPage.jupiterRobotName', logo: '/static/DEX-Robots/5.png', orders: 30, dailyProfit: 2.8, totalReturn: 26800, durationHours: 1440, limit: 1, price: 10000, showNote: true },
-  { id: 'curve_01', name: 'Curve Ai Bot', nameKey: 'robotPage.curveRobotName', logo: '/static/DEX-Robots/6.png', orders: 50, dailyProfit: 3.5, totalReturn: 61500, durationHours: 720, limit: 1, price: 30000, showNote: true, locked: true },
-  { id: 'dodo_01', name: 'DODO Ai Bot', nameKey: 'robotPage.dodoRobotName', logo: '/static/DEX-Robots/7.png', orders: 60, dailyProfit: 4.0, totalReturn: 132000, durationHours: 720, limit: 1, price: 60000, showNote: true, locked: true }
+  { id: 'curve_01', name: 'Curve Ai Bot', nameKey: 'robotPage.curveRobotName', logo: '/static/DEX-Robots/6.png', orders: 50, dailyProfit: 3.5, totalReturn: 61500, durationHours: 720, limit: 1, price: 30000, showNote: true, locked: true, unlockCondition: 'jupiter_01', unlockRobotName: 'Jupiter AI Robot' },
+  { id: 'dodo_01', name: 'DODO Ai Bot', nameKey: 'robotPage.dodoRobotName', logo: '/static/DEX-Robots/7.png', orders: 60, dailyProfit: 4.0, totalReturn: 132000, durationHours: 720, limit: 1, price: 60000, showNote: true, locked: true, unlockCondition: 'curve_01', unlockRobotName: 'Curve AI Robot' }
 ])
 
 // 格式化金额显示
@@ -332,7 +334,39 @@ const getPurchasedCount = (robotId) => {
   return purchasedCounts[robotId] || 0
 }
 
-// 随机选择一个机器人价格作为增长金额
+/**
+ * Check if a robot is locked based on unlock conditions
+ * - Curve AI Robot: unlocks when Jupiter AI Robot is purchased
+ * - DODO AI Robot: unlocks when Curve AI Robot is purchased
+ * @param {Object} robot - Robot configuration object
+ * @returns {boolean} - Whether the robot is locked
+ */
+const isRobotLocked = (robot) => {
+  // If robot doesn't have locked flag, it's not locked
+  if (!robot.locked) return false
+  
+  // If robot has unlock condition, check if user has purchased the required robot
+  if (robot.unlockCondition) {
+    // Check if user has purchased (or is currently holding) the required robot
+    const hasRequiredRobot = myRobots.value.some(
+      r => r.robot_id === robot.unlockCondition || r.id === robot.unlockCondition
+    )
+    // Also check expired robots (user has purchased it before)
+    const hasPurchasedBefore = expiredRobots.value.some(
+      r => r.robot_id === robot.unlockCondition || r.id === robot.unlockCondition
+    )
+    
+    // If user has purchased the required robot, unlock this one
+    if (hasRequiredRobot || hasPurchasedBefore) {
+      return false
+    }
+  }
+  
+  // Default: robot is locked
+  return true
+}
+
+// Randomly select a robot price as increment amount
 const getRandomIncrement = () => {
   const randomIndex = Math.floor(Math.random() * robotPrices.length)
   return robotPrices[randomIndex]

@@ -224,6 +224,8 @@
     "jupiterRobotName": "Jupiter AI Robot",
     "curveRobotName": "Curve AI Robot",
     "toBeUnlocked": "To be unlocked",
+    "unlockBy": "Purchase",
+    "toUnlock": "to unlock",
     "countdown": "Countdown",
     "dodoRobotName": "DODO AI Robot",
     "depositReturnNote": "Principal and profit will be returned after expiration",

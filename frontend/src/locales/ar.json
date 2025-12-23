@@ -226,6 +226,8 @@
     "dodoRobotName": "DODO AI Bot",
     "dexRobotName": "روبوت DEX AI",
     "toBeUnlocked": "سيتم فتحه",
+    "unlockBy": "اشترِ",
+    "toUnlock": "للفتح",
     "countdown": "العد التنازلي",
     "depositReturnNote": "سيتم إرجاع الإيداع والدخل عند الاستحقاق",
     "arbitrageOrders": "عدد أوامر المراجحة",

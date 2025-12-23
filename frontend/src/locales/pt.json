@@ -235,6 +235,8 @@
     "dodoRobotName": "DODO AI Bot",
     "dexRobotName": "Robô DEX AI",
     "toBeUnlocked": "A ser desbloqueado",
+    "unlockBy": "Compre",
+    "toUnlock": "para desbloquear",
     "countdown": "Contagem regressiva",
     "depositReturnNote": "Depósito e rendimentos serão devolvidos no vencimento",
     "arbitrageOrders": "Número de ordens de arbitragem",

@@ -72,12 +72,15 @@
       </button>
     </div>
 
-    <!-- 锁定覆盖层（仅用于锁定的机器人） -->
+    <!-- Locked Overlay (only for locked robots) -->
     <div v-if="isLocked" class="locked-overlay">
       <div class="locked-circle">
         <div class="lock-icon">🔒</div>
         <div class="unlock-text">{{ t('robotPage.toBeUnlocked') }}</div>
-        <div class="countdown-text">{{ t('robotPage.countdown') }}</div>
+        <div v-if="unlockRobotName" class="unlock-condition">
+          {{ t('robotPage.unlockBy') || 'Purchase' }} {{ unlockRobotName }} {{ t('robotPage.toUnlock') || 'to unlock' }}
+        </div>
+        <div v-else class="countdown-text">{{ t('robotPage.countdown') }}</div>
       </div>
     </div>
   </div>
@@ -92,7 +95,7 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
-// 定义 Props
+// Define Props
 const props = defineProps({
   robot: {
     type: Object,
@@ -109,6 +112,10 @@ const props = defineProps({
   isLocked: {
     type: Boolean,
     default: false
+  },
+  unlockRobotName: {
+    type: String,
+    default: ''
   }
 })
 
@@ -353,7 +360,19 @@ const handleClick = () => {
   text-align: center;
 }
 
-/* 移动端适配 */
+.unlock-condition {
+  font-size: 11px;
+  font-weight: 500;
+  color: #f5b638;
+  text-align: center;
+  margin-top: 6px;
+  padding: 4px 8px;
+  background: rgba(245, 182, 56, 0.1);
+  border-radius: 4px;
+  line-height: 1.4;
+}
+
+/* Mobile Adaptation */
 @media (max-width: 768px) {
   .robot-card {
     padding: 14px 16px 20px 16px;

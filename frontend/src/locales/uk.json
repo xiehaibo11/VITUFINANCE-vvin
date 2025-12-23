@@ -235,6 +235,8 @@
     "dodoRobotName": "DODO AI Bot",
     "dexRobotName": "DEX AI Робот",
     "toBeUnlocked": "Буде розблоковано",
+    "unlockBy": "Придбайте",
+    "toUnlock": "для розблокування",
     "countdown": "Зворотний відлік",
     "depositReturnNote": "Депозит та дохід будуть повернуті при настанні терміну",
     "arbitrageOrders": "Кількість арбітражних ордерів",

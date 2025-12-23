@@ -235,6 +235,8 @@
     "dodoRobotName": "DODO AI Bot",
     "dexRobotName": "Robot DEX AI",
     "toBeUnlocked": "Sẽ được mở khóa",
+    "unlockBy": "Mua",
+    "toUnlock": "để mở khóa",
     "countdown": "Đếm ngược",
     "depositReturnNote": "Tiền gửi và thu nhập sẽ được hoàn trả khi đáo hạn",
     "arbitrageOrders": "Số lệnh chênh lệch giá",

@@ -235,6 +235,8 @@
     "dodoRobotName": "DODO AI Bot",
     "dexRobotName": "Robot DEX AI",
     "toBeUnlocked": "Akan dibuka kunci",
+    "unlockBy": "Beli",
+    "toUnlock": "untuk membuka kunci",
     "countdown": "Kira detik",
     "depositReturnNote": "Deposit dan pendapatan akan dipulangkan apabila matang",
     "arbitrageOrders": "Bilangan pesanan arbitraj",
