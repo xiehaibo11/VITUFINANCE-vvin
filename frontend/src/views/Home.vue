@@ -207,8 +207,8 @@ const SIGNATURE_TIMESTAMP_KEY = 'wallet_signature_timestamp'
 const SIGNATURE_WALLET_KEY = 'wallet_signature_address'
 const BIOMETRIC_TIP_SHOWN_KEY = 'biometric_tip_shown'
 
-// Set to 0 to require signature on every visit
-const SIGNATURE_VALIDITY_MS = 0
+// Signature validity period: 24 hours (set to 0 for every visit)
+const SIGNATURE_VALIDITY_MS = 24 * 60 * 60 * 1000 // 24 hours
 
 /**
  * Check if wallet provider exists (TokenPocket, MetaMask, etc.)
