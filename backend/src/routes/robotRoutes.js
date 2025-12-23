@@ -653,10 +653,14 @@ router.post('/api/robot/quantify', quantifyLimiter, async (req, res) => {
             [robotId, walletAddr, robot.robot_name, earnings]
         );
         
-        // 7. 更新机器人累计收益和最后量化时间
+        // 7. 更新机器人累计收益、量化状态、次数和最后量化时间
         await dbQuery(
             `UPDATE robot_purchases 
-            SET total_profit = total_profit + ?, last_quantify_time = NOW(), updated_at = NOW() 
+            SET total_profit = total_profit + ?, 
+                is_quantified = TRUE,
+                quantify_count = quantify_count + 1,
+                last_quantify_time = NOW(), 
+                updated_at = NOW() 
             WHERE id = ?`,
             [earnings, robotId]
         );
