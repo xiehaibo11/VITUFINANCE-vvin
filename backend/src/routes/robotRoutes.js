@@ -1294,8 +1294,9 @@ async function distributeReferralRewards(walletAddr, robot, profit) {
  */
 async function distributeCexPurchaseRewards(walletAddr, robotName, purchaseAmount, sourceId = null) {
     try {
-        // 使用数学工具导入的CEX奖励比例
-        // CEX_REFERRAL_RATES = [0.08, 0.04, 0.02, 0.005×5] = 16.5%
+        // ⚠️ 注意：此函数不应被调用！CEX机器人没有购买返点
+        // CEX机器人只有量化收益奖励（30%/10%/5%/1%×5），在量化时发放
+        // 此函数保留仅供参考，实际只有DEX机器人使用 distributeDexPurchaseRewards
         const maxLevel = CEX_REFERRAL_RATES.length; // 8级
         let currentWallet = walletAddr;
         
