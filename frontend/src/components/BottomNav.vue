@@ -1,26 +1,26 @@
 <template>
   <!-- Use Teleport to mount directly to body, avoiding parent CSS issues on iOS Safari -->
   <Teleport to="body" :disabled="inPopup">
-    <nav class="bottom-nav" :class="{ 'in-popup': inPopup }">
-      <router-link 
-        v-for="item in navItems" 
-        :key="item.path" 
-        :to="item.path" 
-        class="nav-item"
-        :class="{ active: isActive(item.path) }"
-        @click="handleNavClick(item.path, $event)"
-      >
-        <div class="nav-icon">
-          <img :src="isActive(item.path) ? item.activeIcon : item.icon" :alt="item.label" />
-        </div>
-        <div class="nav-label">
+  <nav class="bottom-nav" :class="{ 'in-popup': inPopup }">
+    <router-link 
+      v-for="item in navItems" 
+      :key="item.path" 
+      :to="item.path" 
+      class="nav-item"
+      :class="{ active: isActive(item.path) }"
+      @click="handleNavClick(item.path, $event)"
+    >
+      <div class="nav-icon">
+        <img :src="isActive(item.path) ? item.activeIcon : item.icon" :alt="item.label" />
+      </div>
+      <div class="nav-label">
           <!-- Active state shows dot -->
-          <span v-if="isActive(item.path)" class="active-dot">·</span>
+        <span v-if="isActive(item.path)" class="active-dot">·</span>
           <!-- Inactive state shows text -->
-          <span v-else class="label-text">{{ t(item.label) }}</span>
-        </div>
-      </router-link>
-    </nav>
+        <span v-else class="label-text">{{ t(item.label) }}</span>
+      </div>
+    </router-link>
+  </nav>
   </Teleport>
 </template>
 

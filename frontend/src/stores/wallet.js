@@ -204,29 +204,50 @@ export const useWalletStore = defineStore('wallet', () => {
   }
 
   /**
-   * 格式化余额显示
-   * @param {string|number} balance - 余额
-   * @returns {string} 格式化后的余额
+   * Format balance display with abbreviations for large numbers
+   * Handles numbers beyond JavaScript's safe integer limit (9007199254740991)
+   * @param {string|number} balance - Balance value
+   * @returns {string} Formatted balance string
    */
   const formatBalance = (balance) => {
-    const num = parseFloat(balance) || 0
-    
-    // 对于超大数字使用缩写显示
-    if (num >= 1000000000000) {
-      // 万亿级别 (T)
-      return (num / 1000000000000).toFixed(2) + 'T'
-    } else if (num >= 1000000000) {
-      // 十亿级别 (B)
-      return (num / 1000000000).toFixed(2) + 'B'
-    } else if (num >= 1000000) {
-      // 百万级别 (M)
-      return (num / 1000000).toFixed(2) + 'M'
-    } else if (num >= 100000) {
-      // 十万级别 (K)
-      return (num / 1000).toFixed(2) + 'K'
+    // Handle null/undefined/invalid values
+    if (balance === null || balance === undefined || balance === '') {
+      return '0.0000'
     }
     
-    // 正常数字显示4位小数
+    // Convert to string first to preserve precision for very large numbers
+    const strBalance = String(balance)
+    
+    // Parse as float (may lose precision for very large numbers)
+    const num = parseFloat(strBalance)
+    
+    // Handle NaN or Infinity
+    if (!isFinite(num) || isNaN(num)) {
+      return '0.0000'
+    }
+    
+    // For ultra-large numbers (Quadrillion+, > 1e15)
+    if (num >= 1e15) {
+      return (num / 1e15).toFixed(2) + 'Q'
+    }
+    // Trillion level (T, >= 1e12)
+    if (num >= 1e12) {
+      return (num / 1e12).toFixed(2) + 'T'
+    }
+    // Billion level (B, >= 1e9)
+    if (num >= 1e9) {
+      return (num / 1e9).toFixed(2) + 'B'
+    }
+    // Million level (M, >= 1e6)
+    if (num >= 1e6) {
+      return (num / 1e6).toFixed(2) + 'M'
+    }
+    // Hundred thousand level (K, >= 1e5)
+    if (num >= 1e5) {
+      return (num / 1e3).toFixed(2) + 'K'
+    }
+    
+    // Normal number display with 4 decimal places
     return num.toFixed(4)
   }
 

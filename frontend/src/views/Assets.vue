@@ -653,47 +653,94 @@ const REFRESH_INTERVAL = 30000 // 30秒自动刷新一次
 const animatedWldBalance = ref(0)
 const animatedUsdtBalance = ref(0)
 
-// 格式化动画余额显示
-const displayWldBalance = computed(() => {
-  return animatedWldBalance.value.toLocaleString('en-US', {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 4
+/**
+ * Format large numbers safely (handles numbers > MAX_SAFE_INTEGER)
+ * @param {number|string} value - Number to format
+ * @param {number} decimals - Decimal places to show
+ * @returns {string} Formatted number string
+ */
+const formatLargeNumber = (value, decimals = 4) => {
+  // Handle invalid values
+  if (value === null || value === undefined || isNaN(value)) {
+    return '0.0000'
+  }
+  
+  // Convert to string to preserve precision for very large numbers
+  const strValue = String(value)
+  
+  // Check if it's in scientific notation
+  if (strValue.includes('e') || strValue.includes('E')) {
+    // Convert scientific notation to regular number string
+    const num = parseFloat(value)
+    if (!isFinite(num)) return '0.0000'
+    return num.toLocaleString('en-US', {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    })
+  }
+  
+  // For very large numbers (> 1 trillion), use abbreviations
+  const num = parseFloat(value)
+  if (!isFinite(num)) return '0.0000'
+  
+  if (num >= 1e15) {
+    return (num / 1e15).toFixed(2) + 'Q' // Quadrillion
+  } else if (num >= 1e12) {
+    return (num / 1e12).toFixed(2) + 'T' // Trillion
+  } else if (num >= 1e9) {
+    return (num / 1e9).toFixed(2) + 'B' // Billion
+  } else if (num >= 1e6) {
+    return (num / 1e6).toFixed(2) + 'M' // Million
+  }
+  
+  // Normal number formatting
+  return num.toLocaleString('en-US', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
   })
+}
+
+// Format animated balance display
+const displayWldBalance = computed(() => {
+  return formatLargeNumber(animatedWldBalance.value, 4)
 })
 
 const displayUsdtBalance = computed(() => {
-  return animatedUsdtBalance.value.toLocaleString('en-US', {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 4
-  })
+  return formatLargeNumber(animatedUsdtBalance.value, 4)
 })
 
-// 平滑过渡动画函数
+// Smooth transition animation function
 const animateBalance = (currentRef, targetValue) => {
+  // For very large numbers (> 1 trillion), skip animation to avoid precision issues
+  if (targetValue > 1e12 || !isFinite(targetValue)) {
+    currentRef.value = targetValue
+    return
+  }
+  
   const startValue = currentRef.value
   const difference = targetValue - startValue
   
-  // 如果差值太小，直接设置
+  // If difference is too small, set directly
   if (Math.abs(difference) < 0.0001) {
     currentRef.value = targetValue
     return
   }
   
-  const duration = 800 // 动画时长 800ms
+  const duration = 800 // Animation duration 800ms
   const startTime = performance.now()
   
   const animate = (currentTime) => {
     const elapsed = currentTime - startTime
     const progress = Math.min(elapsed / duration, 1)
     
-    // 使用缓动函数
+    // Use easing function
     const easeProgress = 1 - Math.pow(1 - progress, 3)
     currentRef.value = startValue + difference * easeProgress
     
     if (progress < 1) {
       requestAnimationFrame(animate)
     } else {
-      currentRef.value = targetValue // 确保最终值精确
+      currentRef.value = targetValue // Ensure final value is precise
     }
   }
   
