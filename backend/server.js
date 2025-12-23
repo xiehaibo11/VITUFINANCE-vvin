@@ -46,6 +46,13 @@ import luckyWheelRoutes, {
 // 导入模拟金额自动增长定时任务
 import { startSimulatedGrowthCron, getPageTotalAmount } from './src/cron/simulatedGrowthCron.js';
 
+// 导入经纪人等级定时任务
+import { 
+    startBrokerLevelCron, 
+    setDbQuery as setBrokerDbQuery,
+    calculateAllBrokerLevels 
+} from './src/cron/brokerLevelCron.js';
+
 // 导入推荐奖励数学工具（统一管理奖励比例，避免硬编码）
 import {
     CEX_REFERRAL_RATES,            // CEX 8级奖励比例 [0.30, 0.10, 0.05, 0.01, ...]
@@ -817,6 +824,13 @@ app.get('/api/user/balance', async (req, res) => {
         );
         const totalTeamReward = parseFloat(teamRewardResult[0]?.total) || 0;
         
+        // Add cache control headers to prevent browser caching
+        res.set({
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+        });
+        
         res.json({
             success: true,
             data: {
@@ -826,7 +840,10 @@ app.get('/api/user/balance', async (req, res) => {
                 total_deposit: parseFloat(rows[0].total_deposit).toFixed(4),
                 total_withdraw: parseFloat(rows[0].total_withdraw).toFixed(4),
                 total_referral_reward: totalReferralReward.toFixed(4),
-                total_team_reward: totalTeamReward.toFixed(4)
+                total_team_reward: totalTeamReward.toFixed(4),
+                // Add timestamp for cache busting
+                _timestamp: Date.now(),
+                _data_version: rows[0].updated_at ? new Date(rows[0].updated_at).getTime() : Date.now()
             }
         });
     } catch (error) {
@@ -6141,6 +6158,11 @@ app.listen(PORT, () => {
     // 启动模拟金额自动增长服务（每10秒增长一次）
     startSimulatedGrowthCron();
     console.log('[SimulatedGrowth] 模拟金额自动增长服务已启动（每10秒增长一次）');
+
+    // 启动经纪人等级计算和分红服务
+    setBrokerDbQuery(dbQuery);
+    startBrokerLevelCron();
+    console.log('[BrokerLevel] 经纪人等级服务已启动（每小时计算等级，每日/月发放分红）');
 
     // 优雅关闭处理
     process.on('SIGTERM', () => {

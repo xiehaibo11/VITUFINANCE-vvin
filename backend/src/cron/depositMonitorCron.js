@@ -15,11 +15,14 @@ import { query as dbQuery } from '../../db.js';
 // ==================== 配置常量 ====================
 
 // BSC RPC节点列表 (轮询使用，避免单点限流)
+// NodeReal BSC RPC (免费额度3500万请求/月)
 const BSC_RPC_URLS = [
-  process.env.BSC_RPC_URL || 'https://bsc.publicnode.com',  // 优先使用配置的RPC（PublicNode测试优秀）
-  'https://bsc.publicnode.com',  // PublicNode（测试结果：⭐⭐⭐⭐⭐）
-  'https://bsc-dataseed.binance.org/',  // Binance（备用，但有限流）
-  'https://bsc-dataseed1.defibit.io/'  // 备用节点
+  // NodeReal BSC RPC (优先使用，速度快无限流)
+  'https://bsc-mainnet.nodereal.io/v1/0e91c33451a94222bdb4a68a6e4a708d',
+  // 备用免费公共节点
+  'https://bsc.publicnode.com',
+  'https://bsc-dataseed.binance.org/',
+  'https://bsc-dataseed1.defibit.io/'
 ];
 
 // 当前使用的RPC节点索引
@@ -37,10 +40,12 @@ const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a
 // 最低充值金额 (USDT)
 const MIN_DEPOSIT_AMOUNT = 20;
 
-// 扫描配置 - 优化后的参数（提高实时性）
-const BLOCKS_PER_SCAN = 20;  // 从80降低到20，减少RPC压力
-const SCAN_INTERVAL_MS = 30000;  // 30秒扫描一次（优化：从120秒缩短到30秒）
-const INITIAL_SCAN_BLOCKS = 100;  // 首次运行扫描最近100个区块
+// 扫描配置 - 优化后的参数
+// 使用免费RPC时建议: BLOCKS_PER_SCAN=10, SCAN_INTERVAL_MS=60000
+// 使用付费RPC时建议: BLOCKS_PER_SCAN=50, SCAN_INTERVAL_MS=15000
+const BLOCKS_PER_SCAN = parseInt(process.env.BLOCKS_PER_SCAN) || 10;  // 每次扫描区块数
+const SCAN_INTERVAL_MS = parseInt(process.env.SCAN_INTERVAL_MS) || 60000;  // 60秒扫描一次（减少限流）
+const INITIAL_SCAN_BLOCKS = 50;  // 首次运行扫描最近50个区块
 
 // 重试配置
 const MAX_RETRIES = 3;  // 最大重试次数

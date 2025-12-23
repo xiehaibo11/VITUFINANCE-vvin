@@ -23,15 +23,29 @@ const router = express.Router();
 import { sensitiveLimiter, quantifyLimiter } from '../middleware/security.js';
 
 // 导入推荐奖励数学工具（统一管理奖励比例）
-// 2024-12-22: 新配置，降低比例防止亏损
+// 2024-12-23: 使用业务文档中的正确比例
 import {
-    CEX_REFERRAL_RATES,            // CEX 8级奖励比例 [0.08, 0.04, 0.02, 0.005×5] = 16.5%
-    DEX_REFERRAL_RATES,            // DEX 3级奖励比例 [0.02, 0.01, 0.005] = 3.5%
-    calculateLevelReward,          // 单级奖励计算: amount * rate (含安全上限50U)
+    CEX_REFERRAL_RATES,            // CEX 8级奖励比例 [0.30, 0.10, 0.05, 0.01×5] = 50%
+    DEX_REFERRAL_RATES,            // DEX 3级奖励比例 [0.05, 0.03, 0.02] = 10%
+    calculateLevelReward,          // 单级奖励计算: amount * rate (含安全上限500U)
     calculateCexRewards,           // CEX完整奖励计算
     calculateDexRewards,           // DEX完整奖励计算
     formatAmount                   // 格式化金额显示
 } from '../utils/referralMath.js';
+
+// 导入精确数学计算模块（解决浮点精度问题）
+import {
+    add,
+    subtract,
+    multiply,
+    divide,
+    percentage,
+    calculateEquity,
+    calculateAllLevelRewards,
+    REWARD_RATES,
+    BROKER_LEVELS,
+    calculateBrokerLevel
+} from '../utils/precisionMath.js';
 
 // 导入高级数学算法（用于复杂场景分析）
 import {
@@ -293,15 +307,15 @@ router.post('/api/robot/purchase', sensitiveLimiter, async (req, res) => {
                 });
             }
         }
-        
-        // 8. 检查限购数量（CEX 和 DEX 机器人）
+
+        // 8. 检查限购数量（CEX 和 DEX 机器人 - 同时运行的数量）
         if (!config.daily_limit && config.limit) {
             const purchaseCount = await dbQuery(
-                `SELECT COUNT(*) as count FROM robot_purchases 
+                `SELECT COUNT(*) as count FROM robot_purchases
                 WHERE wallet_address = ? AND robot_id = ? AND status = 'active' AND end_time > NOW()`,
                 [walletAddr, config.robot_id]
             );
-            
+
             if (purchaseCount[0].count >= config.limit) {
                 return res.status(400).json({
                     success: false,
@@ -310,7 +324,29 @@ router.post('/api/robot/purchase', sensitiveLimiter, async (req, res) => {
                 });
             }
         }
-        
+
+        // 8.5 检查套利订单数量（每个用户可开启的总次数）
+        // arbitrage_orders: 用户购买该机器人的历史总次数限制
+        if (config.arbitrage_orders) {
+            const totalPurchaseCount = await dbQuery(
+                `SELECT COUNT(*) as count FROM robot_purchases
+                WHERE wallet_address = ? AND robot_name = ?`,
+                [walletAddr, robot_name]
+            );
+
+            if (totalPurchaseCount[0].count >= config.arbitrage_orders) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Arbitrage order limit reached. You can only open this robot ${config.arbitrage_orders} times.`,
+                    data: {
+                        arbitrage_limit_reached: true,
+                        arbitrage_orders: config.arbitrage_orders,
+                        current_count: totalPurchaseCount[0].count
+                    }
+                });
+            }
+        }
+
         // 9. 计算时间（核心修复：使用精确到秒的时间）
         const startTime = new Date();
         const endTime = calculateEndTime(robot_name, startTime);
@@ -329,19 +365,39 @@ router.post('/api/robot/purchase', sensitiveLimiter, async (req, res) => {
             console.log(`[Purchase] DEX robot ${robot_name}: price=${robotPrice}, days=${days}, daily_profit=${config.daily_profit}%, expected_return=${expectedReturn.toFixed(4)}`);
         }
         
-        // 11. 扣除用户余额
-        // #region agent log
-        fetch('http://localhost:7242/ingest/10a0bbc0-f589-4d17-9d7f-29d4e679320a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'robotRoutes.js:301',message:'Robot purchase - BEFORE deduction',data:{wallet:walletAddr.slice(0,10),balanceBefore:currentBalance,deductAmount:robotPrice},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
-        
-        await dbQuery(
-            'UPDATE user_balances SET usdt_balance = usdt_balance - ?, updated_at = NOW() WHERE wallet_address = ?',
-            [robotPrice, walletAddr]
+        // 11. 扣除用户余额（使用原子操作，防止余额变负）
+        // CRITICAL FIX: Use conditional UPDATE to prevent negative balance
+        // Only deduct if balance >= robotPrice (atomic check-and-deduct)
+        const deductResult = await dbQuery(
+            `UPDATE user_balances 
+             SET usdt_balance = usdt_balance - ?, updated_at = NOW() 
+             WHERE wallet_address = ? AND usdt_balance >= ?`,
+            [robotPrice, walletAddr, robotPrice]
         );
         
-        // #region agent log
-        fetch('http://localhost:7242/ingest/10a0bbc0-f589-4d17-9d7f-29d4e679320a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'robotRoutes.js:308',message:'Robot purchase - AFTER deduction',data:{wallet:walletAddr.slice(0,10),deductAmount:robotPrice,deductionExecuted:true},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
+        // Check if deduction was successful (affectedRows > 0)
+        if (!deductResult || deductResult.affectedRows === 0) {
+            // Re-fetch current balance to show accurate error message
+            const recheckBalance = await dbQuery(
+                'SELECT usdt_balance FROM user_balances WHERE wallet_address = ?',
+                [walletAddr]
+            );
+            const actualBalance = recheckBalance.length > 0 ? parseFloat(recheckBalance[0].usdt_balance) : 0;
+            
+            console.warn(`[Purchase] REJECTED - Insufficient balance: wallet=${walletAddr.slice(0, 10)}..., balance=${actualBalance.toFixed(4)}, required=${robotPrice.toFixed(4)}`);
+            
+            return res.status(400).json({
+                success: false,
+                message: 'Insufficient USDT balance. Please deposit more funds.',
+                data: {
+                    current_balance: actualBalance.toFixed(4),
+                    required: robotPrice.toFixed(4),
+                    shortfall: (robotPrice - actualBalance).toFixed(4)
+                }
+            });
+        }
+        
+        console.log(`[Purchase] Balance deducted: wallet=${walletAddr.slice(0, 10)}..., amount=${robotPrice.toFixed(4)}`)
         
         // 12. 插入购买记录（使用新的时间字段）
         const purchaseResult = await dbQuery(
@@ -629,9 +685,12 @@ router.post('/api/robot/quantify', quantifyLimiter, async (req, res) => {
             [walletAddr, robotId, robot.robot_name, earnings]
         );
         
-        // 10. 推荐奖励已在购买时立即发放，量化时不再发放
-        // 注意：推荐人奖励已改为购买时立即发放（source_type = 'purchase'）
-        console.log(`[Quantify] Referral rewards already distributed at purchase for robot ${robotId}`);
+        // 10. 发放推荐奖励（CEX/Grid 机器人每次量化时发放）
+        // 基于本次量化收益的 30%/10%/5%/1%×5 发放给上级
+        if (robot.robot_type === 'cex' || robot.robot_type === 'grid') {
+            await distributeReferralRewards(walletAddr, robot, earnings);
+            console.log(`[Quantify] Referral rewards distributed for robot ${robotId}, profit: ${earnings.toFixed(4)} USDT`);
+        }
         
         // 11. 获取更新后的数据
         const updatedRobot = await dbQuery(

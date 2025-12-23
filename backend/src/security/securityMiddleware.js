@@ -89,14 +89,73 @@ const CONFIG = {
         '/favicon.ico'
     ],
     
-    // XSS attack patterns
+    // XSS attack patterns (comprehensive)
     XSS_PATTERNS: [
+        // Script tags
         /<script[^>]*>/gi,
-        /javascript:/gi,
-        /on\w+\s*=/gi,
+        /<\/script>/gi,
+        /<script[\s\S]*?>/gi,
+
+        // JavaScript protocol
+        /javascript\s*:/gi,
+        /&#0*106;&#0*97;&#0*118;&#0*97;&#0*115;&#0*99;&#0*114;&#0*105;&#0*112;&#0*116;/gi, // javascript: encoded
+
+        // Event handlers
+        /on(abort|blur|change|click|dblclick|error|focus|keydown|keypress|keyup|load|mousedown|mousemove|mouseout|mouseover|mouseup|reset|resize|scroll|select|submit|unload)\s*=/gi,
+        /on(animationend|animationiteration|animationstart|beforeunload|canplay|canplaythrough|contextmenu|copy|cut|drag|dragend|dragenter|dragleave|dragover|dragstart|drop|durationchange|ended|error|focus|focusin|focusout|fullscreenchange|fullscreenerror|hashchange|input|invalid|keydown|keypress|keyup|load|loadeddata|loadedmetadata|loadstart|message|mouseenter|mouseleave|offline|online|open|pagehide|pageshow|paste|pause|play|playing|popstate|progress|ratechange|resize|scroll|search|seeked|seeking|select|show|stalled|storage|submit|suspend|timeupdate|toggle|touchcancel|touchend|touchmove|touchstart|transitionend|unload|volumechange|waiting|wheel)\s*=/gi,
+
+        // Expression/behavior (IE)
         /expression\s*\(/gi,
-        /vbscript:/gi,
-        /data:\s*text\/html/gi
+        /behavior\s*:/gi,
+        /binding\s*:/gi,
+
+        // VBScript
+        /vbscript\s*:/gi,
+
+        // Data URIs with dangerous types
+        /data:\s*text\/html/gi,
+        /data:\s*application\/x-javascript/gi,
+        /data:\s*text\/javascript/gi,
+
+        // SVG XSS vectors
+        /<svg[^>]*onload/gi,
+        /<svg[^>]*onerror/gi,
+        /<animate[^>]*onbegin/gi,
+        /<set[^>]*onbegin/gi,
+
+        // Object/embed/iframe injection
+        /<object[^>]*>/gi,
+        /<embed[^>]*>/gi,
+        /<iframe[^>]*>/gi,
+        /<frame[^>]*>/gi,
+
+        // Form hijacking
+        /<form[^>]*action\s*=/gi,
+        /<input[^>]*formaction\s*=/gi,
+        /<button[^>]*formaction\s*=/gi,
+
+        // Base tag hijacking
+        /<base[^>]*href\s*=/gi,
+
+        // Meta refresh
+        /<meta[^>]*http-equiv\s*=\s*["']?refresh/gi,
+
+        // Link injection
+        /<link[^>]*href\s*=\s*["']?javascript/gi,
+
+        // Style injection (CSS expressions)
+        /style\s*=\s*["'][^"']*expression\s*\(/gi,
+        /style\s*=\s*["'][^"']*url\s*\(\s*["']?javascript/gi,
+
+        // Template literals (modern XSS)
+        /\$\{[^}]*\}/g,
+
+        // Angular/Vue template injection
+        /\{\{.*?\}\}/g,
+        /\[\[.*?\]\]/g,
+
+        // HTML entities that could be XSS
+        /&#x0*6a;&#x0*61;&#x0*76;&#x0*61;&#x0*73;&#x0*63;&#x0*72;&#x0*69;&#x0*70;&#x0*74;/gi, // javascript hex encoded
     ]
 };
 

@@ -398,9 +398,11 @@
   "assetsPage": {
     "comingSoon": "Demnächst",
     "equityValue": "Equity value(USDT)",
-    "todayPnl": "Today's PNL",
+    "todayPnl": "Heutiges PNL",
+    "referralReward": "Empfehlungsbelohnung",
+    "teamReward": "Teambelohnung",
     "details": "Details",
-    "deposit": "Deposit",
+    "deposit": "Einzahlen",
     "withdraw": "Withdraw",
     "flashExchange": "Flash Exchange",
     "balance": "Balance",

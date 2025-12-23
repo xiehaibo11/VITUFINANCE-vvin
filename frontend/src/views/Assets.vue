@@ -28,15 +28,15 @@
             <span class="pnl-arrow">›</span>
           </div>
 
-          <!-- 推荐奖励 - 只有大于0时显示 -->
-          <div v-if="parseFloat(totalReferralReward) > 0" class="today-pnl clickable" @click="openDetailsDrawer('USDT')">
+          <!-- 推荐奖励 - 只有大于0时显示 (使用精确数学比较) -->
+          <div v-if="isPositive(totalReferralReward)" class="today-pnl clickable" @click="openDetailsDrawer('USDT')">
             <span class="pnl-label">{{ t('assetsPage.referralReward') || 'Referral Reward' }}</span>
-            <span class="pnl-value positive">{{ totalReferralReward }} USDT</span>
+            <span class="pnl-value positive">{{ formatAmount(totalReferralReward) }} USDT</span>
             <span class="pnl-arrow">›</span>
           </div>
 
-          <!-- 团队奖励 - 只有大于0时显示 -->
-          <div v-if="parseFloat(totalTeamReward) > 0" class="today-pnl clickable" @click="openDetailsDrawer('USDT')">
+          <!-- 团队奖励 - 只有大于0时显示 (使用精确数学比较) -->
+          <div v-if="isPositive(totalTeamReward)" class="today-pnl clickable" @click="openDetailsDrawer('USDT')">
             <span class="pnl-label">{{ t('assetsPage.teamReward') || 'Team Reward' }}</span>
             <span class="pnl-value positive">{{ totalTeamReward }} USDT</span>
             <span class="pnl-arrow">›</span>
@@ -613,6 +613,17 @@ import QuantifyHistoryPopup from '@/components/QuantifyHistoryPopup.vue'
 import { useWalletStore } from '@/stores/wallet'
 import { refreshBalances, isDAppBrowser, detectWalletType } from '@/utils/wallet'
 import { trackDeposit, trackWithdraw } from '@/utils/tracker'
+// Import precision math module for accurate financial calculations
+import {
+  add,
+  multiply,
+  divide,
+  calculateEquity,
+  calculateExchange,
+  formatAmount,
+  isGreaterThan,
+  isPositive
+} from '@/utils/precisionMath'
 
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -793,18 +804,15 @@ const topInputAmount = ref('')
 const topCurrency = computed(() => isSwapped.value ? 'USDT' : 'WLD')
 const bottomCurrency = computed(() => isSwapped.value ? 'WLD' : 'USDT')
 
-// 计算底部显示的金额（根据输入和汇率）
+// 计算底部显示的金额（根据输入和汇率）- 使用精确数学算法
 const bottomCalculatedAmount = computed(() => {
-  const inputVal = parseFloat(topInputAmount.value) || 0
-  if (inputVal <= 0 || exchangeWldPrice.value <= 0) return '0.0000'
+  const inputVal = topInputAmount.value || 0
+  if (!isPositive(inputVal) || !isPositive(exchangeWldPrice.value)) return '0.0000'
   
-  if (topCurrency.value === 'WLD') {
-    // WLD -> USDT
-    return (inputVal * exchangeWldPrice.value).toFixed(4)
-  } else {
-    // USDT -> WLD
-    return (inputVal / exchangeWldPrice.value).toFixed(4)
-  }
+  // Use precision math to avoid floating point errors
+  // WLD -> USDT: amount × price
+  // USDT -> WLD: amount ÷ price
+  return calculateExchange(inputVal, exchangeWldPrice.value, topCurrency.value === 'WLD')
 })
 
 // 处理顶部输入变化
@@ -1590,6 +1598,7 @@ const fetchUserLevel = async () => {
 
 /**
  * 从平台后端获取用户余额
+ * 添加时间戳参数防止浏览器缓存，确保每次获取最新数据
  */
 const fetchPlatformBalance = async () => {
   if (!walletStore.isConnected || !walletStore.walletAddress) {
@@ -1598,7 +1607,19 @@ const fetchPlatformBalance = async () => {
   
   try {
     walletStore.setLoadingBalance(true)
-    const response = await fetch(`/api/user/balance?wallet_address=${walletStore.walletAddress}`)
+    // Add timestamp to prevent browser caching
+    const timestamp = Date.now()
+    const response = await fetch(
+      `/api/user/balance?wallet_address=${walletStore.walletAddress}&_t=${timestamp}`,
+      {
+        // Disable browser cache
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      }
+    )
     const data = await response.json()
     
     if (data.success && data.data) {
@@ -1611,19 +1632,22 @@ const fetchPlatformBalance = async () => {
       totalTeamReward.value = data.data.total_team_reward || '0.0000'
       
       // 计算并更新总权益值（USDT + WLD 折算成 USDT）
-      // 使用已获取的exchangeWldPrice来计算WLD的USDT价值
-      const usdtBalance = parseFloat(data.data.usdt_balance) || 0
-      const wldBalance = parseFloat(data.data.wld_balance) || 0
-      const currentWldPrice = exchangeWldPrice.value || 0 // Use real-time WLD price
-      const totalEquity = usdtBalance + (wldBalance * currentWldPrice)
-      walletStore.setEquityValue(totalEquity.toFixed(4))
+      // 使用精确数学算法计算，避免浮点精度问题
+      // Formula: Equity = USDT + (WLD × WLD_Price)
+      const totalEquity = calculateEquity(
+        data.data.usdt_balance,
+        data.data.wld_balance,
+        exchangeWldPrice.value
+      )
+      walletStore.setEquityValue(totalEquity)
       
       console.log('[Assets] Platform balance fetched:', {
         usdt: data.data.usdt_balance,
         wld: data.data.wld_balance,
         total_referral_reward: data.data.total_referral_reward,
         total_team_reward: data.data.total_team_reward,
-        equity: totalEquity.toFixed(4)
+        equity: totalEquity.toFixed(4),
+        _timestamp: timestamp
       })
     }
   } catch (error) {
@@ -1637,6 +1661,7 @@ const fetchPlatformBalance = async () => {
 
 /**
  * 获取用户今日量化收益
+ * 添加时间戳参数防止浏览器缓存
  */
 const fetchTodayEarnings = async () => {
   if (!walletStore.isConnected || !walletStore.walletAddress) {
@@ -1645,7 +1670,11 @@ const fetchTodayEarnings = async () => {
   }
   
   try {
-    const response = await fetch(`/api/robot/today-earnings?wallet_address=${walletStore.walletAddress}`)
+    const timestamp = Date.now()
+    const response = await fetch(
+      `/api/robot/today-earnings?wallet_address=${walletStore.walletAddress}&_t=${timestamp}`,
+      { cache: 'no-store' }
+    )
     const data = await response.json()
     
     if (data.success && data.data) {

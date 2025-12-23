@@ -89,7 +89,7 @@
     <el-row :gutter="20" class="stats-row">
       <!-- 机器人购买 -->
       <el-col :xs="24" :sm="12" :md="6">
-        <div class="stat-card clickable" @click="$router.push('/robots')">
+        <div class="stat-card clickable" @click="$router.push('/robots-active')">
           <div class="stat-icon info">
             <el-icon :size="28"><Monitor /></el-icon>
           </div>

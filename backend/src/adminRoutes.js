@@ -731,6 +731,8 @@ router.put('/users/:wallet_address/balance', authMiddleware, async (req, res) =>
   try {
     const { wallet_address } = req.params;
     const { usdt_balance, wld_balance, remark, is_internal_operation } = req.body;
+    const admin_username = req.admin?.username || 'unknown';
+    const admin_id = req.admin?.id || 0;
     
     if (usdt_balance === undefined && wld_balance === undefined) {
       return res.status(400).json({
@@ -741,38 +743,42 @@ router.put('/users/:wallet_address/balance', authMiddleware, async (req, res) =>
     
     const walletAddr = wallet_address.toLowerCase();
     
-    // 获取当前余额，用于计算差值
-    const currentBalance = await dbQuery(
+    // Get current balance for comparison and logging
+    const currentBalanceResult = await dbQuery(
       'SELECT usdt_balance, wld_balance, manual_added_balance FROM user_balances WHERE wallet_address = ?',
       [walletAddr]
     );
     
-    if (!currentBalance) {
+    if (!currentBalanceResult || currentBalanceResult.length === 0) {
       return res.status(404).json({
         success: false,
         message: '用户不存在'
       });
     }
     
-    // 更新余额
+    const currentBalance = currentBalanceResult[0];
+    const oldUsdt = parseFloat(currentBalance.usdt_balance) || 0;
+    const oldWld = parseFloat(currentBalance.wld_balance) || 0;
+    const newUsdt = usdt_balance !== undefined ? parseFloat(usdt_balance) : oldUsdt;
+    const newWld = wld_balance !== undefined ? parseFloat(wld_balance) : oldWld;
+    
+    // Build update query
     const updateFields = [];
     const updateParams = [];
     
-    // 如果是内部操作，需要更新 manual_added_balance
+    // If internal operation, track manual_added_balance
     if (is_internal_operation === true) {
       if (usdt_balance !== undefined) {
-        const currentUsdt = parseFloat(currentBalance.usdt_balance);
-        const newUsdt = parseFloat(usdt_balance);
-        const diff = newUsdt - currentUsdt;
+        const diff = newUsdt - oldUsdt;
         
         if (diff > 0) {
-          // 增加余额，记录到 manual_added_balance
+          // Increasing balance, record to manual_added_balance
           updateFields.push('usdt_balance = ?');
           updateParams.push(newUsdt);
           updateFields.push('manual_added_balance = manual_added_balance + ?');
           updateParams.push(diff);
         } else {
-          // 减少余额，不记入 manual_added_balance
+          // Decreasing balance, don't record to manual_added_balance
           updateFields.push('usdt_balance = ?');
           updateParams.push(newUsdt);
         }
@@ -780,36 +786,66 @@ router.put('/users/:wallet_address/balance', authMiddleware, async (req, res) =>
       
       if (wld_balance !== undefined) {
         updateFields.push('wld_balance = ?');
-        updateParams.push(parseFloat(wld_balance));
+        updateParams.push(newWld);
       }
-      
-      console.log(`[Admin] 内部操作更新用户余额: ${walletAddr}, 备注: ${remark}`);
     } else {
-      // 非内部操作，正常更新
+      // Normal update operation
       if (usdt_balance !== undefined) {
         updateFields.push('usdt_balance = ?');
-        updateParams.push(parseFloat(usdt_balance));
+        updateParams.push(newUsdt);
       }
       
       if (wld_balance !== undefined) {
         updateFields.push('wld_balance = ?');
-        updateParams.push(parseFloat(wld_balance));
+        updateParams.push(newWld);
       }
-      
-      console.log(`[Admin] 更新用户余额: ${walletAddr}, 备注: ${remark}`);
     }
     
     updateFields.push('updated_at = NOW()');
     updateParams.push(walletAddr);
     
+    // Execute update
     await dbQuery(
       `UPDATE user_balances SET ${updateFields.join(', ')} WHERE wallet_address = ?`,
       updateParams
     );
     
+    // Build detailed operation log
+    const operationDetail = JSON.stringify({
+      wallet_address: walletAddr,
+      before: { usdt: oldUsdt.toFixed(4), wld: oldWld.toFixed(4) },
+      after: { usdt: newUsdt.toFixed(4), wld: newWld.toFixed(4) },
+      change: { 
+        usdt: (newUsdt - oldUsdt).toFixed(4), 
+        wld: (newWld - oldWld).toFixed(4) 
+      },
+      is_internal_operation: is_internal_operation || false,
+      remark: remark || ''
+    });
+    
+    // Record to admin_operation_logs table
+    await dbQuery(
+      `INSERT INTO admin_operation_logs 
+       (admin_id, admin_username, operation_type, operation_target, operation_detail, ip_address, created_at) 
+       VALUES (?, ?, 'balance_update', ?, ?, ?, NOW())`,
+      [
+        admin_id,
+        admin_username,
+        walletAddr,
+        operationDetail,
+        req.ip || req.connection?.remoteAddress || 'unknown'
+      ]
+    );
+    
+    console.log(`[Admin] 余额更新: admin=${admin_username}, wallet=${walletAddr}, USDT: ${oldUsdt} -> ${newUsdt}, WLD: ${oldWld} -> ${newWld}, 备注: ${remark}`);
+    
     res.json({
       success: true,
-      message: '余额更新成功'
+      message: '余额更新成功',
+      data: {
+        before: { usdt: oldUsdt.toFixed(4), wld: oldWld.toFixed(4) },
+        after: { usdt: newUsdt.toFixed(4), wld: newWld.toFixed(4) }
+      }
     });
   } catch (error) {
     console.error('更新用户余额失败:', error.message);
@@ -1928,11 +1964,11 @@ router.get('/robots', authMiddleware, async (req, res) => {
       params.push(`%${wallet_address}%`);
     }
     
-    // 根据状态筛选
+    // 根据状态筛选（使用 end_time 精确判断）
     if (status === 'active') {
-      whereConditions.push('(status = "active" AND end_date >= CURDATE())');
+      whereConditions.push('(status = "active" AND end_time > NOW())');
     } else if (status === 'expired') {
-      whereConditions.push('(status != "active" OR end_date < CURDATE())');
+      whereConditions.push('(status = "expired" OR (status = "active" AND end_time <= NOW()))');
     }
     
     // 根据机器人类型筛选
@@ -3153,133 +3189,9 @@ router.get('/referral-conversions', authMiddleware, async (req, res) => {
   }
 });
 
-// ==================== 机器人购买记录管理 ====================
-
-/**
- * 获取机器人购买统计
- * GET /api/admin/robots/stats
- */
-router.get('/robots/stats', authMiddleware, async (req, res) => {
-  try {
-    // 获取活跃机器人数量
-    const activeResult = await dbQuery(
-      `SELECT COUNT(*) as count FROM robot_purchases WHERE status = 'active'`
-    );
-    
-    // 获取已过期机器人数量
-    const expiredResult = await dbQuery(
-      `SELECT COUNT(*) as count FROM robot_purchases WHERE status = 'expired'`
-    );
-    
-    // 获取总投资金额
-    const investmentResult = await dbQuery(
-      `SELECT COALESCE(SUM(price), 0) as total FROM robot_purchases`
-    );
-    
-    // 获取今日新增数量
-    const todayResult = await dbQuery(
-      `SELECT COUNT(*) as count FROM robot_purchases WHERE DATE(created_at) = CURDATE()`
-    );
-    
-    res.json({
-      success: true,
-      data: {
-        activeCount: activeResult?.[0]?.count || 0,
-        expiredCount: expiredResult?.[0]?.count || 0,
-        totalInvestment: parseFloat(investmentResult?.[0]?.total || 0).toFixed(2),
-        todayCount: todayResult?.[0]?.count || 0
-      }
-    });
-  } catch (error) {
-    console.error('获取机器人统计失败:', error.message);
-    res.status(500).json({
-      success: false,
-      message: '获取统计失败'
-    });
-  }
-});
-
-/**
- * 获取机器人购买记录列表
- * GET /api/admin/robots
- */
-router.get('/robots', authMiddleware, async (req, res) => {
-  try {
-    const { page = 1, pageSize = 10, wallet_address, robot_type, status } = req.query;
-    const offset = (parseInt(page) - 1) * parseInt(pageSize);
-    
-    let whereConditions = [];
-    const params = [];
-    
-    if (wallet_address) {
-      whereConditions.push('wallet_address LIKE ?');
-      params.push(`%${wallet_address}%`);
-    }
-    
-    if (robot_type) {
-      whereConditions.push('robot_type = ?');
-      params.push(robot_type);
-    }
-    
-    // 根据 status 参数过滤
-    if (status === 'active') {
-      whereConditions.push('status = "active"');
-    } else if (status === 'expired') {
-      whereConditions.push('status = "expired"');
-    }
-    // 'all' 或未指定则不添加状态过滤条件
-    
-    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
-    
-    // 获取总数
-    const countResult = await dbQuery(
-      `SELECT COUNT(*) as total FROM robot_purchases ${whereClause}`,
-      params
-    );
-    
-    // 获取列表，增加更多有用的字段
-    const list = await dbQuery(
-      `SELECT 
-        id, wallet_address, robot_id, robot_name, robot_type, 
-        price, token, status, 
-        start_date, end_date, start_time, end_time,
-        daily_profit, total_profit, is_quantified, 
-        expected_return, duration_hours, 
-        last_quantify_at, quantify_count,
-        created_at, updated_at,
-        CASE 
-          WHEN status = 'active' THEN 'active'
-          WHEN status = 'expired' THEN 'expired'
-          ELSE status
-        END as current_status,
-        CASE
-          WHEN end_time IS NOT NULL THEN TIMESTAMPDIFF(HOUR, NOW(), end_time)
-          ELSE NULL
-        END as hours_remaining
-      FROM robot_purchases 
-      ${whereClause} 
-      ORDER BY created_at DESC 
-      LIMIT ? OFFSET ?`,
-      [...params, parseInt(pageSize), offset]
-    );
-    
-    res.json({
-      success: true,
-      data: {
-        list,
-        total: countResult?.[0]?.total || 0,
-        page: parseInt(page),
-        pageSize: parseInt(pageSize)
-      }
-    });
-  } catch (error) {
-    console.error('获取机器人列表失败:', error.message);
-    res.status(500).json({
-      success: false,
-      message: '获取列表失败'
-    });
-  }
-});
+// ==================== 机器人购买记录管理（详情和用户查询） ====================
+// Note: /robots and /robots/stats routes are defined above (lines 1918, 1994)
+// Those routes use end_time for accurate expiry detection
 
 /**
  * 获取机器人购买详情

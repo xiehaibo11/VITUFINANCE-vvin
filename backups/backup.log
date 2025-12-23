@@ -90,3 +90,18 @@ mysqldump: 10193427 has insufficient privileges to SHOW CREATE PROCEDURE `AddCol
 [2025-12-23 02:00:02] 3. Generating file integrity hashes...
 [2025-12-23 02:00:02]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20251223_020001.sha256
 [2025-12-23 02:00:02] 4. Checking for git changes...
+[2025-12-23 02:00:02]    Git commit created
+[2025-12-23 02:00:02] 5. Cleaning up old backups...
+[2025-12-23 02:00:02]    Old backups cleaned (keeping last 7 days)
+[2025-12-23 02:00:02] ==========================================
+[2025-12-23 02:00:02] Backup completed successfully!
+[2025-12-23 02:00:02] ==========================================
+[2025-12-23 02:00:02]    Total backup size: 2.9M
+[2025-12-23 02:00:02] ==========================================
+[2025-12-23 03:00:01] ========== Starting database backup ==========
+[2025-12-23 03:00:01] Database: xie080886 @ 127.0.0.1:3306
+[2025-12-23 03:00:01] Creating database backup...
+mysqldump: [Warning] Using a password on the command line interface can be insecure.
+mysqldump: Error: 'Access denied; you need (at least one of) the PROCESS privilege(s) for this operation' when trying to dump tablespaces
+mysqldump: 10193427 has insufficient privileges to SHOW CREATE PROCEDURE `AddColumnIfNotExists`!
+[2025-12-23 03:00:02] ERROR: Database backup failed!

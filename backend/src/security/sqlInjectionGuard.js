@@ -21,11 +21,11 @@ const SQL_INJECTION_PATTERNS = [
     /#\s*$/m,                           // MySQL comment at end of line
     // NOTE: Removed standalone quote patterns /%27|'|%22|"/ as they cause false positives
     // with normal JSON parameters like symbols=[%22BTCUSDT%22]
-    
+
     // Union-based injection
     /union\s+(all\s+)?select/i,
     /union\s+(all\s+)?distinct/i,
-    
+
     // Boolean-based injection
     /'\s*or\s+'1'\s*=\s*'1/i,
     /"\s*or\s+"1"\s*=\s*"1/i,
@@ -34,19 +34,28 @@ const SQL_INJECTION_PATTERNS = [
     /'\s*or\s+true/i,
     /'\s*and\s+'1'\s*=\s*'1/i,
     /"\s*and\s+"1"\s*=\s*"1/i,
-    
+    /'\s*or\s+''='/i,                   // Classic ' or ''='
+    /"\s*or\s+""="/i,                   // Double quote variant
+    /'\s*or\s+'x'\s*=\s*'x/i,           // ' or 'x'='x variant
+    /admin'\s*--/i,                      // admin'-- bypass
+    /'\s*;\s*--/i,                       // ';-- terminate and comment
+
     // Error-based injection
     /extractvalue\s*\(/i,
     /updatexml\s*\(/i,
     /floor\s*\(\s*rand/i,
     /exp\s*\(\s*~\s*\(/i,
-    
+    /xmltype\s*\(/i,                     // Oracle XMLType
+    /dbms_pipe/i,                        // Oracle DBMS_PIPE
+    /utl_http/i,                         // Oracle UTL_HTTP
+
     // Time-based injection
     /sleep\s*\(\s*\d/i,
     /benchmark\s*\(\s*\d/i,
     /waitfor\s+delay/i,
     /pg_sleep/i,
-    
+    /dbms_lock\.sleep/i,                 // Oracle sleep
+
     // Stacked queries
     /;\s*select\s+/i,
     /;\s*insert\s+/i,
@@ -56,13 +65,20 @@ const SQL_INJECTION_PATTERNS = [
     /;\s*create\s+/i,
     /;\s*alter\s+/i,
     /;\s*truncate\s+/i,
-    
+    /;\s*grant\s+/i,                     // Privilege escalation
+    /;\s*revoke\s+/i,
+
     // Database enumeration
     /information_schema/i,
     /sys\.(objects|tables|columns)/i,
     /mysql\.(user|db)/i,
     /pg_catalog/i,
-    
+    /all_tables/i,                       // Oracle ALL_TABLES
+    /user_tables/i,                      // Oracle USER_TABLES
+    /v\$version/i,                       // Oracle version
+    /@@version/i,                        // MySQL/MSSQL version
+    /version\s*\(\s*\)/i,               // version() function
+
     // Data extraction
     /group_concat\s*\(/i,
     /concat\s*\(/i,
@@ -70,14 +86,15 @@ const SQL_INJECTION_PATTERNS = [
     /load_file\s*\(/i,
     /into\s+outfile/i,
     /into\s+dumpfile/i,
-    
-    // Comment patterns already defined above
-    
+    /bulk\s+insert/i,                    // MSSQL bulk insert
+    /openrowset/i,                       // MSSQL OPENROWSET
+    /opendatasource/i,                   // MSSQL OPENDATASOURCE
+
     // Hex encoding bypass
     // 注意: 移除了 /0x[0-9a-f]{2,}/i 模式，因为会误报以太坊钱包地址
     // 以太坊钱包地址格式: 0x + 40个十六进制字符
     /char\s*\(\s*\d/i,
-    
+
     // Function calls used in injection
     /convert\s*\(/i,
     /cast\s*\(/i,
@@ -86,21 +103,42 @@ const SQL_INJECTION_PATTERNS = [
     /ord\s*\(/i,
     /mid\s*\(/i,
     /left\s*\(/i,
-    /right\s*\(/i
+    /right\s*\(/i,
+
+    // NoSQL injection patterns
+    /\$where\s*:/i,                      // MongoDB $where
+    /\$gt\s*:/i,                         // MongoDB $gt
+    /\$ne\s*:/i,                         // MongoDB $ne
+    /\$regex\s*:/i,                      // MongoDB $regex
+    /\{\s*"\$[a-z]+"\s*:/i,             // Generic MongoDB operator
+
+    // LDAP injection
+    /\)\s*\(\|/i,                        // LDAP OR injection
+    /\)\s*\(&/i,                         // LDAP AND injection
+    /\*\)\s*\(/i,                        // LDAP wildcard
+
+    // Command injection via SQL
+    /xp_cmdshell/i,                      // MSSQL command execution
+    /sp_oacreate/i,                      // MSSQL OLE automation
+    /xp_regread/i,                       // MSSQL registry read
 ];
 
 // High-risk SQL keywords
+// Note: 'create' removed from this list because it's commonly used in API paths like /api/pledge/create
+// SQL keywords are only dangerous when combined with SQL syntax, not standalone in URLs
 const HIGH_RISK_KEYWORDS = [
     'drop', 'truncate', 'delete', 'insert', 'update',
-    'create', 'alter', 'grant', 'revoke', 'shutdown',
-    'exec', 'execute', 'xp_', 'sp_', 'call'
+    'alter', 'grant', 'revoke', 'shutdown',
+    'exec', 'execute', 'xp_', 'sp_'
 ];
 
 // SQL operators that might be dangerous
+// Note: 'limit' and 'offset' removed because they're common pagination parameters
+// These are only dangerous in actual SQL syntax context, not as URL parameters
 const DANGEROUS_OPERATORS = [
     'union', 'select', 'from', 'where', 'having',
-    'group by', 'order by', 'limit', 'offset',
-    'join', 'inner', 'outer', 'left', 'right'
+    'group by', 'order by',
+    'join', 'inner', 'outer'
 ];
 
 // ==================== Detection Functions ====================
@@ -228,15 +266,24 @@ export function scanRequest(req) {
         }
     }
     
-    // Scan URL path
-    const urlResult = detectSqlInjection(req.originalUrl || req.url);
-    if (urlResult.isSqlInjection) {
-        details.push({
-            location: 'url',
-            parameter: 'path',
-            value: (req.originalUrl || req.url).substring(0, 100),
-            ...urlResult
-        });
+    // Scan URL path - but only the query string part, not the path itself
+    // API paths like /api/pledge/create or /api/robot/quantify are legitimate
+    // We only want to detect SQL injection in query parameters
+    const url = req.originalUrl || req.url || '';
+    const queryStringIndex = url.indexOf('?');
+    if (queryStringIndex > -1) {
+        // Only check the query string portion
+        const queryString = url.substring(queryStringIndex + 1);
+        const urlResult = detectSqlInjection(queryString);
+        // Only flag if it's high or critical risk (not just 'limit' or 'offset' params)
+        if (urlResult.isSqlInjection && (urlResult.risk === 'high' || urlResult.risk === 'critical')) {
+            details.push({
+                location: 'url',
+                parameter: 'query_string',
+                value: queryString.substring(0, 100),
+                ...urlResult
+            });
+        }
     }
     
     // Scan headers (some attacks come through headers)

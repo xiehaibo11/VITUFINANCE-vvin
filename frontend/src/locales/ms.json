@@ -398,8 +398,10 @@
   "assetsPage": {
     "comingSoon": "Akan Datang",
     "equityValue": "Equity value(USDT)",
-    "todayPnl": "Today's PNL",
-    "details": "Details",
+    "todayPnl": "PNL Hari Ini",
+    "referralReward": "Ganjaran Rujukan",
+    "teamReward": "Ganjaran Pasukan",
+    "details": "Butiran",
     "deposit": "Deposit",
     "withdraw": "Withdraw",
     "flashExchange": "Flash Exchange",

@@ -398,8 +398,10 @@
   "assetsPage": {
     "comingSoon": "Segera Hadir",
     "equityValue": "Equity value(USDT)",
-    "todayPnl": "Today's PNL",
-    "details": "Details",
+    "todayPnl": "PNL Hari Ini",
+    "referralReward": "Hadiah Rujukan",
+    "teamReward": "Hadiah Tim",
+    "details": "Detail",
     "deposit": "Deposit",
     "withdraw": "Withdraw",
     "flashExchange": "Flash Exchange",

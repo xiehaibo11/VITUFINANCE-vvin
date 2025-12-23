@@ -14,8 +14,9 @@
 const SQL_INJECTION_PATTERNS = [
     // SQL keywords with spaces or special chars
     /(\s|^)(SELECT|INSERT|UPDATE|DELETE|DROP|TRUNCATE|ALTER|CREATE|EXEC|UNION|FETCH|DECLARE|CAST)\s/i,
-    // Comment patterns
-    /(--|#|\/\*|\*\/)/,
+    // Comment patterns - be more specific to avoid matching HTML entities like &#x2F;
+    // Note: # is used in HTML entities (&#...) so we need to match it only at line end or with whitespace
+    /(--\s|#\s|#$|\/\*|\*\/)/,
     // OR/AND based injection
     /(\s|^)(OR|AND)\s+[\d\w'"]+=[\d\w'"]/i,
     // Typical injection attempts
