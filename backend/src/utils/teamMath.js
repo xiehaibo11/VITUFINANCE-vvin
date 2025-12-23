@@ -3,45 +3,47 @@
  * 
  * Provides team broker level system calculation, analysis, and verification tools
  * 
- * 2024-12-21 FIX: Reduced dividend amounts to prevent company losses
+ * 2024-12-24 UPDATE: Restored to company document standard
  * 
- * Level System (after fix):
- * - Level 1: 5 direct referrals, >1,000 USDT performance, 2 USDT/day
- * - Level 2: 10 direct referrals, 2 L1 brokers, >5,000 USDT, 5 USDT/day
- * - Level 3: 20 direct referrals, 2 L2 brokers, >20,000 USDT, 15 USDT/day
- * - Level 4: 30 direct referrals, 2 L3 brokers, >80,000 USDT, 50 USDT/day
- * - Level 5: 50 direct referrals, 2 L4 brokers, >200,000 USDT, 150 USDT/day
+ * Level System (per company document):
+ * - Level 1: 5 direct referrals (≥20U), >1,000 USDT performance, 5 USDT/day, 150 USDT/month, 1 WLD/day
+ * - Level 2: 10 direct referrals (≥100U), 2 L1 brokers, >5,000 USDT, 15 USDT/day, 450 USDT/month, 2 WLD/day
+ * - Level 3: 20 direct referrals (≥100U), 2 L2 brokers, >20,000 USDT, 60 USDT/day, 1,800 USDT/month, 3 WLD/day
+ * - Level 4: 30 direct referrals (≥100U), 2 L3 brokers, >80,000 USDT, 300 USDT/day, 9,000 USDT/month, 5 WLD/day
+ * - Level 5: 50 direct referrals (≥100U), 2 L4 brokers, >200,000 USDT, 1,000 USDT/day, 30,000 USDT/month, 10 WLD/day
  */
 
 // ============================================================================
 // Safety Limits Configuration
 // ============================================================================
 const TEAM_SAFETY_LIMITS = {
-    MAX_DAILY_DIVIDEND: 200,         // Max daily dividend 200 USDT
-    MAX_DAILY_WLD: 20,               // Max daily WLD 20 WLD
-    MAX_TOTAL_DAILY_PAYOUT: 5000,    // Platform max daily payout 5000 USDT
+    MAX_DAILY_DIVIDEND: 1500,        // Max daily dividend 1500 USDT (for LV5 + buffer)
+    MAX_DAILY_WLD: 15,               // Max daily WLD 15 WLD (for LV5 + buffer)
+    MAX_TOTAL_DAILY_PAYOUT: 50000,   // Platform max daily payout 50000 USDT
 };
 
 // ============================================================================
-// Constants - Broker Level Configuration (2024-12-21 FIXED - Much Lower!)
+// Constants - Broker Level Configuration (2024-12-24 - Company Document Standard)
 // ============================================================================
 
 /**
  * Broker Level Configuration Table
  * 
- * Math Model:
- * - minDirectReferrals: Min direct referrals (purchased >=20U robot)
+ * Per company document (数学算法.md):
+ * - minDirectReferrals: Min direct referrals
+ * - minPurchaseAmount: Min purchase amount per referral (LV1=20U, LV2-5=100U)
  * - minSubBrokers: Min sub-brokers (need N lower level brokers)
  * - minTeamPerformance: Min team performance (USDT)
- * - dailyDividend: Daily dividend (USDT) - MUCH REDUCED!
- * - monthlyIncome: Monthly income (USDT)
- * - dailyWLD: Daily WLD amount
+ * - dailyDividend: Daily cash dividend (USDT)
+ * - monthlyIncome: Monthly fixed salary (USDT)
+ * - dailyWLD: Daily WLD bonus (每日闪兑)
  */
 const BROKER_LEVELS = [
     {
         level: 0,
         name: 'Regular User',
         minDirectReferrals: 0,
+        minPurchaseAmount: 0,
         minSubBrokers: 0,
         subBrokerLevel: 0,
         minTeamPerformance: 0,
@@ -51,65 +53,74 @@ const BROKER_LEVELS = [
     },
     {
         level: 1,
-        name: 'Level 1 Broker',
-        minDirectReferrals: 5,
-        minSubBrokers: 0,
+        name: 'LV 1 Broker',
+        minDirectReferrals: 5,          // 5人 (≥20U)
+        minPurchaseAmount: 20,          // ≥20U
+        minSubBrokers: 0,               // 无硬性要求
         subBrokerLevel: 0,
-        minTeamPerformance: 1000,
-        dailyDividend: 2,           // Fixed: was 5, now 2 USDT/day
-        monthlyIncome: 60,
-        dailyWLD: 0.5
+        minTeamPerformance: 1000,       // 1,000 USDT
+        dailyDividend: 5,               // 5 USDT/day (每日现金分红)
+        monthlyIncome: 150,             // 150 USDT/month (每月固定薪资)
+        dailyWLD: 1                     // 1 WLD/day (每日闪兑)
     },
     {
         level: 2,
-        name: 'Level 2 Broker',
-        minDirectReferrals: 10,
-        minSubBrokers: 2,
+        name: 'LV 2 Broker',
+        minDirectReferrals: 10,         // 10人 (≥100U)
+        minPurchaseAmount: 100,         // ≥100U
+        minSubBrokers: 2,               // 培养出 2名 LV1
         subBrokerLevel: 1,
-        minTeamPerformance: 5000,
-        dailyDividend: 5,           // Fixed: was 15, now 5 USDT/day
-        monthlyIncome: 150,
-        dailyWLD: 1
+        minTeamPerformance: 5000,       // 5,000 USDT
+        dailyDividend: 15,              // 15 USDT/day
+        monthlyIncome: 450,             // 450 USDT/month
+        dailyWLD: 2                     // 2 WLD/day
     },
     {
         level: 3,
-        name: 'Level 3 Broker',
-        minDirectReferrals: 20,
-        minSubBrokers: 2,
+        name: 'LV 3 Broker',
+        minDirectReferrals: 20,         // 20人 (≥100U)
+        minPurchaseAmount: 100,         // ≥100U
+        minSubBrokers: 2,               // 培养出 2名 LV2
         subBrokerLevel: 2,
-        minTeamPerformance: 20000,
-        dailyDividend: 15,          // Fixed: was 60, now 15 USDT/day
-        monthlyIncome: 450,
-        dailyWLD: 2
+        minTeamPerformance: 20000,      // 20,000 USDT
+        dailyDividend: 60,              // 60 USDT/day
+        monthlyIncome: 1800,            // 1,800 USDT/month
+        dailyWLD: 3                     // 3 WLD/day
     },
     {
         level: 4,
-        name: 'Level 4 Broker',
-        minDirectReferrals: 30,
-        minSubBrokers: 2,
+        name: 'LV 4 Broker',
+        minDirectReferrals: 30,         // 30人 (≥100U)
+        minPurchaseAmount: 100,         // ≥100U
+        minSubBrokers: 2,               // 培养出 2名 LV3
         subBrokerLevel: 3,
-        minTeamPerformance: 80000,
-        dailyDividend: 50,          // Fixed: was 300, now 50 USDT/day
-        monthlyIncome: 1500,
-        dailyWLD: 3
+        minTeamPerformance: 80000,      // 80,000 USDT
+        dailyDividend: 300,             // 300 USDT/day
+        monthlyIncome: 9000,            // 9,000 USDT/month
+        dailyWLD: 5                     // 5 WLD/day
     },
     {
         level: 5,
-        name: 'Level 5 Broker',
-        minDirectReferrals: 50,
-        minSubBrokers: 2,
+        name: 'LV 5 Broker',
+        minDirectReferrals: 50,         // 50人 (≥100U)
+        minPurchaseAmount: 100,         // ≥100U
+        minSubBrokers: 2,               // 培养出 2名 LV4
         subBrokerLevel: 4,
-        minTeamPerformance: 200000,
-        dailyDividend: 150,         // Fixed: was 1000, now 150 USDT/day
-        monthlyIncome: 4500,
-        dailyWLD: 5
+        minTeamPerformance: 200000,     // 200,000 USDT
+        dailyDividend: 1000,            // 1,000 USDT/day
+        monthlyIncome: 30000,           // 30,000 USDT/month
+        dailyWLD: 10                    // 10 WLD/day
     }
 ];
 
 /**
- * Minimum purchase amount requirement (only >=20U robots count for team)
+ * Minimum purchase amount requirements
+ * - LV1: ≥20U robots count
+ * - LV2-5: ≥100U robots count
  */
-const MIN_ROBOT_PURCHASE = 20;
+const MIN_ROBOT_PURCHASE_LV1 = 20;   // LV1 门槛
+const MIN_ROBOT_PURCHASE_LV2_5 = 100; // LV2-5 门槛
+const MIN_ROBOT_PURCHASE = 20;       // 默认最低门槛 (向后兼容)
 
 // ============================================================================
 // Core Calculation Functions
@@ -595,6 +606,8 @@ export {
     // Constants
     BROKER_LEVELS,
     MIN_ROBOT_PURCHASE,
+    MIN_ROBOT_PURCHASE_LV1,
+    MIN_ROBOT_PURCHASE_LV2_5,
     
     // Core functions
     getBrokerLevelConfig,
