@@ -1281,27 +1281,6 @@ async function distributeReferralRewards(walletAddr, robot, profit) {
 }
 
 /**
- * 发放CEX/Grid机器人购买奖励（购买时立即发放 - 8级）
- * 
- * 数学公式: R_n = A × r_n
- * 其中: R_n = 第n级奖励, A = 购买金额, r_n = 第n级比例
- * 比例: [8%, 4%, 2%, 0.5%×5] = 总计16.5%
- * 
- * @param {string} walletAddr - 购买者钱包地址
- * @param {string} robotName - 机器人名称
- * @param {number} purchaseAmount - 购买金额
- * @param {number} sourceId - 购买记录ID
- */
-async function distributeCexPurchaseRewards(walletAddr, robotName, purchaseAmount, sourceId = null) {
-    // ⚠️ 安全保护: CEX机器人不应有购买返点！只有DEX机器人有购买返点
-    // 业务规则: DEX=5%/3%/2%购买返点, CEX/High/Grid=无购买返点
-    // 原注释已过时, 实际CEX_REFERRAL_RATES是 [0.30, 0.10, 0.05, 0.01×5] = 50%
-    console.error(`[CEX Purchase Reward] ⚠️ WARNING: CEX robots have NO purchase rebates!`);
-    console.error(`[CEX Purchase Reward] Blocked: wallet=${walletAddr}, robot=${robotName}, amount=${purchaseAmount}`);
-    return; // 安全退出，不发放任何奖励
-}
-
-/**
  * 发放DEX机器人购买奖励（启动金额返点 - 3级）
  *
  * 数学公式: R_n = A × r_n
