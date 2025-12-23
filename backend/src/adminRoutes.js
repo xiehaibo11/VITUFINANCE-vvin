@@ -3198,24 +3198,27 @@ router.get('/robots/:id', authMiddleware, async (req, res) => {
     const { id } = req.params;
     
     // 获取机器人购买记录
-    const robot = await dbQuery(
+    const robotResult = await dbQuery(
       `SELECT * FROM robot_purchases WHERE id = ?`,
       [id]
     );
     
-    if (!robot) {
+    if (!robotResult || robotResult.length === 0) {
       return res.status(404).json({
         success: false,
         message: '记录不存在'
       });
     }
     
+    const robot = robotResult[0];
+    
     // 获取用户信息
-    const userInfo = await dbQuery(
+    const userInfoResult = await dbQuery(
       `SELECT usdt_balance, wld_balance, total_deposit, total_withdraw, created_at 
        FROM user_balances WHERE wallet_address = ?`,
       [robot.wallet_address]
     );
+    const userInfo = userInfoResult && userInfoResult.length > 0 ? userInfoResult[0] : null;
     
     // 获取量化日志
     const quantifyLogs = await dbQuery(
@@ -3239,10 +3242,10 @@ router.get('/robots/:id', authMiddleware, async (req, res) => {
     res.json({
       success: true,
       data: {
-        robot,
-        userInfo: userInfo || null,
-        quantifyLogs,
-        referralRewards
+        robot,  // Single robot object now
+        userInfo,  // Single user object or null
+        quantifyLogs,  // Array of logs
+        referralRewards  // Array of rewards
       }
     });
   } catch (error) {
