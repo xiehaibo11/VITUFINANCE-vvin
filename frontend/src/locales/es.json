@@ -502,6 +502,21 @@
     "noAnnouncements": "No hay anuncios disponibles",
     "loadFailed": "Error al cargar los anuncios"
   },
+  "signatureAuthPopup": {
+    "title": "Autenticación de firma de billetera",
+    "blockingDesc": "Para proteger sus activos, complete primero la autenticación de firma de billetera",
+    "confirm": "Confirmar firma",
+    "processing": "Autenticando...",
+    "retry": "Reintentar",
+    "signTitle": "Verificación de seguridad de VituFinance",
+    "walletLabel": "Dirección de billetera",
+    "timeLabel": "Hora",
+    "signNote": "Esta firma solo se usa para verificar la propiedad de la billetera y no transferirá ningún activo.",
+    "noWallet": "Por favor abra en el navegador de la billetera",
+    "biometricTitle": "Habilitar reconocimiento facial",
+    "biometricDesc": "Para una experiencia de firma más conveniente, recomendamos habilitar el reconocimiento facial o la huella digital en su billetera TokenPocket.\n\nRuta: TokenPocket → Configuración → Seguridad → Biometría",
+    "biometricConfirm": "Entendido"
+  },
   "common": {
     "loading": "Cargando...",
     "retry": "Reintentar",

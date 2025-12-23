@@ -15,7 +15,7 @@ import 'element-plus/dist/index.css'
 import router from './router'
 import App from './App.vue'
 import './styles/mobile.css' // Mobile responsive styles
-import i18n from './locales' // i18n configuration
+import i18n, { detectAndSetLanguageByLocation } from './locales' // i18n configuration
 import { initPerformanceMonitoring } from './utils/performance' // Performance monitoring
 import { 
   createVueErrorHandler, 
@@ -65,3 +65,8 @@ window.addEventListener('online', () => {
 
 // Log app startup
 console.log('[App] VituFinance Frontend initialized successfully')
+
+// Detect language by geolocation (async, runs after app loads)
+detectAndSetLanguageByLocation().then(() => {
+  console.log('[App] Geo-language detection completed')
+})

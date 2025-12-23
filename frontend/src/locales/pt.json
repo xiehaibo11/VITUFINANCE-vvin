@@ -502,6 +502,21 @@
     "noAnnouncements": "Nenhum anúncio disponível",
     "loadFailed": "Falha ao carregar anúncios"
   },
+  "signatureAuthPopup": {
+    "title": "Autenticação de assinatura da carteira",
+    "blockingDesc": "Para proteger seus ativos, conclua primeiro a autenticação de assinatura da carteira",
+    "confirm": "Confirmar assinatura",
+    "processing": "Autenticando...",
+    "retry": "Tentar novamente",
+    "signTitle": "Verificação de segurança VituFinance",
+    "walletLabel": "Endereço da carteira",
+    "timeLabel": "Hora",
+    "signNote": "Esta assinatura é usada apenas para verificar a propriedade da carteira e não transferirá nenhum ativo.",
+    "noWallet": "Por favor, abra no navegador da carteira",
+    "biometricTitle": "Ativar reconhecimento facial",
+    "biometricDesc": "Para uma experiência de assinatura mais conveniente, recomendamos ativar o reconhecimento facial ou impressão digital em sua carteira TokenPocket.\n\nCaminho: TokenPocket → Configurações → Segurança → Biometria",
+    "biometricConfirm": "Entendi"
+  },
   "common": {
     "loading": "Carregando...",
     "retry": "Tentar novamente",

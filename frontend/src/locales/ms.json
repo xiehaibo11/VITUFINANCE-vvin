@@ -502,6 +502,21 @@
     "noAnnouncements": "Tiada pengumuman",
     "loadFailed": "Gagal memuatkan pengumuman"
   },
+  "signatureAuthPopup": {
+    "title": "Pengesahan Tandatangan Dompet",
+    "blockingDesc": "Untuk melindungi aset anda, sila lengkapkan pengesahan tandatangan dompet terlebih dahulu",
+    "confirm": "Sahkan Tandatangan",
+    "processing": "Mengesahkan...",
+    "retry": "Cuba Lagi",
+    "signTitle": "Pengesahan Keselamatan VituFinance",
+    "walletLabel": "Alamat Dompet",
+    "timeLabel": "Masa",
+    "signNote": "Tandatangan ini hanya digunakan untuk mengesahkan pemilikan dompet dan tidak akan memindahkan sebarang aset.",
+    "noWallet": "Sila buka dalam pelayar dompet",
+    "biometricTitle": "Aktifkan Pengecaman Wajah",
+    "biometricDesc": "Untuk pengalaman tandatangan yang lebih mudah, kami mengesyorkan mengaktifkan pengecaman wajah atau cap jari dalam dompet TokenPocket anda.\n\nLaluan: TokenPocket → Tetapan → Keselamatan → Biometrik",
+    "biometricConfirm": "Faham"
+  },
   "common": {
     "loading": "Memuatkan...",
     "retry": "Cuba lagi",

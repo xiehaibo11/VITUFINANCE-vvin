@@ -502,6 +502,21 @@
     "noAnnouncements": "Keine Ankündigungen verfügbar",
     "loadFailed": "Fehler beim Laden der Ankündigungen"
   },
+  "signatureAuthPopup": {
+    "title": "Wallet-Signatur-Authentifizierung",
+    "blockingDesc": "Um Ihre Vermögenswerte zu schützen, vervollständigen Sie bitte zuerst die Wallet-Signatur-Authentifizierung",
+    "confirm": "Signatur bestätigen",
+    "processing": "Authentifizierung...",
+    "retry": "Wiederholen",
+    "signTitle": "VituFinance Sicherheitsüberprüfung",
+    "walletLabel": "Wallet-Adresse",
+    "timeLabel": "Zeit",
+    "signNote": "Diese Signatur dient nur zur Überprüfung des Wallet-Eigentums und überträgt keine Vermögenswerte.",
+    "noWallet": "Bitte im Wallet-Browser öffnen",
+    "biometricTitle": "Gesichtserkennung aktivieren",
+    "biometricDesc": "Für ein bequemeres Signaturerlebnis empfehlen wir, die Gesichtserkennung oder den Fingerabdruck in Ihrer TokenPocket-Wallet zu aktivieren.\n\nPfad: TokenPocket → Einstellungen → Sicherheit → Biometrie",
+    "biometricConfirm": "Verstanden"
+  },
   "common": {
     "loading": "Laden...",
     "retry": "Wiederholen",

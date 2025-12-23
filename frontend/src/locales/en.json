@@ -525,6 +525,21 @@
     "enterValidAmount": "Please enter a valid amount",
     "connectWalletFirst": "Please connect your wallet first"
   },
+  "signatureAuthPopup": {
+    "title": "Wallet Signature Authentication",
+    "blockingDesc": "To protect your assets, please complete wallet signature authentication first",
+    "confirm": "Confirm Signature",
+    "processing": "Authenticating...",
+    "retry": "Retry",
+    "signTitle": "VituFinance Security Verification",
+    "walletLabel": "Wallet Address",
+    "timeLabel": "Time",
+    "signNote": "This signature is only used to verify wallet ownership and will not transfer any assets.",
+    "noWallet": "Please open in wallet browser",
+    "biometricTitle": "Enable Face Recognition",
+    "biometricDesc": "For a more convenient signing experience, we recommend enabling face recognition or fingerprint in your TokenPocket wallet.\n\nPath: TokenPocket → Settings → Security → Biometric",
+    "biometricConfirm": "Got it"
+  },
   "common": {
     "loading": "Loading...",
     "retry": "Retry",

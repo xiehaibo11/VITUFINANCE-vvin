@@ -502,6 +502,21 @@
     "noAnnouncements": "Tidak ada pengumuman",
     "loadFailed": "Gagal memuat pengumuman"
   },
+  "signatureAuthPopup": {
+    "title": "Autentikasi Tanda Tangan Dompet",
+    "blockingDesc": "Untuk melindungi aset Anda, harap selesaikan autentikasi tanda tangan dompet terlebih dahulu",
+    "confirm": "Konfirmasi Tanda Tangan",
+    "processing": "Mengautentikasi...",
+    "retry": "Coba Lagi",
+    "signTitle": "Verifikasi Keamanan VituFinance",
+    "walletLabel": "Alamat Dompet",
+    "timeLabel": "Waktu",
+    "signNote": "Tanda tangan ini hanya digunakan untuk memverifikasi kepemilikan dompet dan tidak akan mentransfer aset apa pun.",
+    "noWallet": "Silakan buka di browser dompet",
+    "biometricTitle": "Aktifkan Pengenalan Wajah",
+    "biometricDesc": "Untuk pengalaman penandatanganan yang lebih nyaman, kami sarankan mengaktifkan pengenalan wajah atau sidik jari di dompet TokenPocket Anda.\n\nJalur: TokenPocket → Pengaturan → Keamanan → Biometrik",
+    "biometricConfirm": "Mengerti"
+  },
   "common": {
     "loading": "Memuat...",
     "retry": "Coba lagi",

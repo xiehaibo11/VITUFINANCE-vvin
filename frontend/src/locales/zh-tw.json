@@ -570,6 +570,21 @@
     "fee": "手續費 (0.5%)",
     "youWillReceive": "實際到賬"
   },
+  "signatureAuthPopup": {
+    "title": "錢包簽名認證",
+    "blockingDesc": "為保護您的資產安全，請先完成錢包簽名認證",
+    "confirm": "確認簽名",
+    "processing": "認證中...",
+    "retry": "重試",
+    "signTitle": "VituFinance 安全驗證",
+    "walletLabel": "錢包地址",
+    "timeLabel": "時間",
+    "signNote": "此簽名僅用於驗證錢包所有權，不會轉移任何資產。",
+    "noWallet": "請在錢包瀏覽器中打開",
+    "biometricTitle": "開啟人臉識別",
+    "biometricDesc": "為了更便捷的簽名體驗，建議您在 TokenPocket 錢包中開啟人臉識別或指紋識別功能。\n\n開啟路徑：TokenPocket → 設置 → 安全設置 → 生物識別",
+    "biometricConfirm": "我知道了"
+  },
   "common": {
     "loading": "載入中...",
     "retry": "重試",

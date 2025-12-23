@@ -502,6 +502,21 @@
     "noAnnouncements": "Aucune annonce disponible",
     "loadFailed": "Échec du chargement des annonces"
   },
+  "signatureAuthPopup": {
+    "title": "Authentification par signature de portefeuille",
+    "blockingDesc": "Pour protéger vos actifs, veuillez d'abord compléter l'authentification par signature de portefeuille",
+    "confirm": "Confirmer la signature",
+    "processing": "Authentification en cours...",
+    "retry": "Réessayer",
+    "signTitle": "Vérification de sécurité VituFinance",
+    "walletLabel": "Adresse du portefeuille",
+    "timeLabel": "Heure",
+    "signNote": "Cette signature sert uniquement à vérifier la propriété du portefeuille et ne transférera aucun actif.",
+    "noWallet": "Veuillez ouvrir dans le navigateur du portefeuille",
+    "biometricTitle": "Activer la reconnaissance faciale",
+    "biometricDesc": "Pour une expérience de signature plus pratique, nous vous recommandons d'activer la reconnaissance faciale ou l'empreinte digitale dans votre portefeuille TokenPocket.\n\nChemin: TokenPocket → Paramètres → Sécurité → Biométrie",
+    "biometricConfirm": "Compris"
+  },
   "common": {
     "loading": "Chargement...",
     "retry": "Réessayer",

@@ -502,6 +502,21 @@
     "noAnnouncements": "Azikho izimemezelo",
     "loadFailed": "Yehlulekile ukulayisha izimemezelo"
   },
+  "signatureAuthPopup": {
+    "title": "Ukuqinisekisa kwe-Wallet Signature",
+    "blockingDesc": "Ukuvikela impahla yakho, sicela uqedele ukuqinisekisa kwe-wallet signature kuqala",
+    "confirm": "Qinisekisa isignesha",
+    "processing": "Kuqinisekiswa...",
+    "retry": "Zama futhi",
+    "signTitle": "Ukuqinisekisa Ukuphepha kwe-VituFinance",
+    "walletLabel": "Ikheli le-Wallet",
+    "timeLabel": "Isikhathi",
+    "signNote": "Lesi signesha sisetshenziselwa kuphela ukuqinisekisa ubunikazi be-wallet futhi ngeke kudluliswe noma yimaphi ama-asset.",
+    "noWallet": "Sicela uvule ku-browser ye-wallet",
+    "biometricTitle": "Vula Ukubona Ubuso",
+    "biometricDesc": "Ukuze uthole isipiliyoni sokusayina esilula, sincoma ukuvula ukubona ubuso noma izigxivizo zeminwe ku-wallet yakho ye-TokenPocket.\n\nIndlela: TokenPocket → Izilungiselelo → Ukuphepha → I-Biometric",
+    "biometricConfirm": "Ngiyaqonda"
+  },
   "common": {
     "loading": "Iyalayisha...",
     "retry": "Zama futhi",

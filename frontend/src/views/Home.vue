@@ -254,13 +254,37 @@ const connectWalletAndGetAddress = async () => {
 }
 
 /**
+ * Format timestamp to readable date string
+ */
+const formatDateTime = (timestamp) => {
+  const date = new Date(timestamp)
+  return date.toLocaleString('en-US', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  })
+}
+
+/**
  * Request signature from wallet
  */
 const requestSignature = async (walletAddress) => {
-  if (!window.ethereum) throw new Error('请在钱包浏览器中打开')
+  if (!window.ethereum) throw new Error(t('signatureAuthPopup.noWallet') || '请在钱包浏览器中打开')
   
   const timestamp = Date.now()
-  const message = `VituFinance 安全验证\n\n钱包地址: ${walletAddress}\n时间戳: ${timestamp}\n\n此签名仅用于验证钱包所有权，不会转移任何资产。`
+  const formattedTime = formatDateTime(timestamp)
+  
+  // Build signature message using i18n translations
+  const message = `${t('signatureAuthPopup.signTitle') || 'VituFinance Security Verification'}
+
+${t('signatureAuthPopup.walletLabel') || 'Wallet Address'}: ${walletAddress}
+${t('signatureAuthPopup.timeLabel') || 'Time'}: ${formattedTime}
+
+${t('signatureAuthPopup.signNote') || 'This signature is only used to verify wallet ownership and will not transfer any assets.'}`
   
   console.log('[Signature] Requesting signature...')
   

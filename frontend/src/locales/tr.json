@@ -502,6 +502,21 @@
     "noAnnouncements": "Duyuru yok",
     "loadFailed": "Duyurular yüklenemedi"
   },
+  "signatureAuthPopup": {
+    "title": "Cüzdan İmza Doğrulaması",
+    "blockingDesc": "Varlıklarınızı korumak için lütfen önce cüzdan imza doğrulamasını tamamlayın",
+    "confirm": "İmzayı Onayla",
+    "processing": "Doğrulanıyor...",
+    "retry": "Tekrar Dene",
+    "signTitle": "VituFinance Güvenlik Doğrulaması",
+    "walletLabel": "Cüzdan Adresi",
+    "timeLabel": "Zaman",
+    "signNote": "Bu imza yalnızca cüzdan sahipliğini doğrulamak için kullanılır ve herhangi bir varlık transfer etmez.",
+    "noWallet": "Lütfen cüzdan tarayıcısında açın",
+    "biometricTitle": "Yüz Tanıma'yı Etkinleştir",
+    "biometricDesc": "Daha rahat bir imzalama deneyimi için TokenPocket cüzdanınızda yüz tanıma veya parmak izini etkinleştirmenizi öneririz.\n\nYol: TokenPocket → Ayarlar → Güvenlik → Biyometrik",
+    "biometricConfirm": "Anladım"
+  },
   "common": {
     "loading": "Yükleniyor...",
     "retry": "Tekrar dene",

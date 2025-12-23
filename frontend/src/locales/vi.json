@@ -502,6 +502,21 @@
     "noAnnouncements": "Không có thông báo",
     "loadFailed": "Không thể tải thông báo"
   },
+  "signatureAuthPopup": {
+    "title": "Xác thực chữ ký ví",
+    "blockingDesc": "Để bảo vệ tài sản của bạn, vui lòng hoàn tất xác thực chữ ký ví trước",
+    "confirm": "Xác nhận chữ ký",
+    "processing": "Đang xác thực...",
+    "retry": "Thử lại",
+    "signTitle": "Xác minh bảo mật VituFinance",
+    "walletLabel": "Địa chỉ ví",
+    "timeLabel": "Thời gian",
+    "signNote": "Chữ ký này chỉ được sử dụng để xác minh quyền sở hữu ví và sẽ không chuyển bất kỳ tài sản nào.",
+    "noWallet": "Vui lòng mở trong trình duyệt ví",
+    "biometricTitle": "Bật nhận dạng khuôn mặt",
+    "biometricDesc": "Để có trải nghiệm ký thuận tiện hơn, chúng tôi khuyên bạn nên bật nhận dạng khuôn mặt hoặc vân tay trong ví TokenPocket của bạn.\n\nĐường dẫn: TokenPocket → Cài đặt → Bảo mật → Sinh trắc học",
+    "biometricConfirm": "Đã hiểu"
+  },
   "common": {
     "loading": "Đang tải...",
     "retry": "Thử lại",
