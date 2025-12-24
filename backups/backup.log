@@ -168,3 +168,23 @@ To github.com:gsyi5839-alt/https-vitufinance.com-.git
 [2025-12-25 02:00:03] 3. Generating file integrity hashes...
 [2025-12-25 02:00:03]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20251225_020001.sha256
 [2025-12-25 02:00:03] 4. Checking for git changes...
+[2025-12-25 02:00:03]    Git commit created
+[2025-12-25 02:00:03] 5. Cleaning up old backups...
+[2025-12-25 02:00:03]    Old backups cleaned (keeping last 7 days)
+[2025-12-25 02:00:03] ==========================================
+[2025-12-25 02:00:03] Backup completed successfully!
+[2025-12-25 02:00:03] ==========================================
+[2025-12-25 02:00:03]    Total backup size: 6.7M
+[2025-12-25 02:00:03] ==========================================
+[2025-12-25 03:00:01] [INFO] ========== Starting database backup ==========
+[2025-12-25 03:00:01] [INFO] Backup time: 2025-12-25_03-00-01
+[2025-12-25 03:00:01] [INFO] Project: /www/wwwroot/vitufinance.com
+[2025-12-25 03:00:01] [INFO] Database: xie080886 @ 127.0.0.1:3306
+[2025-12-25 03:00:01] [INFO] Creating database backup...
+mysqldump: [Warning] Using a password on the command line interface can be insecure.
+[2025-12-25 03:00:02] [INFO] Backup created: xie080886_2025-12-25.sql (7.7M)
+[2025-12-25 03:00:02] [INFO] Compressing backup...
+[2025-12-25 03:00:03] [INFO] Backup compressed: xie080886_2025-12-25.sql.gz (1.4M)
+[2025-12-25 03:00:03] [INFO] Cleaning up old backups...
+[2025-12-25 03:00:03] [INFO] Total backups retained: 4
+[2025-12-25 03:00:03] [INFO] Pushing backup to Git repository...
