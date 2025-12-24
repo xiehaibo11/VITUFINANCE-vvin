@@ -1,7 +1,11 @@
 <template>
   <!-- Use Teleport to mount directly to body, avoiding parent CSS issues on iOS Safari -->
   <Teleport to="body" :disabled="inPopup">
-  <nav class="bottom-nav" :class="{ 'in-popup': inPopup }">
+  <nav
+    class="bottom-nav"
+    :class="{ 'in-popup': inPopup }"
+    :style="bottomNavInlineStyle"
+  >
     <router-link 
       v-for="item in navItems" 
       :key="item.path" 
@@ -25,6 +29,20 @@
 </template>
 
 <script setup>
+/**
+ * Bottom navigation (fixed).
+ *
+ * iOS Safari / some wallet WebViews have a known issue:
+ * when the browser UI (address bar / bottom toolbar) expands/collapses,
+ * `position: fixed; bottom: ...` is calculated against the *layout viewport*,
+ * causing the element to visually "float" (can appear in the middle while scrolling).
+ *
+ * Fix strategy:
+ * - Keep Teleport to `body` (avoids transform/overflow parent issues)
+ * - Additionally, use `window.visualViewport` (when available) to compute a bottom offset
+ *   so the nav always sticks to the *visual viewport* bottom.
+ */
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
@@ -39,6 +57,54 @@ const props = defineProps({
 })
 
 const route = useRoute()
+
+// iOS visual viewport bottom offset (px). 0 on most desktop browsers.
+const visualViewportBottomOffset = ref(0)
+
+/**
+ * Update visual viewport bottom offset.
+ * Formula: bottomGap = layoutViewportHeight - (visualViewportHeight + visualViewportOffsetTop)
+ */
+const updateVisualViewportOffset = () => {
+  if (typeof window === 'undefined') return
+  const vv = window.visualViewport
+  if (!vv) {
+    visualViewportBottomOffset.value = 0
+    return
+  }
+
+  const gap = window.innerHeight - (vv.height + vv.offsetTop)
+  visualViewportBottomOffset.value = Number.isFinite(gap) && gap > 0 ? Math.round(gap) : 0
+}
+
+onMounted(() => {
+  updateVisualViewportOffset()
+  const vv = window.visualViewport
+  if (!vv) return
+
+  // Both events are needed: Safari triggers either depending on scroll/toolbar state.
+  vv.addEventListener('resize', updateVisualViewportOffset)
+  vv.addEventListener('scroll', updateVisualViewportOffset)
+})
+
+onUnmounted(() => {
+  const vv = window.visualViewport
+  if (!vv) return
+  vv.removeEventListener('resize', updateVisualViewportOffset)
+  vv.removeEventListener('scroll', updateVisualViewportOffset)
+})
+
+/**
+ * Inline style for CSS variables.
+ * - `--vv-bottom-offset`: dynamic offset for iOS visual viewport
+ */
+const bottomNavInlineStyle = computed(() => {
+  // In popup mode we intentionally don't Teleport and use relative layout.
+  if (props.inPopup) return {}
+  return {
+    '--vv-bottom-offset': `${visualViewportBottomOffset.value}px`
+  }
+})
 
 const navItems = [
   { path: '/', icon: '/static/index/1.png', activeIcon: '/static/SHOUYE/1.png', label: 'bottomNav.home' },
@@ -70,7 +136,11 @@ const handleNavClick = (path, event) => {
 .bottom-nav {
   /* Fixed positioning - Teleport ensures this works on iOS Safari */
   position: fixed;
-  bottom: 20px;
+  /*
+   * Base bottom spacing + iOS visual viewport compensation.
+   * `--vv-bottom-offset` is 0 on normal browsers, >0 when iOS toolbars are visible.
+   */
+  bottom: calc(20px + var(--vv-bottom-offset, 0px));
   left: 0;
   right: 0;
   margin: 0 auto;
@@ -173,7 +243,7 @@ const handleNavClick = (path, event) => {
   .bottom-nav {
     width: 90%;
     max-width: 404px;
-    bottom: 16px;
+    bottom: calc(16px + var(--vv-bottom-offset, 0px));
   }
 
   .bottom-nav.in-popup {
@@ -187,7 +257,7 @@ const handleNavClick = (path, event) => {
   .bottom-nav {
     width: 95%;
     max-width: 404px;
-    bottom: 12px;
+    bottom: calc(12px + var(--vv-bottom-offset, 0px));
   }
 }
 </style>

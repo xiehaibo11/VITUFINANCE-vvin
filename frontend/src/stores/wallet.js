@@ -7,10 +7,38 @@
  * - 管理钱包余额（USDT、WLD等）
  * - 支持 TokenPocket、MetaMask 等 DApp 钱包
  * - 自动检测和连接钱包
+ * - 余额持久化到 localStorage（刷新后立即显示）
  */
 
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
+
+// ==================== 余额持久化 ====================
+const BALANCE_STORAGE_KEY = 'vitu_wallet_balances'
+
+// Load persisted balances from localStorage
+const loadPersistedBalances = () => {
+  try {
+    const saved = localStorage.getItem(BALANCE_STORAGE_KEY)
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      console.log('[Wallet] Loaded persisted balances:', parsed)
+      return parsed
+    }
+  } catch (e) {
+    console.error('[Wallet] Failed to load persisted balances:', e)
+  }
+  return null
+}
+
+// Save balances to localStorage
+const persistBalances = (usdt, wld, equity) => {
+  try {
+    localStorage.setItem(BALANCE_STORAGE_KEY, JSON.stringify({ usdt, wld, equity, ts: Date.now() }))
+  } catch (e) {
+    // Ignore storage errors
+  }
+}
 
 export const useWalletStore = defineStore('wallet', () => {
   // ==================== 状态定义 ====================
@@ -35,20 +63,31 @@ export const useWalletStore = defineStore('wallet', () => {
 
   // ==================== 余额相关状态 ====================
   
+  // Load initial balances from localStorage (for instant display after refresh)
+  const persistedBalances = loadPersistedBalances()
+  
   // USDT 余额
-  const usdtBalance = ref('0.0000')
+  const usdtBalance = ref(persistedBalances?.usdt || '0.0000')
   
   // WLD 余额
-  const wldBalance = ref('0.0000')
+  const wldBalance = ref(persistedBalances?.wld || '0.0000')
   
   // 总权益价值（USDT）
-  const equityValue = ref('0.0000')
+  const equityValue = ref(persistedBalances?.equity || '0.0000')
   
   // 今日盈亏
   const todayPnl = ref('0.00')
   
   // 余额加载状态
   const isLoadingBalance = ref(false)
+  
+  // Watch for balance changes and persist them
+  watch([usdtBalance, wldBalance, equityValue], ([usdt, wld, equity]) => {
+    // Only persist non-zero balances
+    if (usdt !== '0.0000' || wld !== '0.0000') {
+      persistBalances(usdt, wld, equity)
+    }
+  })
 
   // ==================== 计算属性 ====================
   
@@ -100,28 +139,62 @@ export const useWalletStore = defineStore('wallet', () => {
   }
 
   /**
-   * 断开钱包连接
+   * Disconnect wallet session.
+   *
+   * IMPORTANT:
+   * - There are 2 different "disconnect" scenarios in this project:
+   *   1) User-initiated disconnect (explicit logout / switch account) -> should clear balances
+   *   2) Wallet-provider transient disconnect during refresh (accounts temporarily empty) -> should NOT clear balances
+   *
+   * This method supports both by accepting options.
+   *
+   * @param {object} options
+   * @param {boolean} options.clearBalances - When true, reset in-memory balances to 0
+   * @param {boolean} options.clearPersistedBalances - When true, remove persisted balance cache from localStorage
+   * @param {boolean} options.clearWalletSession - When true, clear walletAddress/walletType localStorage and mark disconnected
    */
-  const disconnect = () => {
-    walletAddress.value = ''
-    walletShortId.value = ''
-    walletType.value = ''
-    isConnected.value = false
+  const disconnect = (options = {}) => {
+    const {
+      clearBalances = true,
+      clearPersistedBalances = true,
+      clearWalletSession = true
+    } = options
+
+    // Always stop "connecting" state and clear error message
     isConnecting.value = false
     errorMessage.value = ''
-    
-    // 重置余额
-    usdtBalance.value = '0.0000'
-    wldBalance.value = '0.0000'
-    equityValue.value = '0.0000'
-    todayPnl.value = '0.00'
-    isLoadingBalance.value = false
-    
-    // 清除 localStorage
-    localStorage.removeItem('walletAddress')
-    localStorage.removeItem('walletType')
-    
-    console.log('[Wallet] Disconnected')
+
+    // Clear wallet session state
+    if (clearWalletSession) {
+      walletAddress.value = ''
+      walletShortId.value = ''
+      walletType.value = ''
+      isConnected.value = false
+
+      // Clear wallet session storage
+      localStorage.removeItem('walletAddress')
+      localStorage.removeItem('walletType')
+    }
+
+    // Reset balances if requested
+    if (clearBalances) {
+      usdtBalance.value = '0.0000'
+      wldBalance.value = '0.0000'
+      equityValue.value = '0.0000'
+      todayPnl.value = '0.00'
+      isLoadingBalance.value = false
+    }
+
+    // Clear persisted balances if requested
+    if (clearPersistedBalances) {
+      localStorage.removeItem(BALANCE_STORAGE_KEY)
+    }
+
+    console.log('[Wallet] Disconnected', {
+      clearBalances,
+      clearPersistedBalances,
+      clearWalletSession
+    })
   }
 
   /**

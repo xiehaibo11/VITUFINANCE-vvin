@@ -60,7 +60,8 @@ import {
 } from './src/utils/referralMath.js';
 
 // 团队经纪人规则常量（统一口径，避免 20/100 混用）
-import { MIN_ROBOT_PURCHASE } from './src/utils/teamMath.js';
+// Team broker level rules (single source of truth)
+import { MIN_ROBOT_PURCHASE, MIN_ROBOT_PURCHASE_LV1, MIN_ROBOT_PURCHASE_LV2_5 } from './src/utils/teamMath.js';
 
 // 导入错误日志模块
 import {
@@ -3688,22 +3689,37 @@ app.get('/api/invite/stats', async (req, res) => {
         
         const walletAddr = wallet_address.toLowerCase();
         
-        // 获取直推成员数量（购买了 >= MIN_ROBOT_PURCHASE 的合格机器人）
-        const qualifiedDirectResult = await dbQuery(
+        // Qualified direct referrals for broker rules (two thresholds):
+        // - LV1: direct referrals invested >= 20 USDT
+        // - LV2-5: direct referrals invested >= 100 USDT
+        const qualifiedDirectLv1Result = await dbQuery(
             `SELECT COUNT(DISTINCT r.wallet_address) as count
              FROM user_referrals r
              INNER JOIN robot_purchases rp ON r.wallet_address = rp.wallet_address
-             WHERE r.referrer_address = ? AND rp.price >= ? AND rp.status = 'active'`,
-            [walletAddr, MIN_ROBOT_PURCHASE]
+             WHERE r.referrer_address = ?
+               AND rp.price >= ?
+               AND rp.status IN ('active', 'expired')`,
+            [walletAddr, MIN_ROBOT_PURCHASE_LV1]
         );
-        const qualifiedDirectMembers = parseInt(qualifiedDirectResult[0]?.count) || 0;
+        const qualifiedDirectMembersLv1 = parseInt(qualifiedDirectLv1Result[0]?.count) || 0;
+
+        const qualifiedDirectLv2_5Result = await dbQuery(
+            `SELECT COUNT(DISTINCT r.wallet_address) as count
+             FROM user_referrals r
+             INNER JOIN robot_purchases rp ON r.wallet_address = rp.wallet_address
+             WHERE r.referrer_address = ?
+               AND rp.price >= ?
+               AND rp.status IN ('active', 'expired')`,
+            [walletAddr, MIN_ROBOT_PURCHASE_LV2_5]
+        );
+        const qualifiedDirectMembersLv2_5 = parseInt(qualifiedDirectLv2_5Result[0]?.count) || 0;
         
-        // 获取有效推荐成员（购买了 >= 20 USDT 的机器人，可获得推荐收益）
+        // Active referrals (invested >= 20 USDT) - used for showing "effective referrals"
         const activeReferralsResult = await dbQuery(
             `SELECT COUNT(DISTINCT r.wallet_address) as count
              FROM user_referrals r
              INNER JOIN robot_purchases rp ON r.wallet_address = rp.wallet_address
-             WHERE r.referrer_address = ? AND rp.price >= 20 AND rp.status = 'active'`,
+             WHERE r.referrer_address = ? AND rp.price >= 20 AND rp.status IN ('active', 'expired')`,
             [walletAddr]
         );
         const activeReferrals = parseInt(activeReferralsResult[0]?.count) || 0;
@@ -3759,8 +3775,19 @@ app.get('/api/invite/stats', async (req, res) => {
             console.log(`  团队总充值: ${totalRecharge} USDT`);
         }
         
-        // 团队业绩 = 团队总充值金额（用于等级升级判断和显示）
-        let totalPerformance = totalRecharge;
+        // Team performance for broker levels is defined as "team investment" (robot purchases sum).
+        let totalPerformance = 0;
+        if (allTeamWallets.length > 0) {
+            const placeholders = allTeamWallets.map(() => '?').join(',');
+            const perfResult = await dbQuery(
+                `SELECT COALESCE(SUM(price), 0) as total
+                 FROM robot_purchases
+                 WHERE wallet_address IN (${placeholders})
+                   AND status IN ('active', 'expired')`,
+                allTeamWallets
+            );
+            totalPerformance = parseFloat(perfResult[0]?.total) || 0;
+        }
         
         // 获取团队总提款（所有团队成员） - 从实际提现记录表中统计已完成的记录
         let totalWithdrawals = 0;
@@ -3825,15 +3852,25 @@ app.get('/api/invite/stats', async (req, res) => {
         );
         const myTeamReward = parseFloat(myTeamRewardResult[0]?.total) || 0;
         
-        // 每日总收入 = 团队量化收益 + 自己量化收益 + 推荐奖励 + 团队奖励
-        teamDailyIncome = teamEarnings + myEarnings + myReferralReward + myTeamReward;
+        // Daily total income (for THIS wallet) should only include amounts that
+        // are actually credited to this user today.
+        //
+        // IMPORTANT:
+        // - `teamEarnings` is the sum of downline users' quantification earnings.
+        //   That is NOT the same as the rebate credited to the current wallet.
+        // - The credited rebate is already recorded in `referral_rewards` (and `team_rewards`).
+        //
+        // So we intentionally DO NOT include `teamEarnings` here.
+        //
+        // Daily income = own quantification earnings + referral rewards received + team dividends received
+        teamDailyIncome = myEarnings + myReferralReward + myTeamReward;
         
         // 记录详细日志供调试
         console.log(`[Invite Stats] ${walletAddr.slice(0, 10)}... 今日收益明细:`);
-        console.log(`  团队量化收益: ${teamEarnings.toFixed(4)} USDT`);
+        console.log(`  团队量化收益(不计入本人到账): ${teamEarnings.toFixed(4)} USDT`);
         console.log(`  自己量化收益: ${myEarnings.toFixed(4)} USDT`);
-        console.log(`  推荐奖励: ${myReferralReward.toFixed(4)} USDT`);
-        console.log(`  团队奖励: ${myTeamReward.toFixed(4)} USDT`);
+        console.log(`  推荐奖励(到账): ${myReferralReward.toFixed(4)} USDT`);
+        console.log(`  团队奖励(到账): ${myTeamReward.toFixed(4)} USDT`);
         console.log(`  今日总收入: ${teamDailyIncome.toFixed(4)} USDT`);
         
         // Calculate user broker level (full version, includes sub-broker requirements)
@@ -3906,7 +3943,10 @@ app.get('/api/invite/stats', async (req, res) => {
             data: {
                 direct_members: allDirectMembers + directMembersAdj,
                 active_referrals: activeReferrals,  // 有效推荐（≥20 USDT，有收益）
-                qualified_direct_members: qualifiedDirectMembers,  // 合格成员（≥100 USDT，用于等级判定）
+                // For progress display:
+                // - If user is below Level 1, target is Level 1 (>=20U direct)
+                // - If user is Level 1+, next targets use >=100U direct
+                qualified_direct_members: (brokerLevel >= 1 ? qualifiedDirectMembersLv2_5 : qualifiedDirectMembersLv1),
                 team_members: teamMembers + teamMembersAdj,
                 total_recharge: (parseFloat(totalRecharge) + totalRechargeAdj).toFixed(4),
                 total_withdrawals: (parseFloat(totalWithdrawals) + totalWithdrawalsAdj).toFixed(4),
@@ -3925,7 +3965,7 @@ app.get('/api/invite/stats', async (req, res) => {
                     performance: currentRequirement.performance
                 },
                 progress: {
-                    direct_members: qualifiedDirectMembers,
+                    direct_members: (brokerLevel >= 1 ? qualifiedDirectMembersLv2_5 : qualifiedDirectMembersLv1),
                     sub_brokers: currentSubBrokers,
                     performance: parseFloat(totalPerformance).toFixed(4)
                 }
@@ -4936,7 +4976,7 @@ app.post('/api/checkin/claim', async (req, res) => {
  * 
  * 等级规则：
  * 0级：普通用户，不能兑换 WLD
- * 1级：直推5人(>=100U机器人)，团队业绩>1000U，每日可兑换 1 WLD
+ * 1级：直推5人(>=20U投资)，团队投资>1000U，每日可兑换 1 WLD
  * 2级：直推10人，含2名1级，团队业绩>5000U，每日可兑换 2 WLD
  * 3级：直推20人，含2名2级，团队业绩>20000U，每日可兑换 3 WLD
  * 4级：直推30人，含2名3级，团队业绩>80000U，每日可兑换 5 WLD
@@ -4979,19 +5019,36 @@ app.get('/api/user/level', async (req, res) => {
         
         const exchangedToday = parseFloat(todayExchanged[0]?.total) || 0;
         
-        // 获取直推人数和团队业绩（用于前端显示）
-        // 合格成员门槛：购买 >= MIN_ROBOT_PURCHASE 机器人（Coinbase 100U）
-        const directReferrals = await dbQuery(
+        // Get direct referrals and team investment (for UI display)
+        // Use the same thresholds as broker rules:
+        // - Level 0->1 uses >=20U direct referrals
+        // - Level 1+ next levels use >=100U direct referrals
+        const directReferralsLv1 = await dbQuery(
             `SELECT COUNT(DISTINCT r.wallet_address) as count
              FROM user_referrals r
              INNER JOIN robot_purchases rp ON r.wallet_address = rp.wallet_address
-             WHERE r.referrer_address = ? AND rp.price >= ? AND rp.status = 'active'`,
-            [walletAddr, MIN_ROBOT_PURCHASE]
+             WHERE r.referrer_address = ?
+               AND rp.price >= ?
+               AND rp.status IN ('active', 'expired')`,
+            [walletAddr, MIN_ROBOT_PURCHASE_LV1]
         );
+        const directCountLV1 = parseInt(directReferralsLv1[0]?.count) || 0;
 
-        const directCount = parseInt(directReferrals[0]?.count) || 0;
+        const directReferralsLv2_5 = await dbQuery(
+            `SELECT COUNT(DISTINCT r.wallet_address) as count
+             FROM user_referrals r
+             INNER JOIN robot_purchases rp ON r.wallet_address = rp.wallet_address
+             WHERE r.referrer_address = ?
+               AND rp.price >= ?
+               AND rp.status IN ('active', 'expired')`,
+            [walletAddr, MIN_ROBOT_PURCHASE_LV2_5]
+        );
+        const directCountLV2_5 = parseInt(directReferralsLv2_5[0]?.count) || 0;
 
-        // 团队业绩：8级深度，且只计入合格机器人（>= MIN_ROBOT_PURCHASE，且 active）
+        // For display, show the relevant direct referral count for the next level
+        const directCount = level >= 1 ? directCountLV2_5 : directCountLV1;
+
+        // Team investment: 8-level depth, include active + expired investments
         let allTeamWallets = [];
         let currentLevelWallets = [walletAddr];
         for (let depth = 1; depth <= 8; depth++) {
@@ -5014,9 +5071,8 @@ app.get('/api/user/level', async (req, res) => {
                 `SELECT COALESCE(SUM(price), 0) as total
                  FROM robot_purchases
                  WHERE wallet_address IN (${placeholders})
-                 AND status = 'active'
-                 AND price >= ?`,
-                [...allTeamWallets, MIN_ROBOT_PURCHASE]
+                   AND status IN ('active', 'expired')`,
+                allTeamWallets
             );
             totalPerformance = parseFloat(performanceResult[0]?.total) || 0;
         }
@@ -5076,21 +5132,33 @@ async function calculateUserLevel(walletAddr, visitedAddresses = new Set()) {
         }
         visitedAddresses.add(walletAddr);
         
-        // 1. 获取直推人数（购买了 >= MIN_ROBOT_PURCHASE 的合格机器人）
-        const directReferrals = await dbQuery(
+        // 1) Direct referrals (investment participation)
+        // - Level 1: direct referrals with >= 20 USDT investment
+        // - Level 2-5: direct referrals with >= 100 USDT investment
+        const directResultLV1 = await dbQuery(
             `SELECT COUNT(DISTINCT r.wallet_address) as count
              FROM user_referrals r
              INNER JOIN robot_purchases rp ON r.wallet_address = rp.wallet_address
-             WHERE r.referrer_address = ? AND rp.price >= ? AND rp.status = 'active'`,
-            [walletAddr, MIN_ROBOT_PURCHASE]
+             WHERE r.referrer_address = ?
+               AND rp.price >= ?
+               AND rp.status IN ('active', 'expired')`,
+            [walletAddr, MIN_ROBOT_PURCHASE_LV1]
         );
-        
-        const directCount = parseInt(directReferrals[0]?.count) || 0;
-        
-        // 如果直推人数不足5人，直接返回0级
-        if (directCount < 5) {
-            return 0;
-        }
+        const directCountLV1 = parseInt(directResultLV1[0]?.count) || 0;
+
+        const directResultLV2_5 = await dbQuery(
+            `SELECT COUNT(DISTINCT r.wallet_address) as count
+             FROM user_referrals r
+             INNER JOIN robot_purchases rp ON r.wallet_address = rp.wallet_address
+             WHERE r.referrer_address = ?
+               AND rp.price >= ?
+               AND rp.status IN ('active', 'expired')`,
+            [walletAddr, MIN_ROBOT_PURCHASE_LV2_5]
+        );
+        const directCountLV2_5 = parseInt(directResultLV2_5[0]?.count) || 0;
+
+        // If Level 1 minimum direct referrals is not met, user can't be broker
+        if (directCountLV1 < 5) return 0;
         
         // 2. 获取团队总业绩（所有层级下线的机器人购买总额，最多8级）
         // 使用递归查询获取所有团队成员
@@ -5114,14 +5182,16 @@ async function calculateUserLevel(walletAddr, visitedAddresses = new Set()) {
             currentLevelWallets = levelWallets;
         }
         
-        // 统计所有团队成员的充值总额（团队业绩 = 团队总充值）
+        // Team performance is defined as "investment" in this project:
+        // sum of downline robot purchases (NOT deposit/recharge).
         let totalPerformance = 0;
         if (allTeamWallets.length > 0) {
             const teamPlaceholders = allTeamWallets.map(() => '?').join(',');
             const performanceResult = await dbQuery(
-                `SELECT COALESCE(SUM(amount), 0) as total
-                 FROM deposit_records
-                 WHERE wallet_address IN (${teamPlaceholders}) AND status = 'completed'`,
+                `SELECT COALESCE(SUM(price), 0) as total
+                 FROM robot_purchases
+                 WHERE wallet_address IN (${teamPlaceholders})
+                   AND status IN ('active', 'expired')`,
                 allTeamWallets
             );
             totalPerformance = parseFloat(performanceResult[0]?.total) || 0;
@@ -5136,28 +5206,28 @@ async function calculateUserLevel(walletAddr, visitedAddresses = new Set()) {
         const subBrokerStats = await getSubBrokerStats(walletAddr, visitedAddresses);
         
         // 4. Check level from highest to lowest
-        // 5级：直推50人，含2名4级，团队业绩>200000U
-        if (directCount >= 50 && totalPerformance > 200000 && subBrokerStats.level4 >= 2) {
+        // Level 5: 50 direct referrals (>=100U), 2 direct members reach Level 4, team investment > 200,000
+        if (directCountLV2_5 >= 50 && totalPerformance > 200000 && subBrokerStats.level4 >= 2) {
             return 5;
         }
         
-        // 4级：直推30人，含2名3级，团队业绩>80000U
-        if (directCount >= 30 && totalPerformance > 80000 && subBrokerStats.level3 >= 2) {
+        // Level 4: 30 direct referrals (>=100U), 2 direct members reach Level 3, team investment > 80,000
+        if (directCountLV2_5 >= 30 && totalPerformance > 80000 && subBrokerStats.level3 >= 2) {
             return 4;
         }
         
-        // 3级：直推20人，含2名2级，团队业绩>20000U
-        if (directCount >= 20 && totalPerformance > 20000 && subBrokerStats.level2 >= 2) {
+        // Level 3: 20 direct referrals (>=100U), 2 direct members reach Level 2, team investment > 20,000
+        if (directCountLV2_5 >= 20 && totalPerformance > 20000 && subBrokerStats.level2 >= 2) {
             return 3;
         }
         
-        // Level 2: 10 direct referrals, 2 Level 1 sub-brokers, team performance > 5000U
-        if (directCount >= 10 && totalPerformance > 5000 && subBrokerStats.level1 >= 2) {
+        // Level 2: 10 direct referrals (>=100U), 2 direct members reach Level 1, team investment > 5,000
+        if (directCountLV2_5 >= 10 && totalPerformance > 5000 && subBrokerStats.level1 >= 2) {
             return 2;
         }
         
-        // Level 1: 5 direct referrals, team performance > 1000U (no sub-broker requirement)
-        if (directCount >= 5 && totalPerformance > 1000) {
+        // Level 1: 5 direct referrals (>=20U), team investment > 1,000
+        if (directCountLV1 >= 5 && totalPerformance > 1000) {
             return 1;
         }
         
@@ -5186,13 +5256,15 @@ async function getSubBrokerStats(walletAddr, visitedAddresses = new Set()) {
             level5: 0
         };
         
-        // 获取所有直推成员（购买了 >= MIN_ROBOT_PURCHASE 的合格机器人）
+        // Get all direct members who have participated in investment (>= LV1 threshold).
         const directMembers = await dbQuery(
             `SELECT DISTINCT r.wallet_address
              FROM user_referrals r
              INNER JOIN robot_purchases rp ON r.wallet_address = rp.wallet_address
-             WHERE r.referrer_address = ? AND rp.price >= ? AND rp.status = 'active'`,
-            [walletAddr, MIN_ROBOT_PURCHASE]
+             WHERE r.referrer_address = ?
+               AND rp.price >= ?
+               AND rp.status IN ('active', 'expired')`,
+            [walletAddr, MIN_ROBOT_PURCHASE_LV1]
         );
         
         // 逐个计算每个直推成员的等级
@@ -5261,51 +5333,38 @@ app.post('/api/exchange', sensitiveLimiter, async (req, res) => {
             });
         }
         
-        // 获取 WLD 当前价格（使用内置 https 模块，更可靠）
+        // Ensure exchange records table schema is compatible with current code.
+        // This project has had multiple DB schema versions in production; to avoid "Unknown column" errors
+        // and missing exchange history, we auto-add the required columns when missing.
+        // NOTE: This function is idempotent and cached in-memory.
+        await ensureWldExchangeSchema();
+
+        // Get WLD current price.
+        // IMPORTANT: server.js runs in ESM mode (Node.js ESM). `require()` is not available.
+        // Use the global `fetch` (Node 18+) with a timeout, and fallback to a default price on failure.
         let wldPrice = 0.58; // 默认价格（基于当前市场价）
         try {
-            const https = require('https');
-            const priceData = await new Promise((resolve, reject) => {
-                const req = https.get('https://api.binance.com/api/v3/ticker/price?symbol=WLDUSDT', {
-                    timeout: 5000
-                }, (res) => {
-                    let data = '';
-                    res.on('data', chunk => data += chunk);
-                    res.on('end', () => {
-                        try {
-                            resolve(JSON.parse(data));
-                        } catch (e) {
-                            reject(e);
-                        }
-                    });
-                });
-                req.on('error', reject);
-                req.on('timeout', () => {
-                    req.destroy();
-                    reject(new Error('Request timeout'));
-                });
-            });
-            
-            if (priceData && priceData.price) {
-                wldPrice = parseFloat(priceData.price);
+            const fetchedPrice = await fetchWldPriceFromBinance();
+            if (Number.isFinite(fetchedPrice) && fetchedPrice > 0) {
+                wldPrice = fetchedPrice;
                 console.log('[Exchange] WLD price from Binance:', wldPrice);
             }
         } catch (e) {
             console.log('[Exchange] 币安API获取价格失败，使用默认价格:', wldPrice, '错误:', e.message);
         }
         
-        // 获取用户余额
+        // Ensure user balance row exists (avoid "User not found" for new users).
+        await dbQuery(
+            `INSERT IGNORE INTO user_balances (wallet_address, usdt_balance, wld_balance, created_at, updated_at)
+             VALUES (?, 0, 0, NOW(), NOW())`,
+            [walletAddr]
+        );
+
+        // Get user balances
         const userBalance = await dbQuery(
             'SELECT usdt_balance, wld_balance FROM user_balances WHERE wallet_address = ?',
             [walletAddr]
         );
-        
-        if (userBalance.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'User not found'
-            });
-        }
         
         const usdtBalance = parseFloat(userBalance[0].usdt_balance);
         const wldBalance = parseFloat(userBalance[0].wld_balance);
@@ -5330,7 +5389,10 @@ app.post('/api/exchange', sensitiveLimiter, async (req, res) => {
             if (dailyWldLimit === 0) {
                 return res.status(400).json({
                     success: false,
-                    message: 'You need to reach Level 1 Broker to exchange WLD to USDT. Requirements: Invite 5 members with >=100U robots, team performance >=1000U'
+                    // NOTE: Level 1 rule:
+                    // - 5 direct referrals with valid investment
+                    // - team investment > 1000 USDT
+                    message: 'You need to reach Level 1 Broker to exchange WLD to USDT. Requirements: Invite 5 members to invest, team investment > 1000 USDT'
                 });
             }
             
@@ -5373,9 +5435,10 @@ app.post('/api/exchange', sensitiveLimiter, async (req, res) => {
             
             // 记录兑换
             await dbQuery(
-                `INSERT INTO wld_exchange_records (wallet_address, direction, wld_amount, usdt_amount, price, created_at)
-                 VALUES (?, 'wld_to_usdt', ?, ?, ?, NOW())`,
-                [walletAddr, exchangeAmount, usdtReceived, wldPrice]
+                `INSERT INTO wld_exchange_records
+                 (wallet_address, direction, wld_amount, usdt_amount, price, exchange_rate, status, created_at)
+                 VALUES (?, 'wld_to_usdt', ?, ?, ?, ?, 'completed', NOW())`,
+                [walletAddr, exchangeAmount, usdtReceived, wldPrice, wldPrice]
             );
             
             // 获取更新后的余额
@@ -5428,9 +5491,10 @@ app.post('/api/exchange', sensitiveLimiter, async (req, res) => {
             
             // 记录兑换
             await dbQuery(
-                `INSERT INTO wld_exchange_records (wallet_address, direction, wld_amount, usdt_amount, price, created_at)
-                 VALUES (?, 'usdt_to_wld', ?, ?, ?, NOW())`,
-                [walletAddr, wldReceived, exchangeAmount, wldPrice]
+                `INSERT INTO wld_exchange_records
+                 (wallet_address, direction, wld_amount, usdt_amount, price, exchange_rate, status, created_at)
+                 VALUES (?, 'usdt_to_wld', ?, ?, ?, ?, 'completed', NOW())`,
+                [walletAddr, wldReceived, exchangeAmount, wldPrice, wldPrice]
             );
             
             // 获取更新后的余额
@@ -5567,10 +5631,21 @@ app.get('/api/exchange/history', async (req, res) => {
         }
         
         const walletAddr = wallet_address.toLowerCase();
+
+        // Make sure schema supports the required columns before querying history.
+        await ensureWldExchangeSchema();
         
         // 查询兑换记录
         const records = await dbQuery(
-            `SELECT id, wallet_address, direction, wld_amount, usdt_amount, price, created_at
+            `SELECT
+                id,
+                wallet_address,
+                COALESCE(direction, 'unknown') as direction,
+                wld_amount,
+                usdt_amount,
+                COALESCE(price, exchange_rate) as price,
+                status,
+                created_at
              FROM wld_exchange_records 
              WHERE wallet_address = ? 
              ORDER BY created_at DESC 
@@ -5591,6 +5666,108 @@ app.get('/api/exchange/history', async (req, res) => {
         });
     }
 });
+
+// ============================================================================
+// WLD Exchange Helpers (Schema + Price Fetch)
+// ============================================================================
+
+let wldExchangeSchemaReady = false;
+
+/**
+ * Ensure `wld_exchange_records` table has the columns required by current APIs.
+ *
+ * English Notes:
+ * - Production DBs may be behind the current code version.
+ * - We auto-migrate by adding missing columns (safe, idempotent).
+ * - This prevents exchange failures and missing history due to schema drift.
+ */
+async function ensureWldExchangeSchema() {
+    if (wldExchangeSchemaReady) return;
+
+    try {
+        // Create table if missing (new schema superset).
+        await dbQuery(
+            `CREATE TABLE IF NOT EXISTS wld_exchange_records (
+                id INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+                wallet_address VARCHAR(42) NOT NULL,
+                direction ENUM('wld_to_usdt','usdt_to_wld') DEFAULT NULL,
+                usdt_amount DECIMAL(20,4) NOT NULL,
+                wld_amount DECIMAL(20,4) NOT NULL,
+                price DECIMAL(20,8) DEFAULT NULL,
+                exchange_rate DECIMAL(20,8) DEFAULT NULL,
+                status ENUM('pending','completed','failed') DEFAULT 'completed',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                INDEX idx_wallet_address (wallet_address),
+                INDEX idx_created_at (created_at)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='WLD exchange records (auto-migrated)';`
+        );
+
+        const cols = await dbQuery('SHOW COLUMNS FROM wld_exchange_records');
+        const colSet = new Set((cols || []).map(c => c.Field));
+
+        // Add missing columns for compatibility with older DB schemas.
+        if (!colSet.has('direction')) {
+            await dbQuery(`ALTER TABLE wld_exchange_records ADD COLUMN direction ENUM('wld_to_usdt','usdt_to_wld') DEFAULT NULL AFTER wallet_address`);
+        }
+        if (!colSet.has('price')) {
+            await dbQuery(`ALTER TABLE wld_exchange_records ADD COLUMN price DECIMAL(20,8) DEFAULT NULL AFTER wld_amount`);
+        }
+        if (!colSet.has('exchange_rate')) {
+            await dbQuery(`ALTER TABLE wld_exchange_records ADD COLUMN exchange_rate DECIMAL(20,8) DEFAULT NULL AFTER price`);
+        }
+        if (!colSet.has('status')) {
+            await dbQuery(`ALTER TABLE wld_exchange_records ADD COLUMN status ENUM('pending','completed','failed') DEFAULT 'completed' AFTER exchange_rate`);
+        }
+        if (!colSet.has('created_at')) {
+            await dbQuery(`ALTER TABLE wld_exchange_records ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP`);
+        }
+
+        wldExchangeSchemaReady = true;
+    } catch (e) {
+        // Do not block exchange if migration fails; the exchange route can still work on user_balances.
+        // But history may be unavailable until DB schema is fixed.
+        console.error('[Exchange] ensureWldExchangeSchema failed:', e.message);
+    }
+}
+
+/**
+ * Fetch WLD price from Binance using `fetch` with timeout.
+ *
+ * @returns {Promise<number>} WLDUSDT price
+ */
+async function fetchWldPriceFromBinance() {
+    // Node 18+ has global fetch. If not available, let it throw and caller will fallback to default.
+    if (typeof fetch !== 'function') {
+        throw new Error('fetch is not available in this Node.js runtime');
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+
+    try {
+        const resp = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=WLDUSDT', {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' },
+            signal: controller.signal
+        });
+
+        if (!resp.ok) {
+            throw new Error(`Binance HTTP ${resp.status}`);
+        }
+
+        const json = await resp.json();
+        const price = Number(json?.price);
+
+        if (!Number.isFinite(price) || price <= 0) {
+            throw new Error('Invalid Binance price payload');
+        }
+
+        return price;
+    } finally {
+        clearTimeout(timeout);
+    }
+}
 
 // 获取签到记录 API
 app.get('/api/checkin/records', async (req, res) => {

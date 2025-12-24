@@ -137,14 +137,14 @@
     <!-- Facebook 弹窗 -->
     <FacebookPopup 
       v-model:visible="showFacebookPopup"
-      facebook-url="https://www.facebook.com/share/1AiWHJVMPw/"
+      facebook-url="https://www.facebook.com/share_channel/#"
       @check="handleFacebookCheck"
     />
 
     <!-- YouTube 弹窗 -->
     <YouTubePopup 
       v-model:visible="showYouTubePopup"
-      youtube-url="https://www.youtube.com/@VituFinance"
+      youtube-url="https://www.youtube.com/channel/UC92aIDlejplKldAwfhvUlfg"
       @check="handleYouTubeCheck"
     />
   </div>

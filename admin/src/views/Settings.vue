@@ -16,6 +16,60 @@
         </div>
       </template>
       
+      <!-- 安全密码保护区域 -->
+      <div class="security-protection-section">
+        <el-divider content-position="left">
+          <span class="chain-divider">🔐 安全保护</span>
+        </el-divider>
+        
+        <div class="security-status">
+          <el-icon :size="18" :class="walletSecurity.isPasswordSet ? 'status-secure' : 'status-warning'">
+            <component :is="walletSecurity.isPasswordSet ? 'CircleCheck' : 'Warning'" />
+          </el-icon>
+          <span v-if="walletSecurity.isPasswordSet" class="status-text secure">安全密码已设置</span>
+          <span v-else class="status-text warning">安全密码未设置，建议立即设置以保护收款地址</span>
+        </div>
+        
+        <!-- 未设置密码时显示设置表单 -->
+        <el-form 
+          v-if="!walletSecurity.isPasswordSet" 
+          :model="walletSecurity.initForm"
+          label-width="120px" 
+          style="max-width: 500px; margin-top: 16px"
+        >
+          <el-form-item label="设置安全密码">
+            <el-input
+              v-model="walletSecurity.initForm.password"
+              type="password"
+              placeholder="请设置安全密码（至少6位）"
+              show-password
+            />
+          </el-form-item>
+          <el-form-item label="确认密码">
+            <el-input
+              v-model="walletSecurity.initForm.confirmPassword"
+              type="password"
+              placeholder="请再次输入安全密码"
+              show-password
+            />
+          </el-form-item>
+          <el-form-item>
+            <el-button type="success" :loading="walletSecurity.loading" @click="initSecurityPassword">
+              <el-icon><Lock /></el-icon>
+              设置安全密码
+            </el-button>
+          </el-form-item>
+        </el-form>
+        
+        <!-- 已设置密码时显示修改按钮 -->
+        <div v-else class="security-actions">
+          <el-button type="warning" plain size="small" @click="showChangePasswordDialog">
+            <el-icon><Edit /></el-icon>
+            修改安全密码
+          </el-button>
+        </div>
+      </div>
+      
       <el-form label-width="140px" style="max-width: 700px">
         <!-- BSC 收款地址 -->
         <el-divider content-position="left">
@@ -67,7 +121,7 @@
         </el-form-item>
         
         <el-form-item>
-          <el-button type="primary" :loading="savingSettings" @click="saveSettings">
+          <el-button type="primary" :loading="savingSettings" @click="handleSaveSettings">
             <el-icon><Check /></el-icon>
             保存配置
           </el-button>
@@ -91,10 +145,78 @@
             <li><strong>ETH链</strong>：主流公链，但Gas费较高，适合大额充值</li>
             <li>修改后立即生效，用户充值时可选择任一网络</li>
             <li>请务必仔细核对地址，错误的地址可能导致资产丢失</li>
+            <li><strong style="color: var(--admin-danger)">重要：</strong>设置安全密码后，修改收款地址需要验证安全密码</li>
           </ul>
         </template>
       </el-alert>
     </el-card>
+    
+    <!-- 安全密码验证对话框 -->
+    <el-dialog
+      v-model="walletSecurity.verifyDialogVisible"
+      title="🔐 安全验证"
+      width="400px"
+      :close-on-click-modal="false"
+    >
+      <el-form label-width="100px">
+        <el-form-item label="安全密码">
+          <el-input
+            v-model="walletSecurity.verifyPassword"
+            type="password"
+            placeholder="请输入安全密码"
+            show-password
+            @keyup.enter="confirmSaveSettings"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="walletSecurity.verifyDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="savingSettings" @click="confirmSaveSettings">
+          确认保存
+        </el-button>
+      </template>
+    </el-dialog>
+    
+    <!-- 修改安全密码对话框 -->
+    <el-dialog
+      v-model="walletSecurity.changeDialogVisible"
+      title="🔐 修改安全密码"
+      width="450px"
+      :close-on-click-modal="false"
+    >
+      <el-form :model="walletSecurity.changeForm" label-width="100px">
+        <el-form-item label="旧密码">
+          <el-input
+            v-model="walletSecurity.changeForm.oldPassword"
+            type="password"
+            placeholder="请输入当前安全密码"
+            show-password
+          />
+        </el-form-item>
+        <el-form-item label="新密码">
+          <el-input
+            v-model="walletSecurity.changeForm.newPassword"
+            type="password"
+            placeholder="请输入新密码（至少6位）"
+            show-password
+          />
+        </el-form-item>
+        <el-form-item label="确认新密码">
+          <el-input
+            v-model="walletSecurity.changeForm.confirmPassword"
+            type="password"
+            placeholder="请再次输入新密码"
+            show-password
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="walletSecurity.changeDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="walletSecurity.loading" @click="changeSecurityPassword">
+          确认修改
+        </el-button>
+      </template>
+    </el-dialog>
     
     <!-- 管理员头像设置 -->
     <el-card class="settings-card" style="margin-top: 20px">
@@ -350,7 +472,8 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
   Lock, Check, Refresh, InfoFilled, Wallet, Avatar, Upload, Delete, UserFilled,
-  Microphone, Download  // 添加语音设置相关图标
+  Microphone, Download, // Speech settings related icons
+  CircleCheck, Warning, Edit // Wallet security icons
 } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 import request from '@/api'
@@ -382,6 +505,24 @@ const platformSettings = reactive({
   wallet_address_eth: '',       // ETH链收款地址
   network: 'BSC',
   token: 'USDT'
+})
+
+// 钱包安全密码保护相关
+const walletSecurity = reactive({
+  isPasswordSet: false,         // 安全密码是否已设置
+  loading: false,               // 加载状态
+  verifyDialogVisible: false,   // 验证密码对话框
+  changeDialogVisible: false,   // 修改密码对话框
+  verifyPassword: '',           // 验证用的密码
+  initForm: {                   // 初始化密码表单
+    password: '',
+    confirmPassword: ''
+  },
+  changeForm: {                 // 修改密码表单
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  }
 })
 
 // 头像相关
@@ -639,38 +780,163 @@ const fetchSettings = async () => {
   }
 }
 
+// ==================== 钱包安全密码相关函数 ====================
+
 /**
- * 保存平台设置（多链支持）
+ * 获取钱包安全密码状态
  */
-const saveSettings = async () => {
-  // 验证至少填写一个收款地址
+const fetchWalletSecurityStatus = async () => {
+  try {
+    const res = await request.get('/wallet-security/status')
+    if (res.success) {
+      walletSecurity.isPasswordSet = res.data.isPasswordSet
+    }
+  } catch (error) {
+    console.error('获取安全密码状态失败:', error)
+  }
+}
+
+/**
+ * 初始化设置安全密码
+ */
+const initSecurityPassword = async () => {
+  const { password, confirmPassword } = walletSecurity.initForm
+  
+  if (!password || password.length < 6) {
+    ElMessage.warning('安全密码至少需要6位')
+    return
+  }
+  
+  if (password !== confirmPassword) {
+    ElMessage.warning('两次输入的密码不一致')
+    return
+  }
+  
+  walletSecurity.loading = true
+  try {
+    const res = await request.post('/wallet-security/init', { password })
+    if (res.success) {
+      ElMessage.success('安全密码设置成功')
+      walletSecurity.isPasswordSet = true
+      walletSecurity.initForm.password = ''
+      walletSecurity.initForm.confirmPassword = ''
+    } else {
+      ElMessage.error(res.message || '设置失败')
+    }
+  } catch (error) {
+    console.error('设置安全密码失败:', error)
+    ElMessage.error('设置安全密码失败')
+  } finally {
+    walletSecurity.loading = false
+  }
+}
+
+/**
+ * 显示修改安全密码对话框
+ */
+const showChangePasswordDialog = () => {
+  walletSecurity.changeForm.oldPassword = ''
+  walletSecurity.changeForm.newPassword = ''
+  walletSecurity.changeForm.confirmPassword = ''
+  walletSecurity.changeDialogVisible = true
+}
+
+/**
+ * 修改安全密码
+ */
+const changeSecurityPassword = async () => {
+  const { oldPassword, newPassword, confirmPassword } = walletSecurity.changeForm
+  
+  if (!oldPassword) {
+    ElMessage.warning('请输入当前安全密码')
+    return
+  }
+  
+  if (!newPassword || newPassword.length < 6) {
+    ElMessage.warning('新密码至少需要6位')
+    return
+  }
+  
+  if (newPassword !== confirmPassword) {
+    ElMessage.warning('两次输入的新密码不一致')
+    return
+  }
+  
+  walletSecurity.loading = true
+  try {
+    const res = await request.post('/wallet-security/change', { oldPassword, newPassword })
+    if (res.success) {
+      ElMessage.success('安全密码修改成功')
+      walletSecurity.changeDialogVisible = false
+    } else {
+      ElMessage.error(res.message || '修改失败')
+    }
+  } catch (error) {
+    console.error('修改安全密码失败:', error)
+    ElMessage.error(error.response?.data?.message || '修改安全密码失败')
+  } finally {
+    walletSecurity.loading = false
+  }
+}
+
+/**
+ * 处理保存设置按钮点击
+ * If security password is set, show verification dialog
+ */
+const handleSaveSettings = async () => {
+  // Validate at least one address is provided
   if (!platformSettings.wallet_address_bsc && !platformSettings.wallet_address_eth) {
     ElMessage.warning('请至少输入一个收款地址')
     return
   }
   
-  // 简单验证地址格式（以太坊/BSC地址）
+  // Validate address format
   const addressRegex = /^0x[a-fA-F0-9]{40}$/
   
-  // 验证 BSC 地址
   if (platformSettings.wallet_address_bsc && !addressRegex.test(platformSettings.wallet_address_bsc)) {
     ElMessage.error('BSC收款地址格式无效（0x开头，40位十六进制）')
     return
   }
   
-  // 验证 ETH 地址
   if (platformSettings.wallet_address_eth && !addressRegex.test(platformSettings.wallet_address_eth)) {
     ElMessage.error('ETH收款地址格式无效（0x开头，40位十六进制）')
     return
   }
   
+  // If security password is set, show verification dialog
+  if (walletSecurity.isPasswordSet) {
+    walletSecurity.verifyPassword = ''
+    walletSecurity.verifyDialogVisible = true
+  } else {
+    // No password set, save directly
+    await saveWalletSettings('')
+  }
+}
+
+/**
+ * 确认保存设置（验证密码后）
+ */
+const confirmSaveSettings = async () => {
+  if (!walletSecurity.verifyPassword) {
+    ElMessage.warning('请输入安全密码')
+    return
+  }
+  
+  await saveWalletSettings(walletSecurity.verifyPassword)
+}
+
+/**
+ * 保存钱包设置（带安全密码）
+ */
+const saveWalletSettings = async (securityPassword) => {
   savingSettings.value = true
   try {
-    const res = await request.post('/settings/batch', {
+    const res = await request.post('/wallet-config', {
+      securityPassword,
       settings: {
-        // 兼容旧版（默认使用BSC地址）
+        // Compatible with old version (default use BSC address)
         platform_wallet_address: platformSettings.wallet_address_bsc || platformSettings.wallet_address_eth,
-        // 多链地址
+        // Multi-chain addresses
         platform_wallet_bsc: platformSettings.wallet_address_bsc,
         platform_wallet_eth: platformSettings.wallet_address_eth,
         platform_network: platformSettings.network,
@@ -680,15 +946,24 @@ const saveSettings = async () => {
     
     if (res.success) {
       ElMessage.success('多链收款地址配置保存成功')
+      walletSecurity.verifyDialogVisible = false
+      walletSecurity.verifyPassword = ''
     } else {
       ElMessage.error(res.message || '保存失败')
     }
   } catch (error) {
     console.error('保存设置失败:', error)
-    ElMessage.error('保存设置失败')
+    ElMessage.error(error.response?.data?.message || '保存设置失败')
   } finally {
     savingSettings.value = false
   }
+}
+
+/**
+ * 保存平台设置（多链支持）- 保留旧函数作为兼容
+ */
+const saveSettings = async () => {
+  await handleSaveSettings()
 }
 
 // ==================== 语音播报设置 ====================
@@ -796,6 +1071,7 @@ onMounted(() => {
 
 fetchSettings()
 fetchAvatar()
+fetchWalletSecurityStatus()
 </script>
 
 <style lang="scss" scoped>
@@ -974,6 +1250,59 @@ fetchAvatar()
   font-weight: 600;
   font-size: 14px;
   color: var(--admin-text-primary);
+}
+
+// ==================== 安全密码保护区域样式 ====================
+.security-protection-section {
+  background: var(--admin-bg-color, #f5f7fa);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  border: 1px solid var(--admin-border-color, #e4e7ed);
+}
+
+.security-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--admin-card-bg, #fff);
+  border-radius: 6px;
+  border: 1px solid var(--admin-border-color, #e4e7ed);
+  
+  .status-secure {
+    color: var(--admin-success, #67c23a);
+  }
+  
+  .status-warning {
+    color: var(--admin-warning, #e6a23c);
+  }
+  
+  .status-text {
+    font-size: 14px;
+    
+    &.secure {
+      color: var(--admin-success, #67c23a);
+      font-weight: 600;
+    }
+    
+    &.warning {
+      color: var(--admin-warning, #e6a23c);
+    }
+  }
+}
+
+.security-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+}
+
+// 暗色主题适配
+:deep(.el-dialog) {
+  .el-dialog__header {
+    font-weight: 600;
+  }
 }
 </style>
 

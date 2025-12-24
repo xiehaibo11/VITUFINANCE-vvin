@@ -43,7 +43,7 @@ import {
  *    - LV1: 购买 >= 20 USDT 机器人的用户
  *    - LV2-5: 购买 >= 100 USDT 机器人的用户
  * 2. 直推人数：直接推荐的合格成员数量
- * 3. 团队业绩：所有下线的充值总金额（非机器人购买金额）
+ * 3. 团队业绩：8级团队下线的机器人购买总额（price，active/expired）
  * 4. 下级经纪人：直推成员中达到指定等级的人数
  * 
  * 等级配置（公司文档标准）：
@@ -100,7 +100,9 @@ async function calculateBrokerLevel(walletAddr, visitedAddresses = new Set()) {
             `SELECT COUNT(DISTINCT r.wallet_address) as count
              FROM user_referrals r
              INNER JOIN robot_purchases rp ON r.wallet_address = rp.wallet_address
-             WHERE r.referrer_address = ? AND rp.price >= ? AND rp.status = 'active'`,
+             WHERE r.referrer_address = ?
+               AND rp.price >= ?
+               AND rp.status IN ('active', 'expired')`,
             [walletAddr, MIN_ROBOT_PURCHASE_LV1]
         );
         const directCountLV1 = parseInt(directResultLV1[0]?.count) || 0;
@@ -110,7 +112,9 @@ async function calculateBrokerLevel(walletAddr, visitedAddresses = new Set()) {
             `SELECT COUNT(DISTINCT r.wallet_address) as count
              FROM user_referrals r
              INNER JOIN robot_purchases rp ON r.wallet_address = rp.wallet_address
-             WHERE r.referrer_address = ? AND rp.price >= ? AND rp.status = 'active'`,
+             WHERE r.referrer_address = ?
+               AND rp.price >= ?
+               AND rp.status IN ('active', 'expired')`,
             [walletAddr, MIN_ROBOT_PURCHASE_LV2_5]
         );
         const directCountLV2_5 = parseInt(directResultLV2_5[0]?.count) || 0;
@@ -135,14 +139,16 @@ async function calculateBrokerLevel(walletAddr, visitedAddresses = new Set()) {
             currentLevelWallets = levelWallets;
         }
         
-        // 3. 计算团队总业绩（8级团队的充值总额）
+        // 3. Calculate team total investment (8 levels downline robot purchases).
+        // IMPORTANT: Business rule uses "investment" (robot purchases), not "recharge" (deposit records).
         let totalPerformance = 0;
         if (allTeamWallets.length > 0) {
             const teamPlaceholders = allTeamWallets.map(() => '?').join(',');
             const performanceResult = await dbQuery(
-                `SELECT COALESCE(SUM(amount), 0) as total
-                 FROM deposit_records
-                 WHERE wallet_address IN (${teamPlaceholders}) AND status = 'completed'`,
+                `SELECT COALESCE(SUM(price), 0) as total
+                 FROM robot_purchases
+                 WHERE wallet_address IN (${teamPlaceholders})
+                   AND status IN ('active', 'expired')`,
                 allTeamWallets
             );
             totalPerformance = parseFloat(performanceResult[0]?.total) || 0;

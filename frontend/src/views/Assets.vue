@@ -425,7 +425,7 @@
           <div class="drawer-content">
             <!-- WLD 签到记录 -->
             <template v-if="selectedAsset === 'WLD'">
-              <div v-if="checkinRecords.length > 0" class="checkin-records">
+              <div v-if="checkinRecords.length > 0 || exchangeRecords.length > 0" class="checkin-records">
                 <div 
                   v-for="record in checkinRecords" 
                   :key="record.id" 
@@ -443,6 +443,38 @@
                     <div class="tx-amount-wrap">
                       <div class="tx-amount deposit">+{{ parseFloat(record.reward_amount).toFixed(4) }}</div>
                       <div class="tx-currency">WLD</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- WLD Exchange Records (WLD <-> USDT) -->
+                <!-- English Note:
+                  - usdt_to_wld increases WLD (+wld_amount)
+                  - wld_to_usdt decreases WLD (-wld_amount)
+                -->
+                <div
+                  v-for="record in exchangeRecords"
+                  :key="'exchange-' + record.id"
+                  class="usdt-record-card"
+                >
+                  <div class="tx-card-header">
+                    <span class="tx-type deposit">{{ t('assetsPage.exchangeRecord') || 'Exchange' }}</span>
+                    <span class="tx-status completed">{{ t('assetsPage.completed') }}</span>
+                  </div>
+                  <div class="tx-card-body">
+                    <div class="tx-info">
+                      <div class="tx-address">{{ formatWalletAddress(record.wallet_address) }}</div>
+                      <div class="tx-time">{{ formatDateTime(record.created_at) }}</div>
+                    </div>
+                    <div class="tx-amount-wrap">
+                      <template v-if="record.direction === 'usdt_to_wld'">
+                        <div class="tx-amount deposit">+{{ parseFloat(record.wld_amount).toFixed(4) }}</div>
+                        <div class="tx-currency">WLD</div>
+                      </template>
+                      <template v-else>
+                        <div class="tx-amount withdraw">-{{ parseFloat(record.wld_amount).toFixed(4) }}</div>
+                        <div class="tx-currency">WLD</div>
+                      </template>
                     </div>
                   </div>
                 </div>
@@ -540,6 +572,30 @@
                         </div>
                       </div>
                     </template>
+
+                    <!-- 闪兑记录 -->
+                    <template v-else-if="record.type === 'exchange'">
+                      <div class="tx-card-header">
+                        <span class="tx-type deposit">{{ t('assetsPage.exchangeRecord') || 'Exchange' }}</span>
+                        <span class="tx-status completed">{{ t('assetsPage.completed') }}</span>
+                      </div>
+                      <div class="tx-card-body">
+                        <div class="tx-info">
+                          <div class="tx-address">{{ formatWalletAddress(record.wallet_address) }}</div>
+                          <div class="tx-time">{{ formatDateTime(record.created_at) }}</div>
+                        </div>
+                        <div class="tx-amount-wrap">
+                          <template v-if="record.direction === 'wld_to_usdt'">
+                            <div class="tx-amount deposit">+{{ parseFloat(record.usdt_amount).toFixed(4) }}</div>
+                            <div class="tx-currency">USDT</div>
+                          </template>
+                          <template v-else>
+                            <div class="tx-amount withdraw">-{{ parseFloat(record.usdt_amount).toFixed(4) }}</div>
+                            <div class="tx-currency">USDT</div>
+                          </template>
+                        </div>
+                      </div>
+                    </template>
                     
                     <!-- 团队奖励记录 -->
                     <template v-else-if="record.type === 'team_reward'">
@@ -611,7 +667,7 @@ import DepositModal from '@/components/DepositModal.vue'
 import WithdrawModal from '@/components/WithdrawModal.vue'
 import QuantifyHistoryPopup from '@/components/QuantifyHistoryPopup.vue'
 import { useWalletStore } from '@/stores/wallet'
-import { refreshBalances, isDAppBrowser, detectWalletType } from '@/utils/wallet'
+import { isDAppBrowser, detectWalletType } from '@/utils/wallet'
 import { trackDeposit, trackWithdraw } from '@/utils/tracker'
 // Import precision math module for accurate financial calculations
 import {
@@ -624,6 +680,7 @@ import {
   isGreaterThan,
   isPositive
 } from '@/utils/precisionMath'
+import { shouldUpdateEquityPrice } from '@/utils/equitySmoother'
 
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -647,6 +704,9 @@ const isTokenPocketBrowser = () => {
 // ==================== 自动刷新相关 ====================
 let refreshInterval = null
 const REFRESH_INTERVAL = 30000 // 30秒自动刷新一次
+const PRICE_REFRESH_INTERVAL = 5 * 60 * 1000 // WLD价格估值刷新间隔（5分钟）
+const MIN_EQUITY_UPDATE_USDT = '0.01' // 权益变化阈值：低于 0.01 USDT 不更新显示，避免“跳动”
+let lastPriceFetchAt = 0
 
 // ==================== 余额动画相关 ====================
 // 动画显示的余额
@@ -816,9 +876,11 @@ const withdrawRecords = ref([]) // 提现记录
 const quantifyRecords = ref([]) // 量化收益记录
 const referralRecords = ref([]) // 推荐奖励记录
 const teamRewards = ref([]) // 团队奖励记录
+const exchangeRecords = ref([]) // 闪兑记录（WLD <-> USDT）
 
 // 闪兑相关状态
 const exchangeWldPrice = ref(0) // 闪兑用的 WLD 价格
+const equityWldPrice = ref(0) // 权益估值用的 WLD 价格（带阈值平滑）
 const userLevel = ref(0) // 用户经纪人等级 (0-5)
 const dailyRedeemableWld = ref(0) // 每日可兑换 WLD 数量
 const todayExchangedWld = ref(0) // 今日已兑换 WLD 数量
@@ -931,6 +993,20 @@ const allUsdtRecords = computed(() => {
     records.push({
       ...record,
       type: 'team_reward',
+      timestamp: new Date(record.created_at).getTime()
+    })
+  })
+
+  // 添加闪兑记录
+  // English Note:
+  // - The exchange API writes to `wld_exchange_records`.
+  // - For USDT details view we show the USDT delta:
+  //   - wld_to_usdt: +usdt_amount
+  //   - usdt_to_wld: -usdt_amount
+  exchangeRecords.value.forEach(record => {
+    records.push({
+      ...record,
+      type: 'exchange',
       timestamp: new Date(record.created_at).getTime()
     })
   })
@@ -1242,7 +1318,10 @@ const openDetailsDrawer = async (asset) => {
   if (asset === 'WLD') {
     await Promise.all([
       fetchCheckinRecords(),
-      fetchWldPrice()
+      fetchWldPrice(),
+      // Also fetch exchange records so users can verify WLD exchange "arrival" in details.
+      // English Note: Balance changes are applied immediately, but users also expect a visible ledger entry.
+      fetchExchangeRecords()
     ])
   }
   
@@ -1253,8 +1332,41 @@ const openDetailsDrawer = async (asset) => {
       fetchWithdrawRecords(),
       fetchQuantifyRecords(),
       fetchReferralRecords(),
-      fetchTeamRewards()
+      fetchTeamRewards(),
+      fetchExchangeRecords()
     ])
+  }
+}
+
+/**
+ * 获取闪兑记录
+ * GET /api/exchange/history?wallet_address=0x...&limit=20
+ *
+ * English Note:
+ * - This is required so "Details" shows exchange transactions instead of silently missing them.
+ */
+const fetchExchangeRecords = async () => {
+  const wallet = walletStore.walletAddress || localStorage.getItem('walletAddress') || localStorage.getItem('wallet_address')
+  if (!wallet) {
+    exchangeRecords.value = []
+    return
+  }
+  
+  try {
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://vitufinance.com'
+    const response = await fetch(`${API_BASE}/api/exchange/history?wallet_address=${wallet.toLowerCase()}&limit=20`)
+    const data = await response.json()
+    
+    console.log('[Assets] Exchange records response:', data)
+    
+    if (data.success) {
+      exchangeRecords.value = data.data || []
+    } else {
+      exchangeRecords.value = []
+    }
+  } catch (error) {
+    console.error('获取闪兑记录失败:', error)
+    exchangeRecords.value = []
   }
 }
 
@@ -1511,11 +1623,17 @@ const refreshAllData = async () => {
   if (!walletStore.isConnected || !walletStore.walletAddress) return
   
   console.log('[Assets] 自动刷新数据...')
+  // Price is expensive and changes frequently; refresh it less often to keep equity display stable.
+  const shouldFetchPrice = (
+    !isPositive(exchangeWldPrice.value) ||
+    (Date.now() - lastPriceFetchAt) >= PRICE_REFRESH_INTERVAL
+  )
+
   await Promise.all([
     fetchPlatformBalance(),
     fetchTodayEarnings(),
     fetchUserLevel(),
-    fetchExchangeWldPrice()
+    shouldFetchPrice ? fetchExchangeWldPrice() : Promise.resolve()
   ])
 }
 
@@ -1614,6 +1732,18 @@ const fetchExchangeWldPrice = async () => {
       // 兼容包装格式
       exchangeWldPrice.value = parseFloat(data.data[0].lastPrice) || 0
     }
+
+    // Record last successful fetch time
+    lastPriceFetchAt = Date.now()
+
+    // Update equity valuation price only when the equity delta is meaningful.
+    // This prevents tiny market micro-moves from making the equity value "jump" visually.
+    const wldBal = walletStore.wldBalance || '0'
+    if (!isPositive(equityWldPrice.value)) {
+      equityWldPrice.value = exchangeWldPrice.value
+    } else if (shouldUpdateEquityPrice(equityWldPrice.value, exchangeWldPrice.value, wldBal, MIN_EQUITY_UPDATE_USDT)) {
+      equityWldPrice.value = exchangeWldPrice.value
+    }
   } catch (error) {
     console.error('获取 WLD 价格失败:', error)
     exchangeWldPrice.value = 0 // 出错时设为0，不使用假数据
@@ -1681,10 +1811,14 @@ const fetchPlatformBalance = async () => {
       // 计算并更新总权益值（USDT + WLD 折算成 USDT）
       // 使用精确数学算法计算，避免浮点精度问题
       // Formula: Equity = USDT + (WLD × WLD_Price)
+      // IMPORTANT:
+      // - We use a smoothed price (equityWldPrice) to avoid tiny market micro-moves making equity "jump".
+      // - If equityWldPrice is not ready yet, fallback to latest fetched exchangeWldPrice.
+      const equityPrice = isPositive(equityWldPrice.value) ? equityWldPrice.value : exchangeWldPrice.value
       const totalEquity = calculateEquity(
         data.data.usdt_balance,
         data.data.wld_balance,
-        exchangeWldPrice.value
+        equityPrice
       )
       walletStore.setEquityValue(totalEquity)
       
@@ -1699,8 +1833,10 @@ const fetchPlatformBalance = async () => {
     }
   } catch (error) {
     console.error('[Assets] Failed to fetch platform balance:', error)
-    // 如果后端请求失败，尝试从钱包直接读取
-    await refreshBalances()
+    // IMPORTANT:
+    // Keep last known balances when the backend request fails.
+    // Do NOT fallback to on-chain token balance here because "platform balance"
+    // is an internal ledger value and may differ from wallet token holdings.
   } finally {
     walletStore.setLoadingBalance(false)
   }

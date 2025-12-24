@@ -1148,52 +1148,61 @@ onMounted(() => {
 .wallet-address {
   font-family: 'Courier New', monospace;
   font-size: 12px;
-  color: #606266;
+  color: var(--admin-text-regular, #606266);
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 4px;
   
   &:hover {
-    color: #409EFF;
+    color: var(--admin-primary, #409EFF);
   }
 }
 
 .amount {
   font-weight: 600;
+  color: var(--admin-text-primary);
   
   &.positive {
-    color: #67C23A;
+    color: var(--admin-success, #67C23A);
+  }
+  
+  &.highlight {
+    color: var(--admin-warning, #E6A23C);
   }
 }
 
 .count {
   font-weight: 600;
-  color: #409EFF;
+  color: var(--admin-primary, #409EFF);
   
   &.success {
-    color: #67C23A;
+    color: var(--admin-success, #67C23A);
   }
 }
 
 .rate {
   font-weight: 600;
-  color: #E6A23C;
+  color: var(--admin-warning, #E6A23C);
+  
+  &.positive {
+    color: var(--admin-success, #67C23A);
+  }
 }
 
 .no-data {
-  color: #c0c4cc;
+  color: var(--admin-text-secondary, #909399);
 }
 
 .page-url {
   font-size: 12px;
-  color: #606266;
+  color: var(--admin-text-regular, #606266);
 }
 
 .ip-address {
   font-family: 'Courier New', monospace;
   font-size: 12px;
-  color: #909399;
+  color: var(--admin-text-secondary, #909399);
 }
 
 /* 上下级关系详情区域样式 - 美化版 */

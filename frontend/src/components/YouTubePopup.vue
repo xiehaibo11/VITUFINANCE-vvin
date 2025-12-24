@@ -60,7 +60,9 @@ const props = defineProps({
   },
   youtubeUrl: {
     type: String,
-    default: 'https://youtube.com/@your_channel'
+    // Default YouTube channel link for sharing/joining.
+    // IMPORTANT: Keep this in sync with the default social link configured in the app.
+    default: 'https://www.youtube.com/channel/UC92aIDlejplKldAwfhvUlfg'
   }
 })
 

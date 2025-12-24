@@ -47,8 +47,32 @@ initPerformanceMonitoring({
   apiEndpoint: '/api/analytics/performance'
 })
 
-// Use plugins
+// Use plugins - Pinia MUST be used first
 app.use(pinia)
+
+// CRITICAL: Restore wallet state BEFORE mounting
+// This ensures components see correct wallet state on mount
+import { useWalletStore } from '@/stores/wallet'
+const walletStore = useWalletStore()
+walletStore.restoreFromStorage()
+console.log('[App] Wallet restored:', walletStore.isConnected ? walletStore.walletAddress.slice(-8) : 'not connected')
+
+// Pre-fetch balance if wallet connected (async, don't block mounting)
+if (walletStore.isConnected && walletStore.walletAddress) {
+  fetch(`/api/user/balance?wallet_address=${walletStore.walletAddress}&_t=${Date.now()}`, {
+    cache: 'no-store'
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success && data.data) {
+        walletStore.setUsdtBalance(data.data.usdt_balance)
+        walletStore.setWldBalance(data.data.wld_balance)
+        console.log('[App] Pre-fetched balance:', data.data.usdt_balance, 'USDT')
+      }
+    })
+    .catch(err => console.error('[App] Pre-fetch balance error:', err))
+}
+
 app.use(router)
 app.use(ElementPlus)
 app.use(i18n)

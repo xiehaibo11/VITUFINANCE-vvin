@@ -60,7 +60,9 @@ const props = defineProps({
   },
   facebookUrl: {
     type: String,
-    default: 'https://m.facebook.com/login/save-device/'
+    // Default Facebook account/share destination.
+    // NOTE: This URL may require Facebook login depending on user state.
+    default: 'https://www.facebook.com/share_channel/#'
   }
 })
 
@@ -112,7 +114,7 @@ const handleJoin = async () => {
 const shareFacebook = () => {
   FB.ui({
     method: 'share',
-    href: 'https://vitufinance.com/',
+    href: 'https://www.facebook.com/share_channel/#',
     quote: 'Register to receive the encrypted quantitative robot, receive WLD tokens for free and withdraw at any time, the promotion daily income is more than 500USDT'
   }, function(response) {
     if (response && !response.error_message) {

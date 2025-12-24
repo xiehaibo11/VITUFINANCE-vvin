@@ -577,13 +577,13 @@ onMounted(() => {
 .page-header h1 {
   font-size: 24px;
   font-weight: 600;
-  color: #303133;
+  color: var(--admin-text-primary, var(--el-text-color-primary, #303133));
   margin: 0 0 8px 0;
 }
 
 .page-header .subtitle {
   font-size: 14px;
-  color: #909399;
+  color: var(--admin-text-secondary, var(--el-text-color-secondary, #909399));
   margin: 0;
 }
 
@@ -609,26 +609,27 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
+  color: var(--admin-text-primary, var(--el-text-color-primary));
 }
 
 .wallet-address {
   font-family: 'SF Mono', Monaco, Consolas, monospace;
   font-size: 13px;
-  color: #606266;
+  color: var(--admin-text-regular, var(--el-text-color-regular, #606266));
 }
 
 .positive-adj {
-  color: #67c23a;
+  color: var(--admin-success, var(--el-color-success, #67c23a));
   font-weight: 500;
 }
 
 .negative-adj {
-  color: #f56c6c;
+  color: var(--admin-danger, var(--el-color-danger, #f56c6c));
   font-weight: 500;
 }
 
 .zero-adj {
-  color: #c0c4cc;
+  color: var(--admin-text-secondary, var(--el-text-color-secondary, #909399));
 }
 
 .pagination-container {

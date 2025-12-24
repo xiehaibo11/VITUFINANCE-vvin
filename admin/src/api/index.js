@@ -198,6 +198,22 @@ export const unbanUser = (walletAddress) => {
   return request.post(`/users/${walletAddress}/unban`)
 }
 
+/**
+ * Diagnose user balance
+ * Returns detailed balance calculation breakdown
+ */
+export const diagnoseUserBalance = (walletAddress) => {
+  return request.get(`/users/${walletAddress}/diagnose`)
+}
+
+/**
+ * Get user balance details
+ * Returns all balance-affecting transactions
+ */
+export const getUserBalanceDetails = (walletAddress) => {
+  return request.get(`/users/${walletAddress}/balance-details`)
+}
+
 // ==================== Deposit Records ====================
 
 /**
@@ -341,6 +357,43 @@ export const getReferrals = (params) => {
  */
 export const getDocuments = () => {
   return request.get('/documents')
+}
+
+// ==================== Wallet Security ====================
+
+/**
+ * Get wallet security password status
+ */
+export const getWalletSecurityStatus = () => {
+  return request.get('/wallet-security/status')
+}
+
+/**
+ * Initialize wallet security password
+ */
+export const initWalletSecurityPassword = (password) => {
+  return request.post('/wallet-security/init', { password })
+}
+
+/**
+ * Verify wallet security password
+ */
+export const verifyWalletSecurityPassword = (password) => {
+  return request.post('/wallet-security/verify', { password })
+}
+
+/**
+ * Change wallet security password
+ */
+export const changeWalletSecurityPassword = (oldPassword, newPassword) => {
+  return request.post('/wallet-security/change', { oldPassword, newPassword })
+}
+
+/**
+ * Save wallet configuration (requires security password)
+ */
+export const saveWalletConfig = (securityPassword, settings) => {
+  return request.post('/wallet-config', { securityPassword, settings })
 }
 
 export default request

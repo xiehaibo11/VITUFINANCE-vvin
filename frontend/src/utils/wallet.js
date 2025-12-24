@@ -14,6 +14,12 @@
 
 import { useWalletStore } from '@/stores/wallet'
 
+// ==================== 初始化保护机制 ====================
+// Prevents accountsChanged([]) event from triggering disconnect during page refresh
+// Some wallets briefly return empty accounts during reload
+let isInitializing = true
+let initializationTimeout = null
+
 /**
  * 检测是否在 DApp 浏览器环境中
  * @returns {boolean} 是否在 DApp 浏览器中
@@ -169,7 +175,12 @@ export const connectWallet = async () => {
  */
 export const disconnectWallet = () => {
   const walletStore = useWalletStore()
-  walletStore.disconnect()
+  // User-initiated disconnect: clear wallet session + balances
+  walletStore.disconnect({
+    clearBalances: true,
+    clearPersistedBalances: true,
+    clearWalletSession: true
+  })
 }
 
 /**
@@ -230,6 +241,9 @@ export const autoConnectWallet = async () => {
 /**
  * 监听账户变化
  * 当用户在钱包中切换账户时触发
+ * 
+ * IMPORTANT: Added initialization protection to prevent false disconnects
+ * during page refresh. Some wallets briefly return empty accounts during reload.
  */
 export const setupAccountChangeListener = () => {
   if (!isDAppBrowser()) {
@@ -241,7 +255,7 @@ export const setupAccountChangeListener = () => {
 
   // 监听账户变化
   ethereum.on('accountsChanged', (accounts) => {
-    console.log('[Wallet] Accounts changed:', accounts)
+    console.log('[Wallet] Accounts changed:', accounts, 'isInitializing:', isInitializing)
 
     if (accounts && accounts.length > 0) {
       const walletType = detectWalletType()
@@ -257,37 +271,112 @@ export const setupAccountChangeListener = () => {
 
       walletStore.setWallet(nextAccount, walletType)
     } else {
+      // PROTECTION: During initialization, ignore empty accounts
+      // Some wallets briefly return empty accounts during page refresh
+      if (isInitializing) {
+        console.log('[Wallet] Ignoring empty accounts during initialization')
+        return
+      }
+      
+      // Check if we have a saved address - wait for reconnection
+      const savedAddress = localStorage.getItem('walletAddress')
+      if (savedAddress) {
+        console.log('[Wallet] Empty accounts but have saved address, waiting...')
+        setTimeout(async () => {
+          const currentAccount = await getCurrentAccount()
+          if (!currentAccount) {
+            console.log('[Wallet] No reconnection, disconnecting')
+            localStorage.removeItem('wallet_auth_token')
+            localStorage.removeItem('wallet_auth_token_exp')
+            localStorage.removeItem('wallet_auth_wallet')
+            // Wallet-provider transient empty accounts on refresh:
+            // Mark as disconnected but keep last known balances to avoid "balance -> 0" UX bug.
+            walletStore.disconnect({
+              clearBalances: false,
+              clearPersistedBalances: false,
+              clearWalletSession: true
+            })
+          }
+        }, 2000)
+        return
+      }
+      
       // 用户断开了所有账户
       localStorage.removeItem('wallet_auth_token')
       localStorage.removeItem('wallet_auth_token_exp')
       localStorage.removeItem('wallet_auth_wallet')
-      walletStore.disconnect()
+      // User removed all accounts: full disconnect (clear balances)
+      walletStore.disconnect({
+        clearBalances: true,
+        clearPersistedBalances: true,
+        clearWalletSession: true
+      })
     }
   })
 
   // 监听链变化
   ethereum.on('chainChanged', (chainId) => {
     console.log('[Wallet] Chain changed:', chainId)
-    // 链变化时可以选择刷新页面或重新获取数据
-    // window.location.reload()
   })
 
   // 监听断开连接
   ethereum.on('disconnect', (error) => {
-    console.log('[Wallet] Disconnected:', error)
+    console.log('[Wallet] Disconnect event:', error, 'isInitializing:', isInitializing)
+    
+    // PROTECTION: During initialization, ignore disconnect event
+    if (isInitializing) {
+      console.log('[Wallet] Ignoring disconnect during initialization')
+      return
+    }
+    
+    // Check for saved address
+    const savedAddress = localStorage.getItem('walletAddress')
+    if (savedAddress) {
+      setTimeout(async () => {
+        const currentAccount = await getCurrentAccount()
+        if (!currentAccount) {
+          localStorage.removeItem('wallet_auth_token')
+          localStorage.removeItem('wallet_auth_token_exp')
+          localStorage.removeItem('wallet_auth_wallet')
+          // Wallet-provider transient disconnect: keep balances
+          walletStore.disconnect({
+            clearBalances: false,
+            clearPersistedBalances: false,
+            clearWalletSession: true
+          })
+        }
+      }, 2000)
+      return
+    }
+    
     localStorage.removeItem('wallet_auth_token')
     localStorage.removeItem('wallet_auth_token_exp')
     localStorage.removeItem('wallet_auth_wallet')
-    walletStore.disconnect()
+    walletStore.disconnect({
+      clearBalances: true,
+      clearPersistedBalances: true,
+      clearWalletSession: true
+    })
   })
 }
 
 /**
  * 初始化钱包连接
  * 在应用启动时调用
+ * 
+ * Uses initialization protection to prevent false disconnects
+ * during page refresh when wallets may briefly return empty accounts
  */
 export const initWallet = async () => {
   console.log('[Wallet] Initializing...')
+  
+  // Set initialization flag
+  isInitializing = true
+  
+  // Clear any existing timeout
+  if (initializationTimeout) {
+    clearTimeout(initializationTimeout)
+  }
 
   // 设置监听器
   setupAccountChangeListener()
@@ -296,6 +385,12 @@ export const initWallet = async () => {
   const connected = await autoConnectWallet()
 
   console.log('[Wallet] Initialization complete, connected:', connected)
+  
+  // Clear initialization flag after delay (allow wallet to stabilize)
+  initializationTimeout = setTimeout(() => {
+    isInitializing = false
+    console.log('[Wallet] Initialization protection disabled')
+  }, 3000)
 
   return connected
 }

@@ -58,7 +58,7 @@ export async function calculateAllBrokerLevels() {
             const directReferrals = await dbQuery(`
                 SELECT 
                     ur.wallet_address,
-                    COALESCE(SUM(rp.price), 0) as totalInvestment
+                    COALESCE(SUM(CASE WHEN rp.status IN ('active','expired') THEN rp.price ELSE 0 END), 0) as totalInvestment
                 FROM user_referrals ur
                 LEFT JOIN robot_purchases rp ON ur.wallet_address = rp.wallet_address
                 WHERE ur.referrer_address = ?
@@ -145,6 +145,24 @@ export async function calculateAllBrokerLevels() {
  * Get team volume recursively
  */
 async function getTeamVolume(walletAddr, visited = new Set()) {
+    return await getTeamVolumeWithDepth(walletAddr, 1, visited);
+}
+
+/**
+ * Get team volume recursively (max depth 8)
+ *
+ * IMPORTANT:
+ * - Business rule defines "team investment" as sum of robot purchases (price)
+ * - Only count robots with status in ('active','expired')
+ * - Limit to 8 levels downline to match platform rule
+ *
+ * @param {string} walletAddr - Wallet address
+ * @param {number} depth - Current depth (1 = direct)
+ * @param {Set<string>} visited - Cycle guard
+ * @returns {Promise<number>} Team volume
+ */
+async function getTeamVolumeWithDepth(walletAddr, depth = 1, visited = new Set()) {
+    if (depth > 8) return 0;
     if (visited.has(walletAddr)) return 0;
     visited.add(walletAddr);
     
@@ -154,6 +172,7 @@ async function getTeamVolume(walletAddr, visited = new Set()) {
         FROM user_referrals ur
         JOIN robot_purchases rp ON ur.wallet_address = rp.wallet_address
         WHERE ur.referrer_address = ?
+          AND rp.status IN ('active','expired')
     `, [walletAddr]);
     
     let totalVolume = parseFloat(result?.[0]?.volume) || 0;
@@ -164,10 +183,8 @@ async function getTeamVolume(walletAddr, visited = new Set()) {
     `, [walletAddr]);
     
     // Recursively get subordinate volumes (max depth 8)
-    if (visited.size < 50) { // Limit recursion
-        for (const ref of directRefs) {
-            totalVolume += await getTeamVolume(ref.wallet_address, visited);
-        }
+    for (const ref of directRefs) {
+        totalVolume += await getTeamVolumeWithDepth(ref.wallet_address, depth + 1, visited);
     }
     
     return totalVolume;
