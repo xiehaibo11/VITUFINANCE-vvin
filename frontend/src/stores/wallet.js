@@ -163,7 +163,7 @@ export const useWalletStore = defineStore('wallet', () => {
     // Always stop "connecting" state and clear error message
     isConnecting.value = false
     errorMessage.value = ''
-
+    
     // Clear wallet session state
     if (clearWalletSession) {
       walletAddress.value = ''
@@ -178,18 +178,18 @@ export const useWalletStore = defineStore('wallet', () => {
 
     // Reset balances if requested
     if (clearBalances) {
-      usdtBalance.value = '0.0000'
-      wldBalance.value = '0.0000'
-      equityValue.value = '0.0000'
-      todayPnl.value = '0.00'
-      isLoadingBalance.value = false
+    usdtBalance.value = '0.0000'
+    wldBalance.value = '0.0000'
+    equityValue.value = '0.0000'
+    todayPnl.value = '0.00'
+    isLoadingBalance.value = false
     }
-
+    
     // Clear persisted balances if requested
     if (clearPersistedBalances) {
-      localStorage.removeItem(BALANCE_STORAGE_KEY)
+    localStorage.removeItem(BALANCE_STORAGE_KEY)
     }
-
+    
     console.log('[Wallet] Disconnected', {
       clearBalances,
       clearPersistedBalances,

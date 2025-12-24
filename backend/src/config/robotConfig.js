@@ -144,7 +144,9 @@ const CEX_ROBOTS = {
         duration_hours: 4320,         // 180 days
         quantify_interval_hours: 24,
         daily_profit: 4.2,            // 46800 × 4.2% = 1965.6 USDT/day
-        arbitrage_orders: 60,
+        // Business rule: Binance AI Robot can be purchased at most 5 times per wallet.
+        // This is enforced by the purchase API via the `arbitrage_orders` limit.
+        arbitrage_orders: 5,
         total_return: 400608,         // 46800 + (46800 × 4.2% × 180) = 400608
         limit: 2,
         price: 46800,

@@ -11,12 +11,16 @@
         <div class="one-view">
           <!-- 标题 -->
           <div class="card-header">
-            <h2 class="equity-title">{{ t('assetsPage.equityValue') }}</h2>
+            <!-- IMPORTANT:
+              - USDT balance must be independent from WLD market price.
+              - Do NOT display "equity (USDT + WLD valuation)" here to avoid user confusion and "jumping" numbers.
+            -->
+            <h2 class="equity-title">USDT {{ t('assetsPage.balance') }}</h2>
           </div>
 
-          <!-- 主要金额显示 - 从钱包获取总权益 -->
+          <!-- 主要金额显示 - 从钱包获取 USDT 余额（独立于 WLD 行情） -->
           <div class="equity-amount">
-            <span class="amount-value">{{ walletStore.equityValue }}</span>
+            <span class="amount-value">{{ walletStore.usdtBalance }}</span>
             <!-- 余额加载中显示 -->
             <span v-if="walletStore.isLoadingBalance" class="loading-indicator">...</span>
           </div>
@@ -680,7 +684,7 @@ import {
   isGreaterThan,
   isPositive
 } from '@/utils/precisionMath'
-import { shouldUpdateEquityPrice } from '@/utils/equitySmoother'
+import { shouldUpdateEquityPrice, smoothlyUpdateEquityValue } from '@/utils/equitySmoother'
 
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -705,7 +709,10 @@ const isTokenPocketBrowser = () => {
 let refreshInterval = null
 const REFRESH_INTERVAL = 30000 // 30秒自动刷新一次
 const PRICE_REFRESH_INTERVAL = 5 * 60 * 1000 // WLD价格估值刷新间隔（5分钟）
-const MIN_EQUITY_UPDATE_USDT = '0.01' // 权益变化阈值：低于 0.01 USDT 不更新显示，避免“跳动”
+// Equity display smoothing threshold:
+// - If the equity change is smaller than this value, we keep the displayed value unchanged.
+// - This avoids "balance jumping" caused by tiny WLD price micro-moves.
+const MIN_EQUITY_UPDATE_USDT = '1' // 低于 1 USDT 不更新显示，避免“跳动”
 let lastPriceFetchAt = 0
 
 // ==================== 余额动画相关 ====================
@@ -1820,14 +1827,15 @@ const fetchPlatformBalance = async () => {
         data.data.wld_balance,
         equityPrice
       )
-      walletStore.setEquityValue(totalEquity)
+      // Smooth equity value updates to avoid UI "jumping" by tiny amounts.
+      smoothlyUpdateEquityValue(walletStore.equityValue, totalEquity, walletStore.setEquityValue, MIN_EQUITY_UPDATE_USDT)
       
       console.log('[Assets] Platform balance fetched:', {
         usdt: data.data.usdt_balance,
         wld: data.data.wld_balance,
         total_referral_reward: data.data.total_referral_reward,
         total_team_reward: data.data.total_team_reward,
-        equity: totalEquity.toFixed(4),
+        equity: totalEquity,
         _timestamp: timestamp
       })
     }

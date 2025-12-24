@@ -97,6 +97,45 @@ export const MIN_ROBOT_PURCHASE = 100;
 // ============================================================================
 
 /**
+ * Calculate minimal total members required for a broker level (people-only structure).
+ *
+ * Business background (customer requirement):
+ * - L1 needs 5 direct members.
+ * - L2 needs 10 direct members + 2 members who each reach L1.
+ * - L3 needs 20 direct members + 2 members who each reach L2.
+ * - L4 needs 30 direct members + 2 members who each reach L3.
+ * - L5 needs 50 direct members + 2 members who each reach L4.
+ *
+ * Minimal structure recursion:
+ * - T1 = D1
+ * - Tn = Dn + (Sn × T(n-1)), where Sn is the required subordinate broker count (typically 2).
+ *
+ * IMPORTANT:
+ * - This is a "people-count only" minimal model assuming teams do NOT overlap.
+ * - Real upgrades still depend on investment/performance requirements handled by backend.
+ *
+ * @param {number} level - Broker level (1-5)
+ * @returns {number} Minimal total members needed to reach the level
+ */
+export function getMinimalTotalMembersForLevel(level) {
+    const lv = Number(level);
+    if (!Number.isFinite(lv) || lv <= 0) return 0;
+    if (lv > 5) return getMinimalTotalMembersForLevel(5);
+
+    // Base case: level 1.
+    if (lv === 1) {
+        return Number(BROKER_LEVELS[1]?.minDirectReferrals || 0);
+    }
+
+    const config = BROKER_LEVELS[lv];
+    const direct = Number(config?.minDirectReferrals || 0);
+    const subs = Number(config?.minSubBrokers || 0);
+
+    // Recursive minimal size (people-only).
+    return direct + (subs * getMinimalTotalMembersForLevel(lv - 1));
+}
+
+/**
  * 获取经纪人等级配置
  * 
  * @param {number} level - 等级 (0-5)

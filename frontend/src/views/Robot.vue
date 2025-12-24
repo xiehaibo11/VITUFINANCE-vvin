@@ -247,7 +247,8 @@ const cexRobots = ref([
   { id: 'kucoin_01', name: 'Kucoin Ai Bot', nameKey: 'robotPage.kucoinRobotName', logo: '/static/CEX-Robots/15.png', orders: 30, dailyProfit: 2.2, totalReturn: 13532, durationHours: 1080, limit: 2, price: 6800 },
   { id: 'bitget_01', name: 'Bitget Ai Bot', nameKey: 'robotPage.bitgetRobotName', logo: '/static/CEX-Robots/14.png', orders: 45, dailyProfit: 2.5, totalReturn: 32500, durationHours: 2160, limit: 2, price: 10000 },
   { id: 'gate_01', name: 'Gate Ai Bot', nameKey: 'robotPage.gateRobotName', logo: '/static/CEX-Robots/9.png', orders: 50, dailyProfit: 3.0, totalReturn: 92000, durationHours: 2880, limit: 2, price: 20000 },
-  { id: 'binance_02', name: 'Binance Ai Bot-01', nameKey: 'robotPage.binanceBot01Name', logo: '/static/CEX-Robots/图标.png', orders: 60, dailyProfit: 4.2, totalReturn: 400608, durationHours: 4320, limit: 2, price: 46800 }
+  // Business rule: Binance AI Robot can be purchased at most 5 times per wallet.
+  { id: 'binance_02', name: 'Binance Ai Bot-01', nameKey: 'robotPage.binanceBot01Name', logo: '/static/CEX-Robots/图标.png', orders: 5, dailyProfit: 4.2, totalReturn: 400608, durationHours: 4320, limit: 2, price: 46800 }
 ])
 
 // DEX Robot Data (using durationHours as base) - 2024-12-21 fixed yield rate

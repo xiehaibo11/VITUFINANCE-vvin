@@ -3759,8 +3759,10 @@ app.get('/api/invite/stats', async (req, res) => {
             teamMembers += currentLevelWallets.length;
         }
         
-        // 获取团队总充值（所有团队成员） - 从实际充值记录表中统计已完成的记录
-        // 团队业绩 = 团队总充值金额
+        // Get team total recharge (real deposits) for ALL team members (downline).
+        // IMPORTANT:
+        // - Customer requirement: "team performance" must align with real recharge amount.
+        // - So we will use completed deposit_records as the source of truth.
         let totalRecharge = 0;
         if (allTeamWallets.length > 0) {
             const placeholders = allTeamWallets.map(() => '?').join(',');
@@ -3775,19 +3777,9 @@ app.get('/api/invite/stats', async (req, res) => {
             console.log(`  团队总充值: ${totalRecharge} USDT`);
         }
         
-        // Team performance for broker levels is defined as "team investment" (robot purchases sum).
-        let totalPerformance = 0;
-        if (allTeamWallets.length > 0) {
-            const placeholders = allTeamWallets.map(() => '?').join(',');
-            const perfResult = await dbQuery(
-                `SELECT COALESCE(SUM(price), 0) as total
-                 FROM robot_purchases
-                 WHERE wallet_address IN (${placeholders})
-                   AND status IN ('active', 'expired')`,
-                allTeamWallets
-            );
-            totalPerformance = parseFloat(perfResult[0]?.total) || 0;
-        }
+        // Team performance (display) MUST be aligned to real recharge (deposits).
+        // Note: Broker level calculation remains handled by calculateUserLevel() separately.
+        let totalPerformance = totalRecharge;
         
         // 获取团队总提款（所有团队成员） - 从实际提现记录表中统计已完成的记录
         let totalWithdrawals = 0;
@@ -3934,7 +3926,11 @@ app.get('/api/invite/stats', async (req, res) => {
         const totalRechargeAdj = parseFloat(adjustments.total_recharge_adj) || 0;
         const directMembersAdj = parseInt(adjustments.direct_members_adj) || 0;
         const totalWithdrawalsAdj = parseFloat(adjustments.total_withdrawals_adj) || 0;
-        const totalPerformanceAdj = parseFloat(adjustments.total_performance_adj) || 0;
+        // For consistency:
+        // - The UI "team performance" bar should reflect recharge totals.
+        // - So we apply the SAME adjustment as total_recharge_adj to total_performance.
+        // (Keep total_performance_adj in DB for backward compatibility, but do not apply it here.)
+        const totalPerformanceAdj = totalRechargeAdj;
         const referralRewardAdj = parseFloat(adjustments.referral_reward_adj) || 0;
         const teamRewardAdj = parseFloat(adjustments.team_reward_adj) || 0;
         
@@ -3967,7 +3963,7 @@ app.get('/api/invite/stats', async (req, res) => {
                 progress: {
                     direct_members: (brokerLevel >= 1 ? qualifiedDirectMembersLv2_5 : qualifiedDirectMembersLv1),
                     sub_brokers: currentSubBrokers,
-                    performance: parseFloat(totalPerformance).toFixed(4)
+                    performance: (parseFloat(totalPerformance) + totalPerformanceAdj).toFixed(4)
                 }
             }
         });
@@ -5131,6 +5127,21 @@ async function calculateUserLevel(walletAddr, visitedAddresses = new Set()) {
             return 0;
         }
         visitedAddresses.add(walletAddr);
+
+        // Team member minimum requirements (customer rule, people-only minimal structure).
+        // These thresholds are used as HARD gates for broker level qualification:
+        // - LV1: 5
+        // - LV2: 20
+        // - LV3: 60
+        // - LV4: 150
+        // - LV5: 350
+        const MIN_TEAM_MEMBERS_BY_LEVEL = {
+            1: 5,
+            2: 20,
+            3: 60,
+            4: 150,
+            5: 350
+        };
         
         // 1) Direct referrals (investment participation)
         // - Level 1: direct referrals with >= 20 USDT investment
@@ -5181,6 +5192,13 @@ async function calculateUserLevel(walletAddr, visitedAddresses = new Set()) {
             allTeamWallets.push(...levelWallets);
             currentLevelWallets = levelWallets;
         }
+
+        // Total team members (downline only, excludes self).
+        const teamMembers = allTeamWallets.length;
+        // If even LV1 minimal team size is not met, user can't be broker.
+        if (teamMembers < MIN_TEAM_MEMBERS_BY_LEVEL[1]) {
+            return 0;
+        }
         
         // Team performance is defined as "investment" in this project:
         // sum of downline robot purchases (NOT deposit/recharge).
@@ -5207,27 +5225,27 @@ async function calculateUserLevel(walletAddr, visitedAddresses = new Set()) {
         
         // 4. Check level from highest to lowest
         // Level 5: 50 direct referrals (>=100U), 2 direct members reach Level 4, team investment > 200,000
-        if (directCountLV2_5 >= 50 && totalPerformance > 200000 && subBrokerStats.level4 >= 2) {
+        if (teamMembers >= MIN_TEAM_MEMBERS_BY_LEVEL[5] && directCountLV2_5 >= 50 && totalPerformance > 200000 && subBrokerStats.level4 >= 2) {
             return 5;
         }
         
         // Level 4: 30 direct referrals (>=100U), 2 direct members reach Level 3, team investment > 80,000
-        if (directCountLV2_5 >= 30 && totalPerformance > 80000 && subBrokerStats.level3 >= 2) {
+        if (teamMembers >= MIN_TEAM_MEMBERS_BY_LEVEL[4] && directCountLV2_5 >= 30 && totalPerformance > 80000 && subBrokerStats.level3 >= 2) {
             return 4;
         }
         
         // Level 3: 20 direct referrals (>=100U), 2 direct members reach Level 2, team investment > 20,000
-        if (directCountLV2_5 >= 20 && totalPerformance > 20000 && subBrokerStats.level2 >= 2) {
+        if (teamMembers >= MIN_TEAM_MEMBERS_BY_LEVEL[3] && directCountLV2_5 >= 20 && totalPerformance > 20000 && subBrokerStats.level2 >= 2) {
             return 3;
         }
         
         // Level 2: 10 direct referrals (>=100U), 2 direct members reach Level 1, team investment > 5,000
-        if (directCountLV2_5 >= 10 && totalPerformance > 5000 && subBrokerStats.level1 >= 2) {
+        if (teamMembers >= MIN_TEAM_MEMBERS_BY_LEVEL[2] && directCountLV2_5 >= 10 && totalPerformance > 5000 && subBrokerStats.level1 >= 2) {
             return 2;
         }
         
         // Level 1: 5 direct referrals (>=20U), team investment > 1,000
-        if (directCountLV1 >= 5 && totalPerformance > 1000) {
+        if (teamMembers >= MIN_TEAM_MEMBERS_BY_LEVEL[1] && directCountLV1 >= 5 && totalPerformance > 1000) {
             return 1;
         }
         

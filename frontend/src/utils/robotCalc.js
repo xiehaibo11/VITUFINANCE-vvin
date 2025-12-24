@@ -28,6 +28,7 @@ export const CEX_ROBOTS = [
     { id: 'kucoin_01', name: 'Kucoin Ai Bot', price: 6800, dailyProfit: 2.2, durationHours: 1080 },
     { id: 'bitget_01', name: 'Bitget Ai Bot', price: 10000, dailyProfit: 2.5, durationHours: 2160 },
     { id: 'gate_01', name: 'Gate Ai Bot', price: 20000, dailyProfit: 3.0, durationHours: 2880 },
+    // Business rule: Binance AI Robot can be purchased at most 5 times per wallet.
     { id: 'binance_02', name: 'Binance Ai Bot-01', price: 46800, dailyProfit: 4.2, durationHours: 4320 }
 ];
 

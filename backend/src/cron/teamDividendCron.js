@@ -94,6 +94,11 @@ async function calculateBrokerLevel(walletAddr, visitedAddresses = new Set()) {
             return 0;
         }
         visitedAddresses.add(walletAddr);
+
+        // Team member minimum requirements (customer rule, people-only minimal structure).
+        // Hard gate for broker level qualification:
+        // LV1=5, LV2=20, LV3=60, LV4=150, LV5=350 (downline members only).
+        const MIN_TEAM_MEMBERS_BY_LEVEL = { 1: 5, 2: 20, 3: 60, 4: 150, 5: 350 };
         
         // 1. 获取合格直推人数 - LV1门槛 (>=20U)
         const directResultLV1 = await dbQuery(
@@ -138,6 +143,11 @@ async function calculateBrokerLevel(walletAddr, visitedAddresses = new Set()) {
             allTeamWallets.push(...levelWallets);
             currentLevelWallets = levelWallets;
         }
+
+        const teamMembers = allTeamWallets.length;
+        if (teamMembers < MIN_TEAM_MEMBERS_BY_LEVEL[1]) {
+            return 0;
+        }
         
         // 3. Calculate team total investment (8 levels downline robot purchases).
         // IMPORTANT: Business rule uses "investment" (robot purchases), not "recharge" (deposit records).
@@ -165,27 +175,27 @@ async function calculateBrokerLevel(walletAddr, visitedAddresses = new Set()) {
         
         // 4. 从高到低判断等级（LV2-5使用>=100U门槛）
         // 5级：直推50人(>=100U)，2名4级经纪人，业绩>200,000
-        if (directCountLV2_5 >= 50 && totalPerformance > 200000 && subBrokerCounts[4] >= 2) {
+        if (teamMembers >= MIN_TEAM_MEMBERS_BY_LEVEL[5] && directCountLV2_5 >= 50 && totalPerformance > 200000 && subBrokerCounts[4] >= 2) {
             return 5;
         }
         
         // 4级：直推30人(>=100U)，2名3级经纪人，业绩>80,000
-        if (directCountLV2_5 >= 30 && totalPerformance > 80000 && subBrokerCounts[3] >= 2) {
+        if (teamMembers >= MIN_TEAM_MEMBERS_BY_LEVEL[4] && directCountLV2_5 >= 30 && totalPerformance > 80000 && subBrokerCounts[3] >= 2) {
             return 4;
         }
         
         // 3级：直推20人(>=100U)，2名2级经纪人，业绩>20,000
-        if (directCountLV2_5 >= 20 && totalPerformance > 20000 && subBrokerCounts[2] >= 2) {
+        if (teamMembers >= MIN_TEAM_MEMBERS_BY_LEVEL[3] && directCountLV2_5 >= 20 && totalPerformance > 20000 && subBrokerCounts[2] >= 2) {
             return 3;
         }
         
         // 2级：直推10人(>=100U)，2名1级经纪人，业绩>5,000
-        if (directCountLV2_5 >= 10 && totalPerformance > 5000 && subBrokerCounts[1] >= 2) {
+        if (teamMembers >= MIN_TEAM_MEMBERS_BY_LEVEL[2] && directCountLV2_5 >= 10 && totalPerformance > 5000 && subBrokerCounts[1] >= 2) {
             return 2;
         }
         
         // 1级：直推5人(>=20U)，业绩>1,000（无下级经纪人要求）
-        if (directCountLV1 >= 5 && totalPerformance > 1000) {
+        if (teamMembers >= MIN_TEAM_MEMBERS_BY_LEVEL[1] && directCountLV1 >= 5 && totalPerformance > 1000) {
             return 1;
         }
         

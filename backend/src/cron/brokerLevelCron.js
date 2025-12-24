@@ -67,6 +67,9 @@ export async function calculateAllBrokerLevels() {
             
             // Get team volume (all downlines)
             const teamVolume = await getTeamVolume(walletAddr);
+
+            // Get team members count (all downlines, max depth 8)
+            const teamMembers = await getTeamMembers(walletAddr);
             
             // Get subordinate levels
             const subordinateLevels = await getSubordinateLevels(walletAddr);
@@ -77,7 +80,8 @@ export async function calculateAllBrokerLevels() {
                     totalInvestment: parseFloat(r.totalInvestment) || 0
                 })),
                 teamVolume: parseFloat(teamVolume),
-                subordinateLevels
+                subordinateLevels,
+                teamMembers
             };
             
             const levelResult = calculateBrokerLevel(userData);
@@ -149,6 +153,43 @@ async function getTeamVolume(walletAddr, visited = new Set()) {
 }
 
 /**
+ * Get team member count recursively (max depth 8).
+ *
+ * Customer requirement:
+ * - Team member count is used as a hard gate for broker level qualification.
+ * - Count unique downline wallet addresses (exclude self).
+ *
+ * @param {string} walletAddr - Wallet address
+ * @returns {Promise<number>} Unique team member count
+ */
+async function getTeamMembers(walletAddr) {
+    const visited = new Set();
+    const collected = new Set();
+
+    async function walk(addr, depth) {
+        if (depth > 8) return;
+        if (!addr) return;
+        const key = String(addr).toLowerCase();
+        if (visited.has(key)) return;
+        visited.add(key);
+
+        const refs = await dbQuery(
+            'SELECT wallet_address FROM user_referrals WHERE referrer_address = ?',
+            [key]
+        );
+        for (const r of refs || []) {
+            const child = String(r.wallet_address || '').toLowerCase();
+            if (!child) continue;
+            collected.add(child);
+            await walk(child, depth + 1);
+        }
+    }
+
+    await walk(walletAddr, 1);
+    return collected.size;
+}
+
+/**
  * Get team volume recursively (max depth 8)
  *
  * IMPORTANT:
@@ -183,7 +224,7 @@ async function getTeamVolumeWithDepth(walletAddr, depth = 1, visited = new Set()
     `, [walletAddr]);
     
     // Recursively get subordinate volumes (max depth 8)
-    for (const ref of directRefs) {
+        for (const ref of directRefs) {
         totalVolume += await getTeamVolumeWithDepth(ref.wallet_address, depth + 1, visited);
     }
     

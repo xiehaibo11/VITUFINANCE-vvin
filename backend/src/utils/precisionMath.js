@@ -374,14 +374,23 @@ export function calculateBrokerLevel(userData) {
     const {
         directReferrals = [],
         teamVolume = 0,
-        subordinateLevels = {}
+        subordinateLevels = {},
+        teamMembers = 0
     } = userData;
+
+    // Team member minimum requirements (customer rule, people-only minimal structure).
+    // Hard gate for broker level qualification:
+    // LV1=5, LV2=20, LV3=60, LV4=150, LV5=350 (downline members only).
+    const MIN_TEAM_MEMBERS_BY_LEVEL = { 1: 5, 2: 20, 3: 60, 4: 150, 5: 350 };
     
     let qualifiedLevel = 0;
     const qualificationDetails = [];
     
     for (let level = 5; level >= 1; level--) {
         const config = BROKER_LEVELS[level];
+
+        // Check team members count gate first.
+        const teamMembersOk = new Decimal(teamMembers || 0).gte(new Decimal(MIN_TEAM_MEMBERS_BY_LEVEL[level] || 0));
         
         // Check direct referrals count with minimum amount
         const qualifiedDirects = directReferrals.filter(ref => 
@@ -396,13 +405,18 @@ export function calculateBrokerLevel(userData) {
         const subLevelOk = config.teamLevelRequired === 0 || 
             (subordinateLevels[config.teamLevelRequired] || 0) >= config.teamLevelCount;
         
-        const qualified = directOk && volumeOk && subLevelOk;
+        const qualified = teamMembersOk && directOk && volumeOk && subLevelOk;
         
         qualificationDetails.push({
             level,
             name: config.name,
             qualified,
             checks: {
+                teamMembers: {
+                    required: MIN_TEAM_MEMBERS_BY_LEVEL[level] || 0,
+                    actual: teamMembers,
+                    passed: teamMembersOk
+                },
                 directReferrals: {
                     required: config.directRequired,
                     actual: qualifiedDirects.length,

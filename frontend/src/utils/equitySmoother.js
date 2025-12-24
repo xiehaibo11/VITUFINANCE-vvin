@@ -40,4 +40,44 @@ export function shouldUpdateEquityPrice(oldPrice, newPrice, wldBalance, minEquit
   }
 }
 
+/**
+ * Decide whether we should update the equity value display.
+ *
+ * Why:
+ * - Even with a smoothed price, equity can still change a little.
+ * - For a better UX, we update the displayed equity only when the change is meaningful.
+ *
+ * @param {number|string} oldEquity - Current displayed equity (USDT)
+ * @param {number|string} newEquity - Newly calculated equity (USDT)
+ * @param {number|string} minDeltaUsdt - Minimum delta (USDT) to trigger UI update
+ * @returns {boolean}
+ */
+export function shouldUpdateEquityValue(oldEquity, newEquity, minDeltaUsdt = '1') {
+  try {
+    const oldV = new Decimal(oldEquity || 0)
+    const newV = new Decimal(newEquity || 0)
+    const delta = newV.minus(oldV).abs()
+    return delta.greaterThanOrEqualTo(new Decimal(minDeltaUsdt || 0))
+  } catch {
+    // Fail safe: if parsing fails, allow update so UI does not get stuck.
+    return true
+  }
+}
+
+/**
+ * Smoothly update equity value with a threshold.
+ *
+ * @param {number|string} oldEquity - Current displayed equity
+ * @param {number|string} newEquity - Newly calculated equity
+ * @param {(v: string|number) => void} updateFn - Setter (e.g. walletStore.setEquityValue)
+ * @param {number|string} minDeltaUsdt - Minimum delta (USDT) to trigger UI update
+ */
+export function smoothlyUpdateEquityValue(oldEquity, newEquity, updateFn, minDeltaUsdt = '1') {
+  if (typeof updateFn !== 'function') return
+
+  if (shouldUpdateEquityValue(oldEquity, newEquity, minDeltaUsdt)) {
+    updateFn(newEquity)
+  }
+}
+
 
