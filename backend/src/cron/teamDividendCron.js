@@ -70,6 +70,24 @@ function setDbQuery(queryFn) {
     dbQuery = queryFn;
 }
 
+/**
+ * Get YYYY-MM-DD date string in Beijing time (UTC+8).
+ *
+ * Why we need this:
+ * - Team dividends are defined by business day in Beijing time.
+ * - Both cron distribution and "instant" distribution must share the SAME day boundary,
+ *   otherwise the same user could receive multiple dividends within one Beijing day.
+ *
+ * @param {Date} [date] - Base time (defaults to now)
+ * @returns {string} YYYY-MM-DD (Beijing date)
+ */
+function getBeijingDateString(date = new Date()) {
+    // Convert local time -> UTC milliseconds, then add +8 hours for Beijing.
+    const utcMs = date.getTime() + (date.getTimezoneOffset() * 60 * 1000);
+    const beijingMs = utcMs + (8 * 60 * 60 * 1000);
+    return new Date(beijingMs).toISOString().slice(0, 10);
+}
+
 // ============================================================================
 // 核心算法：计算用户经纪人等级
 // ============================================================================
@@ -274,7 +292,8 @@ async function processAllTeamDividends() {
     }
     
     const startTime = new Date();
-    const today = startTime.toISOString().slice(0, 10); // YYYY-MM-DD
+    // Use Beijing day boundary for all daily dividend operations.
+    const today = getBeijingDateString(startTime); // YYYY-MM-DD (UTC+8)
     
     console.log(`[TeamCron] ========================================`);
     console.log(`[TeamCron] 开始处理团队每日分红 ${today}`);
@@ -292,7 +311,11 @@ async function processAllTeamDividends() {
     try {
         // 1. 检查今天是否已经发放过（防止重复发放）
         const alreadyProcessed = await dbQuery(
-            `SELECT COUNT(*) as count FROM team_rewards WHERE DATE(created_at) = CURDATE() AND reward_type = 'daily_dividend'`
+            // IMPORTANT: Use reward_date (Beijing date) instead of created_at to avoid timezone mismatch.
+            `SELECT COUNT(*) as count 
+             FROM team_rewards 
+             WHERE reward_date = ? AND reward_type = 'daily_dividend'`,
+            [today]
         );
         
         if (parseInt(alreadyProcessed[0]?.count) > 0) {
@@ -342,8 +365,8 @@ async function processAllTeamDividends() {
                     await dbQuery(
                         `INSERT INTO team_rewards 
                          (wallet_address, reward_type, broker_level, reward_amount, reward_date, created_at) 
-                         VALUES (?, 'daily_dividend', ?, ?, CURDATE(), NOW())`,
-                        [walletAddr, level, dividendAmount]
+                         VALUES (?, 'daily_dividend', ?, ?, ?, NOW())`,
+                        [walletAddr, level, dividendAmount, today]
                     );
                     
                     // 更新统计
@@ -481,6 +504,9 @@ async function processWalletDailyDividend(walletAddr) {
     }
     
     try {
+        // Use Beijing date to enforce "one dividend per user per Beijing day".
+        const today = getBeijingDateString(new Date());
+
         // 1. 计算用户当前经纪人等级
         const level = await calculateBrokerLevel(walletAddr);
         
@@ -488,13 +514,15 @@ async function processWalletDailyDividend(walletAddr) {
             return { success: true, rewarded: false, level: 0, wallet_address: walletAddr, reason: 'Not qualified' };
         }
         
-        // 2. 检查今天是否已经发放过（使用北京时间 UTC+8）
+        // 2. Check if already rewarded today (Beijing date).
+        // If a user reaches a higher level later within the same day, we do NOT stack rewards.
+        // Business rule: "Pay only the current level dividend for the day."
         const alreadyRewarded = await dbQuery(
             `SELECT COUNT(*) as count FROM team_rewards 
              WHERE wallet_address = ? 
-             AND DATE(CONVERT_TZ(created_at, '+00:00', '+08:00')) = DATE(CONVERT_TZ(NOW(), '+00:00', '+08:00'))
+             AND reward_date = ?
              AND reward_type = 'daily_dividend'`,
-            [walletAddr]
+            [walletAddr, today]
         );
         
         if (parseInt(alreadyRewarded[0]?.count) > 0) {
@@ -524,8 +552,8 @@ async function processWalletDailyDividend(walletAddr) {
         await dbQuery(
             `INSERT INTO team_rewards 
              (wallet_address, reward_type, broker_level, reward_amount, reward_date, created_at) 
-             VALUES (?, 'daily_dividend', ?, ?, CURDATE(), NOW())`,
-            [walletAddr, level, dividendAmount]
+             VALUES (?, 'daily_dividend', ?, ?, ?, NOW())`,
+            [walletAddr, level, dividendAmount, today]
         );
         
         console.log(`[TeamCron] ✅ 即时分红: ${walletAddr.slice(0, 10)}... Level${level} +${dividendAmount} USDT`);
