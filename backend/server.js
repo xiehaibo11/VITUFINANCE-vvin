@@ -33,8 +33,11 @@ import {
     processUplineDailyDividends      // 触发上级链路的分红检查
 } from './src/cron/teamDividendCron.js';
 
-// 导入充值监控定时任务
+// 导入充值监控定时任务 (BSC)
 import { startDepositMonitor, triggerScan as triggerDepositScan } from './src/cron/depositMonitorCron.js';
+
+// 导入 ETH 链充值监控定时任务
+import { startEthDepositMonitor, triggerScan as triggerEthDepositScan } from './src/cron/ethDepositMonitorCron.js';
 
 // 导入抽奖转盘路由
 import luckyWheelRoutes, { 
@@ -84,6 +87,7 @@ import {
     secureLog,
     globalInputSanitizer
 } from './src/security/index.js';
+import { getPlatformWalletAddressByChain } from './src/utils/platformWallet.js';
 import {
     helmetMiddleware,
     generalLimiter,
@@ -1413,9 +1417,9 @@ app.post('/api/user/deposit', sensitiveLimiter, async (req, res) => {
             });
         }
         
-        // 获取平台收款钱包地址（根据链选择）
-        const chainConfig = CHAIN_CONFIGS[safeChain];
-        const platformWallet = chainConfig?.platformWallet || process.env.PLATFORM_WALLET_ADDRESS || '0x0290df8A512Eff68d0B0a3ECe1E3F6aAB49d79D4';
+        // Get platform wallet address (MUST match `/api/platform/wallet` DB settings)
+        // Otherwise users can send funds to the correct platform address but the backend rejects verification.
+        const platformWallet = await getPlatformWalletAddressByChain(dbQuery, safeChain, CHAIN_CONFIGS);
         
         // ✅ 验证区块链交易状态（支持多链）
         console.log(`[Deposit] Verifying ${safeChain} transaction:`, tx_hash);
@@ -6450,9 +6454,13 @@ app.listen(PORT, () => {
     startTeamDividendCron(1, 0);
     console.log('[TeamCron] 团队经纪人每日分红定时任务已启动（每天01:00）');
 
-    // 启动充值监控服务（每60秒检查一次区块链上的新充值）
+    // 启动 BSC 充值监控服务（每60秒检查一次区块链上的新充值）
     startDepositMonitor();
-    console.log('[DepositMonitor] 充值自动监控服务已启动（每60秒扫描一次）');
+    console.log('[DepositMonitor] BSC 充值自动监控服务已启动（每60秒扫描一次）');
+    
+    // 启动 ETH 链充值监控服务（每120秒检查一次以太坊主网上的新充值）
+    startEthDepositMonitor();
+    console.log('[ETH-DepositMonitor] ETH 充值自动监控服务已启动（每120秒扫描一次）');
     
     // 启动模拟金额自动增长服务（每10秒增长一次）
     startSimulatedGrowthCron();

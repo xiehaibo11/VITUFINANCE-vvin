@@ -290,19 +290,33 @@ async function distributeReferralRewards(walletAddr, robot, profit) {
                 [referrerAddress]
             );
 
-            // 增加上级余额
+            // Idempotency check:
+            // Prevent duplicate maturity rewards when the cron job overlaps or is retried.
+            const existingReward = await dbQuery(
+                `SELECT id FROM referral_rewards
+                 WHERE wallet_address = ? AND from_wallet = ? AND level = ? AND source_type = 'maturity' AND source_id = ?
+                 LIMIT 1`,
+                [referrerAddress, walletAddr, level, robot.id]
+            );
+
+            if (existingReward.length > 0) {
+                console.log(`[Cron] Skip duplicate maturity reward (exists id=${existingReward[0].id}) level=${level} robot_purchase_id=${robot.id}`);
+                currentWallet = referrerAddress;
+                continue;
+            }
+
+            // Credit referrer balance then write reward record
             await dbQuery(
                 `UPDATE user_balances 
-                SET usdt_balance = usdt_balance + ?, updated_at = NOW() 
-                WHERE wallet_address = ?`,
+                 SET usdt_balance = usdt_balance + ?, updated_at = NOW() 
+                 WHERE wallet_address = ?`,
                 [rewardAmount, referrerAddress]
             );
             
-            // 记录推荐奖励
             await dbQuery(
                 `INSERT INTO referral_rewards 
-                (wallet_address, from_wallet, level, reward_rate, reward_amount, source_type, source_id, robot_name, source_amount, created_at) 
-                VALUES (?, ?, ?, ?, ?, 'maturity', ?, ?, ?, NOW())`,
+                 (wallet_address, from_wallet, level, reward_rate, reward_amount, source_type, source_id, robot_name, source_amount, created_at) 
+                 VALUES (?, ?, ?, ?, ?, 'maturity', ?, ?, ?, NOW())`,
                 [referrerAddress, walletAddr, level, rewardRate * 100, rewardAmount, robot.id, robot.robot_name, profit]
             );
             

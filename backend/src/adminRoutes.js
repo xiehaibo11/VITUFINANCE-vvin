@@ -1573,8 +1573,9 @@ router.get('/deposits', authMiddleware, async (req, res) => {
     );
 
     // 获取列表 - 按创建时间倒序，最新的充值排在最前
+    // Include network field to distinguish BSC vs ETH deposits
     const list = await dbQuery(
-      `SELECT id, wallet_address, amount, token, tx_hash, status, created_at, completed_at FROM deposit_records ${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+      `SELECT id, wallet_address, amount, token, network, tx_hash, status, created_at, completed_at FROM deposit_records ${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
       [...params, parseInt(pageSize), offset]
     );
 

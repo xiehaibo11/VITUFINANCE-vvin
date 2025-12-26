@@ -645,13 +645,18 @@ router.post('/api/robot/quantify', quantifyLimiter, async (req, res) => {
             console.log(`[Quantify] High earnings: ${robot.robot_name}, amount=${earnings.toFixed(2)} USDT`);
         }
         
-        // 6. 插入量化记录
-        await dbQuery(
+        // 6. Insert quantify log
+        // IMPORTANT:
+        // - We need the inserted log id to make referral rewards idempotent.
+        // - Otherwise, using robot_purchase_id as source_id will cause duplicates across days
+        //   and will also be displayed as "maturity" rewards by the frontend.
+        const quantifyInsertResult = await dbQuery(
             `INSERT INTO robot_quantify_logs 
             (robot_purchase_id, wallet_address, robot_name, earnings, created_at) 
             VALUES (?, ?, ?, ?, NOW())`,
             [robotId, walletAddr, robot.robot_name, earnings]
         );
+        const quantifyLogId = quantifyInsertResult?.insertId;
         
         // 7. 更新机器人累计收益、量化状态、次数和最后量化时间
         await dbQuery(
@@ -681,10 +686,15 @@ router.post('/api/robot/quantify', quantifyLimiter, async (req, res) => {
             [walletAddr, robotId, robot.robot_name, earnings]
         );
         
-        // 10. 发放推荐奖励（CEX/Grid 机器人每次量化时发放）
-        // 基于本次量化收益的 30%/10%/5%/1%×5 发放给上级
+        // 10. Distribute referral rewards for each quantify (CEX/Grid only)
+        // Referral reward is based on this quantify earning:
+        // - Level rates are configured in CEX_REFERRAL_RATES (30%/10%/5%/1%×5)
+        // - We use `source_type='quantify'` and `source_id=robot_quantify_logs.id` for idempotency.
         if (robot.robot_type === 'cex' || robot.robot_type === 'grid') {
-            await distributeReferralRewards(walletAddr, robot, earnings);
+            await distributeReferralRewards(walletAddr, robot, earnings, {
+                sourceType: 'quantify',
+                sourceId: quantifyLogId || 0
+            });
             console.log(`[Quantify] Referral rewards distributed for robot ${robotId}, profit: ${earnings.toFixed(4)} USDT`);
         }
         
@@ -1207,7 +1217,12 @@ async function processOneExpiredRobot(robot, walletAddr) {
             );
 
             // 到期后发放基于收益的推荐奖励（30%/10%/5%/1%×5）
-            await distributeReferralRewards(walletAddr, robot, profitAmount);
+            // Maturity referral rewards are paid only once on expiry for DEX/High robots.
+            // Use `source_type='maturity'` + `source_id=robot_purchases.id` for idempotency.
+            await distributeReferralRewards(walletAddr, robot, profitAmount, {
+                sourceType: 'maturity',
+                sourceId: robot.id
+            });
             console.log(`[Expire] ${robot.robot_type.toUpperCase()} robot ${robot.id} earnings recorded, referral rewards distributed based on profit ${profitAmount.toFixed(4)} USDT`);
         }
         
@@ -1229,8 +1244,26 @@ async function processOneExpiredRobot(robot, walletAddr) {
  * @param {object} robot - 机器人记录
  * @param {number} profit - 利润金额（量化收益）
  */
-async function distributeReferralRewards(walletAddr, robot, profit) {
+/**
+ * Distribute referral rewards (8 levels).
+ *
+ * IMPORTANT:
+ * - For quantify rewards: source_type='quantify', source_id=robot_quantify_logs.id
+ * - For maturity rewards: source_type='maturity', source_id=robot_purchases.id
+ *
+ * This prevents duplicate payouts when requests are retried or cron jobs overlap.
+ *
+ * @param {string} walletAddr - Source user wallet address
+ * @param {object} robot - Robot purchase record
+ * @param {number} profit - Source earning/profit amount
+ * @param {object} options
+ * @param {'quantify'|'maturity'|'dex_purchase'|'retroactive'} options.sourceType - Reward type
+ * @param {number} options.sourceId - Idempotency key (log id / purchase id)
+ */
+async function distributeReferralRewards(walletAddr, robot, profit, options = {}) {
     try {
+        const { sourceType = 'quantify', sourceId = 0 } = options;
+
         // 使用数学工具导入的CEX奖励比例（统一管理，避免硬编码）
         // CEX_REFERRAL_RATES = [0.30, 0.10, 0.05, 0.01×5] = 50%
         const maxLevel = CEX_REFERRAL_RATES.length; // 8级
@@ -1261,18 +1294,34 @@ async function distributeReferralRewards(walletAddr, robot, profit) {
                 [referrerAddress]
             );
             
+            // Idempotency check:
+            // Do not pay twice for the same (receiver, from, level, source_type, source_id).
+            const existingReward = await dbQuery(
+                `SELECT id FROM referral_rewards
+                 WHERE wallet_address = ? AND from_wallet = ? AND level = ? AND source_type = ? AND source_id = ?
+                 LIMIT 1`,
+                [referrerAddress, walletAddr, level, sourceType, sourceId]
+            );
+
+            if (existingReward.length > 0) {
+                console.log(`[Referral] Skip duplicate reward (exists id=${existingReward[0].id}) level=${level} source_type=${sourceType} source_id=${sourceId}`);
+                currentWallet = referrerAddress;
+                continue;
+            }
+
+            // Credit referrer balance first, then write the reward record.
             await dbQuery(
                 `UPDATE user_balances 
-                SET usdt_balance = usdt_balance + ?, updated_at = NOW() 
-                WHERE wallet_address = ?`,
+                 SET usdt_balance = usdt_balance + ?, updated_at = NOW() 
+                 WHERE wallet_address = ?`,
                 [rewardAmount, referrerAddress]
             );
-            
+
             await dbQuery(
                 `INSERT INTO referral_rewards 
-                (wallet_address, from_wallet, level, reward_rate, reward_amount, source_type, source_id, robot_name, source_amount, created_at) 
-                VALUES (?, ?, ?, ?, ?, 'maturity', ?, ?, ?, NOW())`,
-                [referrerAddress, walletAddr, level, rewardRate * 100, rewardAmount, robot.id, robot.robot_name, profit]
+                 (wallet_address, from_wallet, level, reward_rate, reward_amount, source_type, source_id, robot_name, source_amount, created_at) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+                [referrerAddress, walletAddr, level, rewardRate * 100, rewardAmount, sourceType, sourceId, robot.robot_name, profit]
             );
             
             console.log(`[Referral] Level ${level} reward: ${rewardAmount.toFixed(4)} USDT to ${referrerAddress.slice(0, 10)}...`);
