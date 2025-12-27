@@ -1054,11 +1054,19 @@ router.get('/api/robot/count', async (req, res) => {
         
         const walletAddr = normalizeWalletAddress(wallet_address);
         
-        // 获取用户所有活跃机器人的购买数量（使用 end_time 判断）
+        // Get robot purchase counts for this wallet.
+        //
+        // IMPORTANT:
+        // - active_count: used for concurrent running limit (config.limit)
+        // - total_count: used for lifetime purchase/open limit (config.arbitrage_orders / frontend `orders`)
         const rows = await dbQuery(
-            `SELECT robot_id, robot_name, COUNT(*) as count 
+            `SELECT 
+                robot_id, 
+                robot_name, 
+                SUM(CASE WHEN status = 'active' AND end_time > NOW() THEN 1 ELSE 0 END) as active_count,
+                COUNT(*) as total_count
             FROM robot_purchases 
-            WHERE wallet_address = ? AND status = 'active' AND end_time > NOW()
+            WHERE wallet_address = ?
             GROUP BY robot_id, robot_name`,
             [walletAddr]
         );
@@ -1069,14 +1077,21 @@ router.get('/api/robot/count', async (req, res) => {
                 success: true,
                 data: {
                     robot_id: robot_id,
-                    count: robot ? robot.count : 0
+                    // Backward compatibility: keep `count` as active_count.
+                    count: robot ? robot.active_count : 0,
+                    active_count: robot ? robot.active_count : 0,
+                    total_count: robot ? robot.total_count : 0
                 }
             });
         }
         
         res.json({
             success: true,
-            data: rows
+            // Backward compatibility: also provide `count` alias for existing frontend.
+            data: rows.map(r => ({
+                ...r,
+                count: r.active_count
+            }))
         });
         
     } catch (error) {

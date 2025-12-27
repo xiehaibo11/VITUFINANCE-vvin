@@ -3,7 +3,8 @@
  * 
  * 功能：
  * - 每10秒自动增长Follow和Robot页面的模拟金额
- * - 增长金额随机：1000-10000
+ * - Growth is time-based (deterministic) to avoid large random jumps
+ * - Each page (follow/robot) increases by a fixed daily amount
  * - 持久化存储到数据库
  * - 记录增长日志
  * 
@@ -11,6 +12,14 @@
  */
 
 import { query as dbQuery } from '../../db.js';
+
+// ==================== Deterministic Growth Config ====================
+// IMPORTANT:
+// - User requirement: Robot + Follow simulated amount should increase ~2,000,000 per day (each page).
+// - 24 hours per day -> 2,000,000 / 24 = 83,333.33 per hour
+// - This module runs every 10 seconds by default. We calculate increment by elapsed seconds to be robust to restarts.
+const DAILY_INCREASE_AMOUNT = 2_000_000; // USD per day (per page)
+const SECONDS_PER_DAY = 24 * 60 * 60;
 
 /**
  * 获取页面配置
@@ -30,12 +39,16 @@ async function getPageConfig(pageType) {
 }
 
 /**
- * 生成随机增长金额
- * @param {number} min - 最小值
- * @param {number} max - 最大值
+ * Calculate deterministic increment by elapsed seconds.
+ *
+ * @param {number} elapsedSeconds - Seconds since last update
+ * @returns {number} Increment amount
  */
-function getRandomIncrement(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+function getDeterministicIncrement(elapsedSeconds) {
+  // Clamp to avoid negative/zero values due to clock skew or same-second updates.
+  const safeElapsed = Math.max(1, Math.floor(elapsedSeconds || 0));
+  const perSecond = DAILY_INCREASE_AMOUNT / SECONDS_PER_DAY;
+  return perSecond * safeElapsed;
 }
 
 /**
@@ -57,9 +70,16 @@ async function growSimulatedAmount(pageType) {
       return;
     }
     
-    // 2. 生成随机增长金额
-    const increment = getRandomIncrement(config.min_increment, config.max_increment);
-    const oldTotal = parseFloat(config.current_simulated_amount);
+    // 2. Deterministic growth by elapsed time (avoid random jump)
+    const oldTotal = parseFloat(config.current_simulated_amount) || 0;
+
+    // Prefer DB `updated_at` as the last growth timestamp.
+    // Note: MySQL DATETIME has second precision here; we clamp elapsedSeconds to >= 1.
+    const lastUpdatedAtMs = config.updated_at ? new Date(config.updated_at).getTime() : 0;
+    const nowMs = Date.now();
+    const elapsedSeconds = lastUpdatedAtMs > 0 ? (nowMs - lastUpdatedAtMs) / 1000 : 10;
+
+    const increment = getDeterministicIncrement(elapsedSeconds);
     const newTotal = oldTotal + increment;
     
     // 3. 更新配置表
@@ -75,10 +95,12 @@ async function growSimulatedAmount(pageType) {
       `INSERT INTO simulated_growth_logs 
        (page_type, increment_amount, total_simulated_before, total_simulated_after) 
        VALUES (?, ?, ?, ?)`,
-      [pageType, increment, oldTotal, newTotal]
+      // Keep 4-decimal precision in logs to avoid rounding drift.
+      [pageType, Number(increment.toFixed(4)), Number(oldTotal.toFixed(4)), Number(newTotal.toFixed(4))]
     );
     
-    console.log(`[SimulatedGrowth] ${pageType.toUpperCase()} +${increment.toLocaleString()} → ${newTotal.toLocaleString()}`);
+    // Log with 2 decimals for readability (same as UI)
+    console.log(`[SimulatedGrowth] ${pageType.toUpperCase()} +${increment.toFixed(2)} → ${newTotal.toFixed(2)}`);
     
   } catch (error) {
     console.error(`[SimulatedGrowth] ${pageType}增长失败:`, error.message);

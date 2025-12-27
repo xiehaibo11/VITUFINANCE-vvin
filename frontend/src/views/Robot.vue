@@ -166,6 +166,9 @@ const expiredRobots = ref([])
 
 // 各机器人的购买数量
 const purchasedCounts = reactive({})
+// Lifetime purchase counts per robot_id (includes expired/cancelled).
+// Used to enforce the business rule: `orders` is the max times a user can open/buy a robot.
+const totalPurchasedCounts = reactive({})
 
 // 加载状态
 const loadingRobots = reactive({})
@@ -336,6 +339,15 @@ const getPurchasedCount = (robotId) => {
 }
 
 /**
+ * Get lifetime purchase count for a robot.
+ * @param {string} robotId Robot id
+ * @returns {number} Total purchase count
+ */
+const getTotalPurchasedCount = (robotId) => {
+  return totalPurchasedCounts[robotId] || 0
+}
+
+/**
  * Check if a robot is locked based on unlock conditions
  * - Curve AI Robot: unlocks when Jupiter AI Robot is purchased
  * - DODO AI Robot: unlocks when Curve AI Robot is purchased
@@ -488,9 +500,14 @@ const fetchPurchasedCounts = async () => {
     if (data.success && data.data) {
       // 清空旧数据
       Object.keys(purchasedCounts).forEach(key => delete purchasedCounts[key])
+      Object.keys(totalPurchasedCounts).forEach(key => delete totalPurchasedCounts[key])
       // 填充新数据
       data.data.forEach(item => {
         purchasedCounts[item.robot_id] = item.count
+        // Backend also returns total_count for lifetime limit (if available)
+        if (item.total_count !== undefined) {
+          totalPurchasedCounts[item.robot_id] = item.total_count
+        }
       })
     }
   } catch (error) {
@@ -589,7 +606,18 @@ const handleOpenClick = async (robot) => {
       return
     }
     
-    // 2. 检查是否达到限购数量
+    // 2. 检查是否达到“套利订单数量/开启次数”上限（终身次数）
+    // Business rule:
+    // - `robot.orders` is the max times a user can purchase/open this robot in total.
+    // - Once reached, user must buy the next robot.
+    const totalCount = getTotalPurchasedCount(robotId)
+    if (robot.orders && totalCount >= robot.orders) {
+      console.log('[Robot] Arbitrage order limit reached:', totalCount, '/', robot.orders)
+      alert(`已达到开启次数上限（${robot.orders}次），请购买下一个机器人`)
+      return
+    }
+
+    // 3. 检查是否达到同时运行限购数量（active limit）
     const currentCount = getPurchasedCount(robotId)
     if (currentCount >= robot.limit) {
       console.log('[Robot] Purchase limit reached:', currentCount, '/', robot.limit)
@@ -597,7 +625,7 @@ const handleOpenClick = async (robot) => {
       return
     }
     
-    // 3. 从平台获取用户余额
+    // 4. 从平台获取用户余额
     const response = await fetch(`/api/user/balance?wallet_address=${walletStore.walletAddress}`)
     const data = await response.json()
     
@@ -609,14 +637,14 @@ const handleOpenClick = async (robot) => {
     
     const usdtBalance = parseFloat(data.data.usdt_balance) || 0
     
-    // 4. 检查余额是否足够
+    // 5. 检查余额是否足够
     if (usdtBalance < price) {
       console.log('[Robot] Insufficient USDT balance:', usdtBalance, 'required:', price)
       showUSDTPrompt.value = true
       return
     }
     
-    // 5. 余额足够，执行购买
+    // 6. 余额足够，执行购买
     console.log('[Robot] Purchasing robot:', robotName, 'price:', price)
     await purchaseRobot(robot)
     
