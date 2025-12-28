@@ -23,6 +23,13 @@ import {
     calculateHighRobotReturn
 } from '../config/robotConfig.js';
 
+// Balance helpers (prevents “expired but not refunded” edge cases)
+import {
+    normalizeWalletAddress,
+    creditUsdtBalance,
+    ensureUserBalanceRow
+} from '../utils/userBalanceUtils.js';
+
 // 导入推荐奖励数学工具（统一管理奖励比例）
 import {
     CEX_REFERRAL_RATES,            // CEX 8级奖励比例
@@ -95,7 +102,7 @@ async function processAllExpiredRobots() {
         // 1. 获取所有到期的活跃机器人
         const expiredRobots = await dbQuery(
             `SELECT * FROM robot_purchases 
-            WHERE status = 'active' AND end_time <= NOW()
+            WHERE status = 'active' AND end_time <= NOW() AND (expired_at IS NULL)
             ORDER BY end_time ASC`
         );
         
@@ -143,13 +150,34 @@ async function processAllExpiredRobots() {
  * @returns {object} 处理结果
  */
 async function processExpiredRobot(robot) {
+    // Normalize wallet address (avoid casing mismatch that causes silent UPDATE 0 rows)
+    const walletAddr = normalizeWalletAddress(robot.wallet_address);
+    if (!walletAddr || !isValidWalletAddress(walletAddr)) {
+        // Do not mutate state when wallet address is invalid.
+        return { success: false, error: 'Invalid wallet address' };
+    }
+
+    // Idempotency / concurrency guard:
+    // Claim this robot expiry once using `expired_at` as a lock.
+    // - Only the first worker sets expired_at (affectedRows=1).
+    // - Others skip (affectedRows=0), preventing double refunds.
+    const claimResult = await dbQuery(
+        `UPDATE robot_purchases
+         SET expired_at = NOW(), updated_at = NOW()
+         WHERE id = ? AND status = 'active' AND expired_at IS NULL`,
+        [robot.id]
+    );
+    if (!claimResult || claimResult.affectedRows === 0) {
+        return { success: true, returnAmount: 0, skipped: true, reason: 'already_claimed' };
+    }
+
     // Check if user is banned (banned users do not receive refunds)
     const userStatus = await dbQuery(
         'SELECT is_banned FROM user_balances WHERE wallet_address = ?',
-        [robot.wallet_address]
+        [walletAddr]
     );
     if (userStatus.length > 0 && userStatus[0].is_banned === 1) {
-        console.log(`[Cron] Skipping banned user ${robot.wallet_address.slice(0, 10)}...`);
+        console.log(`[Cron] Skipping banned user ${walletAddr.slice(0, 10)}...`);
         // 只更新状态为expired，不返还资金
         await dbQuery(
             `UPDATE robot_purchases SET status = 'expired', updated_at = NOW() WHERE id = ?`,
@@ -160,95 +188,140 @@ async function processExpiredRobot(robot) {
     
     const config = getRobotConfig(robot.robot_name);
     if (!config) {
+        // Release the claim so it can be retried after config fixes.
+        await dbQuery(
+            `UPDATE robot_purchases SET expired_at = NULL, updated_at = NOW() WHERE id = ? AND status = 'active'`,
+            [robot.id]
+        );
         return { success: false, error: 'Config not found' };
     }
     
-    const walletAddr = robot.wallet_address;
     let returnAmount = 0;
     let profitAmount = 0;
+    let refundCredited = false; // Critical idempotency flag: if true, NEVER unlock/redo refund.
     
-    // 根据机器人类型计算返还金额
-    switch (robot.robot_type) {
-        case 'high':
-            // High 机器人：必须已量化才返还
-            if (robot.is_quantified !== 1) {
-                // 未量化的 High 机器人：只更新状态，不返还
+    try {
+        // 根据机器人类型计算返还金额
+        switch (robot.robot_type) {
+            case 'high':
+                // High 机器人：
+                // - If quantified: return principal + profit (expected_return)
+                // - If NOT quantified (edge case): return principal only (do not trap customer funds)
+                if (robot.is_quantified !== 1) {
+                    returnAmount = parseFloat(robot.price);
+                    profitAmount = 0;
+                    break;
+                }
+                
+                // 已量化：返还本金+利息
+                returnAmount = parseFloat(robot.expected_return);
+                profitAmount = returnAmount - parseFloat(robot.price);
+                break;
+                
+            case 'grid':
+            case 'cex':
+                // Grid/CEX 机器人：返还本金
+                if (config.return_principal) {
+                    returnAmount = parseFloat(robot.price);
+                }
+                break;
+    
+            case 'dex':
+                // DEX 机器人：只量化一次，到期返本返息
+                // - If quantified: return expected_return (principal + profit)
+                // - If NOT quantified (edge case): return principal only
+                if (robot.is_quantified === 1) {
+                    returnAmount = parseFloat(robot.expected_return) || parseFloat(robot.price);
+                    profitAmount = returnAmount - parseFloat(robot.price);
+                } else {
+                    returnAmount = parseFloat(robot.price);
+                    profitAmount = 0;
+                }
+                break;
+                
+            default:
+                throw new Error(`Unknown robot type: ${robot.robot_type}`);
+        }
+        
+        // Execute refund
+        if (returnAmount > 0) {
+            // Ensure balance row exists then credit safely (prevents UPDATE 0 rows)
+            await ensureUserBalanceRow(dbQuery, walletAddr);
+            await creditUsdtBalance(dbQuery, walletAddr, returnAmount);
+            refundCredited = true;
+            
+            // Record transaction history (principal refund)
+            const isReturnWithProfit = (robot.robot_type === 'high' || robot.robot_type === 'dex') && robot.is_quantified === 1;
+            const txDescription = isReturnWithProfit
+                ? `${robot.robot_name} 到期返还（本金+收益） #robot_purchase_id=${robot.id}`
+                : `${robot.robot_name} 到期返还本金 #robot_purchase_id=${robot.id}`;
+            
+            // IMPORTANT:
+            // If this insert fails after balance credit, we MUST NOT unlock/redo refund.
+            // So we treat it as best-effort logging.
+            try {
                 await dbQuery(
-                    `UPDATE robot_purchases SET status = 'expired', updated_at = NOW() WHERE id = ?`,
-                    [robot.id]
+                    `INSERT INTO transaction_history 
+                    (wallet_address, tx_type, amount, currency, description, status, created_at) 
+                    VALUES (?, 'refund', ?, 'USDT', ?, 'completed', NOW())`,
+                    [walletAddr, returnAmount, txDescription]
                 );
-                console.log(`[Cron] High robot ${robot.id} not quantified, marked as expired without return`);
-                return { success: true, returnAmount: 0, skipped: true };
+            } catch (logErr) {
+                console.error('[Cron] Failed to write transaction_history (refund already credited):', logErr.message);
             }
             
-            // 已量化：返还本金+利息
-            returnAmount = parseFloat(robot.expected_return);
-            profitAmount = returnAmount - parseFloat(robot.price);
-            break;
-            
-        case 'grid':
-        case 'cex':
-        case 'dex':
-            // Grid/CEX/DEX 机器人：返还本金
-            if (config.return_principal) {
-                returnAmount = parseFloat(robot.price);
+            console.log(`[Cron] Returned ${returnAmount.toFixed(4)} USDT to ${walletAddr.slice(0, 10)}... (robot: ${robot.robot_name})`);
+        }
+        
+        // 更新机器人状态
+        try {
+            await dbQuery(
+                `UPDATE robot_purchases 
+                SET status = 'expired', 
+                    total_profit = CASE WHEN robot_type IN ('high','dex') THEN ? ELSE total_profit END,
+                    updated_at = NOW() 
+                WHERE id = ?`,
+                [profitAmount, robot.id]
+            );
+        } catch (statusErr) {
+            // If refund already credited, do not unlock. Keep claim to prevent duplicate refunds.
+            console.error('[Cron] Failed to update robot status after expiry processing:', statusErr.message);
+        }
+        
+        // High/DEX 机器人：记录收益并发放推荐奖励（基于收益）
+        if ((robot.robot_type === 'high' || robot.robot_type === 'dex') && profitAmount > 0) {
+            // Non-critical: best-effort logs/rewards should not cause unlock/double refund.
+            try {
+                await dbQuery(
+                    `INSERT INTO robot_earnings 
+                    (wallet_address, robot_purchase_id, robot_name, earning_amount, created_at) 
+                    VALUES (?, ?, ?, ?, NOW())`,
+                    [walletAddr, robot.id, robot.robot_name, profitAmount]
+                );
+            } catch (earnErr) {
+                console.error('[Cron] Failed to write robot_earnings (refund state preserved):', earnErr.message);
             }
-            break;
             
-        default:
-            return { success: false, error: `Unknown robot type: ${robot.robot_type}` };
+            try {
+                await distributeReferralRewards(walletAddr, robot, profitAmount);
+            } catch (refErr) {
+                console.error('[Cron] Failed to distribute referral rewards (refund state preserved):', refErr.message);
+            }
+        }
+        
+        return { success: true, returnAmount, profitAmount };
+        
+    } catch (error) {
+        // Only unlock if refund definitely did NOT happen.
+        // If refund was credited, keep the lock to prevent double refunds.
+        if (!refundCredited) {
+            await dbQuery(
+                `UPDATE robot_purchases SET expired_at = NULL, updated_at = NOW() WHERE id = ? AND status = 'active'`,
+                [robot.id]
+            );
+        }
+        return { success: false, error: error.message };
     }
-    
-    // Execute refund
-    if (returnAmount > 0) {
-        // Add balance to user account
-        await dbQuery(
-            `UPDATE user_balances 
-            SET usdt_balance = usdt_balance + ?, updated_at = NOW() 
-            WHERE wallet_address = ?`,
-            [returnAmount, walletAddr]
-        );
-        
-        // Record transaction history (principal refund)
-        const txDescription = robot.robot_type === 'high' 
-            ? `${robot.robot_name} 到期返还（本金+收益）`
-            : `${robot.robot_name} 到期返还本金`;
-        
-        await dbQuery(
-            `INSERT INTO transaction_history 
-            (wallet_address, tx_type, amount, currency, description, status, created_at) 
-            VALUES (?, 'refund', ?, 'USDT', ?, 'completed', NOW())`,
-            [walletAddr, returnAmount, txDescription]
-        );
-        
-        console.log(`[Cron] Returned ${returnAmount.toFixed(4)} USDT to ${walletAddr.slice(0, 10)}... (robot: ${robot.robot_name})`);
-    }
-    
-    // 更新机器人状态
-    await dbQuery(
-        `UPDATE robot_purchases 
-        SET status = 'expired', 
-            total_profit = CASE WHEN robot_type = 'high' THEN ? ELSE total_profit END,
-            updated_at = NOW() 
-        WHERE id = ?`,
-        [profitAmount, robot.id]
-    );
-    
-    // High 机器人：记录收益并发放推荐奖励
-    if (robot.robot_type === 'high' && profitAmount > 0) {
-        // 记录到期收益
-        await dbQuery(
-            `INSERT INTO robot_earnings 
-            (wallet_address, robot_purchase_id, robot_name, earning_amount, created_at) 
-            VALUES (?, ?, ?, ?, NOW())`,
-            [walletAddr, robot.id, robot.robot_name, profitAmount]
-        );
-        
-        // 发放推荐奖励
-        await distributeReferralRewards(walletAddr, robot, profitAmount);
-    }
-    
-    return { success: true, returnAmount, profitAmount };
 }
 
 /**
