@@ -115,6 +115,12 @@
             <template #title>团队分红</template>
           </el-menu-item>
           
+          <!-- 团队推荐管理 -->
+          <el-menu-item index="/team-management">
+            <el-icon><UserFilled /></el-icon>
+            <template #title>团队推荐管理</template>
+          </el-menu-item>
+          
           <!-- 抽奖管理 -->
           <el-menu-item index="/lucky-wheel">
             <el-icon><Present /></el-icon>

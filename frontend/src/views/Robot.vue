@@ -606,14 +606,22 @@ const handleOpenClick = async (robot) => {
       return
     }
     
-    // 2. 检查是否达到“套利订单数量/开启次数”上限（终身次数）
+    // 2. 检查是否达到"套利订单数量/开启次数"上限（终身次数）
     // Business rule:
     // - `robot.orders` is the max times a user can purchase/open this robot in total.
     // - Once reached, user must buy the next robot.
     const totalCount = getTotalPurchasedCount(robotId)
     if (robot.orders && totalCount >= robot.orders) {
       console.log('[Robot] Arbitrage order limit reached:', totalCount, '/', robot.orders)
-      alert(`已达到开启次数上限（${robot.orders}次），请购买下一个机器人`)
+      // Display warm prompt with i18n translation
+      ElMessageBox.alert(
+        t('robotPage.robotLimitReached', { count: robot.orders }),
+        t('robotPage.warmPromptTitle'),
+        {
+          confirmButtonText: t('common.confirm'),
+          type: 'warning'
+        }
+      )
       return
     }
 
@@ -621,7 +629,15 @@ const handleOpenClick = async (robot) => {
     const currentCount = getPurchasedCount(robotId)
     if (currentCount >= robot.limit) {
       console.log('[Robot] Purchase limit reached:', currentCount, '/', robot.limit)
-      alert(t('robotPage.soldOut'))
+      // Display sold out prompt with i18n translation
+      ElMessageBox.alert(
+        t('robotPage.soldOut'),
+        t('robotPage.promptTitle'),
+        {
+          confirmButtonText: t('common.confirm'),
+          type: 'warning'
+        }
+      )
       return
     }
     

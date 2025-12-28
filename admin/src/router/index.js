@@ -108,6 +108,13 @@ const routes = [
         component: () => import('@/views/TeamDividend.vue'),
         meta: { title: '团队分红', icon: 'Coin' }
       },
+      // 团队推荐管理
+      {
+        path: 'team-management',
+        name: 'TeamManagement',
+        component: () => import('@/views/TeamManagement.vue'),
+        meta: { title: '团队推荐管理', icon: 'UserFilled' }
+      },
       // 抽奖管理
       {
         path: 'lucky-wheel',

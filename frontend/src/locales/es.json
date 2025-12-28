@@ -614,7 +614,11 @@
     "summaryText": "Firma de mensaje para autenticación de inicio de sesión (sin transacción). La contraseña/biometría se verifica localmente y nunca se comparte con el sitio.",
     "cancel": "Ahora no",
     "processing": "Procesando...",
-    "confirm": "Iniciar firma"
+    "confirm": "Iniciar firma",
+    "biometricTitle": "Activar reconocimiento facial",
+    "biometricDesc": "Para una experiencia de firma más conveniente, recomendamos activar el reconocimiento facial o la huella dactilar en tu billetera TokenPocket.\n\nRuta: TokenPocket → Configuración → Configuración de seguridad → Biométrico",
+    "biometricConfirm": "Entendido",
+    "biometricDontRemind": "No me lo recuerdes"
   },
   "depositModal": {
     "title": "Depósito",

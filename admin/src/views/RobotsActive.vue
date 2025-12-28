@@ -528,7 +528,7 @@
             />
           </el-form-item>
         </el-form>
-      </div>
+  </div>
       <template #footer>
         <el-button @click="cancelDialogVisible = false">取消</el-button>
         <el-button type="danger" @click="confirmCancelRobot" :loading="cancelLoading">

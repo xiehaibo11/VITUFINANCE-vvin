@@ -9,8 +9,8 @@
       
       <!-- Normal content - hidden during maintenance -->
       <template v-if="!isMaintenanceMode">
-        <Navigation v-if="showNavigation" />
-        <router-view />
+      <Navigation v-if="showNavigation" />
+      <router-view />
       </template>
     </el-config-provider>
   </div>

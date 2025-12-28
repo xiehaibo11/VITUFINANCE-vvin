@@ -614,7 +614,11 @@
     "summaryText": "Tandatangan mesej untuk pengesahan log masuk (tiada transaksi). Kata laluan/biometrik disahkan secara tempatan dan tidak pernah dikongsi dengan laman web.",
     "cancel": "Bukan sekarang",
     "processing": "Memproses...",
-    "confirm": "Mulakan tandatangan"
+    "confirm": "Mulakan tandatangan",
+    "biometricTitle": "Aktifkan Pengecaman Wajah",
+    "biometricDesc": "Untuk pengalaman tandatangan yang lebih mudah, kami mengesyorkan mengaktifkan pengecaman wajah atau cap jari dalam dompet TokenPocket anda.\n\nLaluan: TokenPocket → Tetapan → Tetapan Keselamatan → Biometrik",
+    "biometricConfirm": "Faham",
+    "biometricDontRemind": "Jangan ingatkan lagi"
   },
   "depositModal": {
     "title": "Deposit",

@@ -533,7 +533,11 @@
     "summaryText": "用於登入驗證的訊息簽名（無交易）。錢包密碼/生物辨識僅在本機驗證，不會分享給網站。",
     "cancel": "暫不",
     "processing": "處理中...",
-    "confirm": "開始簽名認證"
+    "confirm": "開始簽名認證",
+    "biometricTitle": "開啟人臉識別",
+    "biometricDesc": "為了更便捷的簽名體驗，建議您在 TokenPocket 錢包中開啟人臉識別或指紋識別功能。\n\n開啟路徑：TokenPocket → 設置 → 安全設置 → 生物識別",
+    "biometricConfirm": "我知道了",
+    "biometricDontRemind": "不再提醒"
   },
   "dailyReward": {
     "title": "每日獎勵",

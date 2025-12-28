@@ -614,7 +614,11 @@
     "summaryText": "Signature de message pour l’authentification de connexion (sans transaction). Le mot de passe/biométrie est vérifié localement et n’est jamais partagé avec le site.",
     "cancel": "Plus tard",
     "processing": "Traitement...",
-    "confirm": "Commencer la signature"
+    "confirm": "Commencer la signature",
+    "biometricTitle": "Activer la reconnaissance faciale",
+    "biometricDesc": "Pour une expérience de signature plus pratique, nous vous recommandons d'activer la reconnaissance faciale ou l'empreinte digitale dans votre portefeuille TokenPocket.\n\nChemin: TokenPocket → Paramètres → Paramètres de sécurité → Biométrique",
+    "biometricConfirm": "Compris",
+    "biometricDontRemind": "Ne plus me rappeler"
   },
   "depositModal": {
     "title": "Dépôt",

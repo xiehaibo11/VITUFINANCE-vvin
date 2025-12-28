@@ -614,7 +614,11 @@
     "summaryText": "Tanda tangan pesan untuk autentikasi login (tanpa transaksi). Kata sandi/biometrik diverifikasi secara lokal dan tidak pernah dibagikan ke situs.",
     "cancel": "Nanti saja",
     "processing": "Memproses...",
-    "confirm": "Mulai Tanda Tangan"
+    "confirm": "Mulai Tanda Tangan",
+    "biometricTitle": "Aktifkan Pengenalan Wajah",
+    "biometricDesc": "Untuk pengalaman tanda tangan yang lebih nyaman, kami sarankan mengaktifkan pengenalan wajah atau sidik jari di dompet TokenPocket Anda.\n\nJalur: TokenPocket → Pengaturan → Pengaturan Keamanan → Biometrik",
+    "biometricConfirm": "Mengerti",
+    "biometricDontRemind": "Jangan ingatkan lagi"
   },
   "depositModal": {
     "title": "Setoran",

@@ -614,7 +614,11 @@
     "summaryText": "Ukusayina umlayezo ukuze kuqinisekiswe ukungena (akukho transaction). Iphasiwedi/biometrics iqinisekiswa endaweni (local) futhi ayabelwana newebhusayithi.",
     "cancel": "Hhayi manje",
     "processing": "Kuyacutshungulwa...",
-    "confirm": "Qala Ukusayina"
+    "confirm": "Qala Ukusayina",
+    "biometricTitle": "Vula Ukubona Ubuso",
+    "biometricDesc": "Ukuze uthole isignesha elula kakhulu, sincoma ukuvula ukubona ubuso noma isandla esikhwameni sakho se-TokenPocket.\n\nIndlela: TokenPocket → Izilungiselelo → Izilungiselelo Zokuphepha → I-Biometric",
+    "biometricConfirm": "Ngiyaqonda",
+    "biometricDontRemind": "Ungangikhumbuzi futhi"
   },
   "depositModal": {
     "title": "Faka imali",

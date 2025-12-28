@@ -614,7 +614,11 @@
     "summaryText": "Assinatura de mensagem para autenticação de login (sem transação). Senha/biometria é verificada localmente e nunca é compartilhada com o site.",
     "cancel": "Agora não",
     "processing": "Processando...",
-    "confirm": "Iniciar assinatura"
+    "confirm": "Iniciar assinatura",
+    "biometricTitle": "Ativar Reconhecimento Facial",
+    "biometricDesc": "Para uma experiência de assinatura mais conveniente, recomendamos ativar o reconhecimento facial ou impressão digital em sua carteira TokenPocket.\n\nCaminho: TokenPocket → Configurações → Configurações de Segurança → Biométrico",
+    "biometricConfirm": "Entendi",
+    "biometricDontRemind": "Não me lembre mais"
   },
   "depositModal": {
     "title": "Depósito",

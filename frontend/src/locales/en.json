@@ -546,7 +546,8 @@
     "noWallet": "Please open in wallet browser",
     "biometricTitle": "Enable Face Recognition",
     "biometricDesc": "For a more convenient signing experience, we recommend enabling face recognition or fingerprint in your TokenPocket wallet.\n\nPath: TokenPocket → Settings → Security → Biometric",
-    "biometricConfirm": "Got it"
+    "biometricConfirm": "Got it",
+    "biometricDontRemind": "Don't remind me"
   },
   "common": {
     "loading": "Loading...",

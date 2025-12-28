@@ -311,6 +311,38 @@ export const getRobotEarningsSummary = () => {
   return request.get('/robots/earnings-summary')
 }
 
+/**
+ * Cancel a single robot (close)
+ * @param {number} id - Robot purchase ID
+ * @param {object} data - { refund: boolean, reason: string }
+ */
+export const cancelRobotById = (id, data) => {
+  return request.post(`/robots/${id}/cancel`, data)
+}
+
+/**
+ * Batch cancel robots
+ * @param {object} data - { ids: number[], refund: boolean, reason: string }
+ */
+export const batchCancelRobots = (data) => {
+  return request.post('/robots/batch-cancel', data)
+}
+
+/**
+ * Get cancelled robots list
+ */
+export const getCancelledRobots = (params) => {
+  return request.get('/robots/cancelled', { params })
+}
+
+/**
+ * Reactivate a cancelled robot
+ * @param {number} id - Robot purchase ID
+ */
+export const reactivateRobot = (id) => {
+  return request.post(`/robots/${id}/reactivate`)
+}
+
 // ==================== Announcements ====================
 
 /**

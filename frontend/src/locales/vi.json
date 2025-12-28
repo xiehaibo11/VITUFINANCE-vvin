@@ -614,7 +614,11 @@
     "summaryText": "Ký thông điệp để xác thực đăng nhập (không giao dịch). Mật khẩu/sinh trắc học được xác minh cục bộ và không bao giờ chia sẻ với website.",
     "cancel": "Để sau",
     "processing": "Đang xử lý...",
-    "confirm": "Bắt đầu ký"
+    "confirm": "Bắt đầu ký",
+    "biometricTitle": "Bật nhận dạng khuôn mặt",
+    "biometricDesc": "Để có trải nghiệm ký thuận tiện hơn, chúng tôi khuyên bạn nên bật nhận dạng khuôn mặt hoặc vân tay trong ví TokenPocket của bạn.\n\nĐường dẫn: TokenPocket → Cài đặt → Cài đặt bảo mật → Sinh trắc học",
+    "biometricConfirm": "Đã hiểu",
+    "biometricDontRemind": "Không nhắc nữa"
   },
   "depositModal": {
     "title": "Gửi tiền",

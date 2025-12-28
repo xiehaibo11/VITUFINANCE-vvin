@@ -614,7 +614,11 @@
     "summaryText": "Nachrichtensignatur zur Login-Authentifizierung (keine Transaktion). Passwort/Biometrie wird lokal geprüft und niemals an die Website weitergegeben.",
     "cancel": "Später",
     "processing": "Wird verarbeitet...",
-    "confirm": "Signatur starten"
+    "confirm": "Signatur starten",
+    "biometricTitle": "Gesichtserkennung aktivieren",
+    "biometricDesc": "Für ein bequemeres Signaturerlebnis empfehlen wir, die Gesichtserkennung oder den Fingerabdruck in Ihrer TokenPocket-Wallet zu aktivieren.\n\nPfad: TokenPocket → Einstellungen → Sicherheitseinstellungen → Biometrie",
+    "biometricConfirm": "Verstanden",
+    "biometricDontRemind": "Nicht mehr erinnern"
   },
   "depositModal": {
     "title": "Einzahlung",

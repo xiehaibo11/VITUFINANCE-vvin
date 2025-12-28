@@ -278,13 +278,14 @@ const showBiometricTip = () => {
   
   localStorage.setItem(BIOMETRIC_TIP_SHOWN_KEY, 'true')
   
+  // Show biometric setup tip with i18n translation
   setTimeout(() => {
     ElMessageBox.confirm(
-      '为了更便捷的签名体验，建议您在 TokenPocket 钱包中开启人脸识别或指纹识别功能。\n\n开启路径：TokenPocket → 设置 → 安全设置 → 生物识别',
-      '💡 开启人脸识别',
+      t('signatureAuthPopup.biometricDesc'),
+      '💡 ' + t('signatureAuthPopup.biometricTitle'),
       {
-        confirmButtonText: '我知道了',
-        cancelButtonText: '不再提醒',
+        confirmButtonText: t('signatureAuthPopup.biometricConfirm'),
+        cancelButtonText: t('signatureAuthPopup.biometricDontRemind'),
         type: 'info',
         center: true
       }

@@ -614,7 +614,11 @@
     "summaryText": "Giriş kimlik doğrulaması için mesaj imzası (işlem yok). Cüzdan şifresi/biyometri yerel olarak doğrulanır ve siteyle paylaşılmaz.",
     "cancel": "Şimdi değil",
     "processing": "İşleniyor...",
-    "confirm": "İmzayı Başlat"
+    "confirm": "İmzayı Başlat",
+    "biometricTitle": "Yüz Tanımayı Etkinleştir",
+    "biometricDesc": "Daha rahat bir imza deneyimi için TokenPocket cüzdanınızda yüz tanıma veya parmak izi özelliğini etkinleştirmenizi öneririz.\n\nYol: TokenPocket → Ayarlar → Güvenlik Ayarları → Biyometrik",
+    "biometricConfirm": "Anladım",
+    "biometricDontRemind": "Bir daha hatırlatma"
   },
   "depositModal": {
     "title": "Yatırma",
