@@ -667,5 +667,10 @@
     "insufficientPointsDetail": "Không đủ điểm, cần {need}, hiện tại {current}",
     "spinFailed": "Quay thất bại, vui lòng thử lại",
     "won": "trúng"
+  },
+  "maintenance": {
+    "title": "Bảo trì Hệ thống",
+    "message": "Hệ thống đang được bảo trì. Vui lòng thử lại sau 2 giờ. Cảm ơn sự kiên nhẫn của bạn.",
+    "estimatedTime": "Thời gian ước tính"
   }
 }

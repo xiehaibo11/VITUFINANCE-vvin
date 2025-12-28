@@ -210,13 +210,16 @@
         </template>
       </el-table-column>
       
-      <el-table-column label="操作" width="200" align="center" fixed="right">
+      <el-table-column label="操作" width="280" align="center" fixed="right">
         <template #default="{ row }">
           <el-button type="primary" size="small" @click="viewDetail(row.id)">
-            查看详情
+            详情
           </el-button>
           <el-button type="info" size="small" @click="viewUserData(row.wallet_address)">
-            用户数据
+            用户
+          </el-button>
+          <el-button type="danger" size="small" @click="showCancelDialog(row)">
+            关闭
           </el-button>
         </template>
       </el-table-column>
@@ -473,6 +476,111 @@
         <el-button @click="userDataDialogVisible = false">关闭</el-button>
       </template>
     </el-dialog>
+    
+    <!-- 关闭机器人确认对话框 -->
+    <el-dialog
+      v-model="cancelDialogVisible"
+      title="关闭机器人"
+      width="500px"
+      :close-on-click-modal="false"
+      append-to-body
+      destroy-on-close
+    >
+      <div class="cancel-dialog-content">
+        <el-alert
+          title="注意：关闭机器人后无法自动恢复"
+          type="warning"
+          :closable="false"
+          show-icon
+          style="margin-bottom: 20px"
+        />
+        
+        <el-descriptions :column="1" border>
+          <el-descriptions-item label="机器人ID">{{ currentCancelRobot?.id }}</el-descriptions-item>
+          <el-descriptions-item label="机器人名称">{{ currentCancelRobot?.robot_name }}</el-descriptions-item>
+          <el-descriptions-item label="钱包地址">
+            <span class="wallet-address">{{ shortenAddress(currentCancelRobot?.wallet_address) }}</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="购买价格">{{ formatAmount(currentCancelRobot?.price) }} USDT</el-descriptions-item>
+          <el-descriptions-item label="累计收益">{{ formatAmount(currentCancelRobot?.total_profit) }} USDT</el-descriptions-item>
+        </el-descriptions>
+        
+        <el-form style="margin-top: 20px" label-width="100px">
+          <el-form-item label="是否退款">
+            <el-switch
+              v-model="cancelForm.refund"
+              active-text="退还本金"
+              inactive-text="不退款"
+            />
+          </el-form-item>
+          <el-form-item label="退款金额" v-if="cancelForm.refund">
+            <span class="amount positive">{{ getRefundAmount() }} USDT</span>
+            <el-tag type="info" size="small" style="margin-left: 10px">
+              {{ currentCancelRobot?.robot_type === 'high' || currentCancelRobot?.robot_type === 'dex' ? '预期收益' : '购买价格' }}
+            </el-tag>
+          </el-form-item>
+          <el-form-item label="关闭原因">
+            <el-input
+              v-model="cancelForm.reason"
+              type="textarea"
+              :rows="2"
+              placeholder="请输入关闭原因（可选）"
+            />
+          </el-form-item>
+        </el-form>
+      </div>
+      <template #footer>
+        <el-button @click="cancelDialogVisible = false">取消</el-button>
+        <el-button type="danger" @click="confirmCancelRobot" :loading="cancelLoading">
+          确认关闭
+        </el-button>
+      </template>
+    </el-dialog>
+    
+    <!-- 批量关闭确认对话框 -->
+    <el-dialog
+      v-model="batchCancelDialogVisible"
+      title="批量关闭机器人"
+      width="500px"
+      :close-on-click-modal="false"
+      append-to-body
+    >
+      <div class="cancel-dialog-content">
+        <el-alert
+          title="即将关闭选中的所有机器人"
+          type="warning"
+          :closable="false"
+          show-icon
+          style="margin-bottom: 20px"
+        />
+        
+        <p>已选择 <strong>{{ selectedRobots.length }}</strong> 个机器人</p>
+        
+        <el-form style="margin-top: 20px" label-width="100px">
+          <el-form-item label="是否退款">
+            <el-switch
+              v-model="batchCancelForm.refund"
+              active-text="退还本金"
+              inactive-text="不退款"
+            />
+          </el-form-item>
+          <el-form-item label="关闭原因">
+            <el-input
+              v-model="batchCancelForm.reason"
+              type="textarea"
+              :rows="2"
+              placeholder="请输入关闭原因（可选）"
+            />
+          </el-form-item>
+        </el-form>
+      </div>
+      <template #footer>
+        <el-button @click="batchCancelDialogVisible = false">取消</el-button>
+        <el-button type="danger" @click="confirmBatchCancel" :loading="batchCancelLoading">
+          确认批量关闭
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -482,10 +590,10 @@
  * 专门显示状态为 active 的机器人
  */
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, Monitor, Coin, Plus, TrendCharts } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
-import { getRobotPurchases, getRobotStats, getRobotDetail, getUserRobots } from '@/api'
+import { getRobotPurchases, getRobotStats, getRobotDetail, getUserRobots, cancelRobotById, batchCancelRobots } from '@/api'
 import { useIsMobile } from '@/composables/useIsMobile'
 
 // 加载状态
@@ -526,6 +634,24 @@ const robotDetail = ref(null)
 const userDataDialogVisible = ref(false)
 const userDataLoading = ref(false)
 const userData = ref(null)
+
+// 关闭机器人对话框
+const cancelDialogVisible = ref(false)
+const cancelLoading = ref(false)
+const currentCancelRobot = ref(null)
+const cancelForm = reactive({
+  refund: true,
+  reason: ''
+})
+
+// 批量关闭
+const batchCancelDialogVisible = ref(false)
+const batchCancelLoading = ref(false)
+const selectedRobots = ref([])
+const batchCancelForm = reactive({
+  refund: true,
+  reason: ''
+})
 
 /**
  * 获取统计数据
@@ -831,6 +957,92 @@ const viewUserData = async (walletAddress) => {
 const viewDetailFromUser = async (id) => {
   userDataDialogVisible.value = false
   await viewDetail(id)
+}
+
+/**
+ * 显示关闭机器人对话框
+ */
+const showCancelDialog = (row) => {
+  currentCancelRobot.value = row
+  cancelForm.refund = true
+  cancelForm.reason = ''
+  cancelDialogVisible.value = true
+}
+
+/**
+ * 获取退款金额
+ */
+const getRefundAmount = () => {
+  if (!currentCancelRobot.value) return '0.00'
+  // high 和 dex 类型退还预期收益，其他类型退还购买价格
+  const type = currentCancelRobot.value.robot_type
+  if (type === 'high' || type === 'dex') {
+    return formatAmount(currentCancelRobot.value.expected_return)
+  }
+  return formatAmount(currentCancelRobot.value.price)
+}
+
+/**
+ * 确认关闭机器人
+ */
+const confirmCancelRobot = async () => {
+  if (!currentCancelRobot.value) return
+  
+  try {
+    cancelLoading.value = true
+    
+    const res = await cancelRobotById(currentCancelRobot.value.id, {
+      refund: cancelForm.refund,
+      reason: cancelForm.reason || '管理员手动关闭'
+    })
+    
+    if (res.success) {
+      ElMessage.success('机器人已关闭')
+      cancelDialogVisible.value = false
+      fetchRobots()
+      fetchStats()
+    } else {
+      ElMessage.error(res.message || '关闭失败')
+    }
+  } catch (error) {
+    console.error('关闭机器人失败:', error)
+    ElMessage.error('关闭失败，请重试')
+  } finally {
+    cancelLoading.value = false
+  }
+}
+
+/**
+ * 确认批量关闭
+ */
+const confirmBatchCancel = async () => {
+  if (!selectedRobots.value.length) return
+  
+  try {
+    batchCancelLoading.value = true
+    
+    const ids = selectedRobots.value.map(r => r.id)
+    const res = await batchCancelRobots({
+      ids,
+      refund: batchCancelForm.refund,
+      reason: batchCancelForm.reason || '管理员批量关闭'
+    })
+    
+    if (res.success) {
+      ElMessage.success(`成功关闭 ${res.data.success} 个机器人`)
+      batchCancelDialogVisible.value = false
+      selectedRobots.value = []
+      fetchRobots()
+      fetchStats()
+    } else {
+      ElMessage.error(res.message || '批量关闭失败')
+    }
+  } catch (error) {
+    console.error('批量关闭失败:', error)
+    ElMessage.error('批量关闭失败，请重试')
+  } finally {
+    batchCancelLoading.value = false
+  }
 }
 
 // 初始化

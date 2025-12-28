@@ -4004,6 +4004,526 @@ router.get('/robots/earnings-summary', authMiddleware, async (req, res) => {
   }
 });
 
+// ==================== 机器人关闭/取消管理 ====================
+
+/**
+ * POST /api/admin/robots/:id/cancel
+ * Cancel/Close a single robot (Admin Only)
+ * 
+ * Options:
+ * - refund: boolean - Whether to refund the principal
+ * - reason: string - Reason for cancellation
+ */
+router.post('/robots/:id/cancel', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { refund = false, reason = 'Admin cancellation' } = req.body;
+    const adminUsername = req.admin?.username || 'admin';
+
+    // Get robot details
+    const robots = await dbQuery(
+      'SELECT * FROM robot_purchases WHERE id = ?',
+      [id]
+    );
+
+    if (!robots || robots.length === 0) {
+      return res.status(404).json({ success: false, message: 'Robot not found' });
+    }
+
+    const robot = robots[0];
+
+    // Check if already cancelled or expired
+    if (robot.status !== 'active') {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Robot is already ${robot.status}` 
+      });
+    }
+
+    // Calculate refund amount if needed
+    let refundAmount = 0;
+    let refundType = '';
+    if (refund) {
+      if (robot.robot_type === 'high' || robot.robot_type === 'dex') {
+        // For high/dex robots, refund the expected return (principal + profit)
+        refundAmount = parseFloat(robot.expected_return) || parseFloat(robot.price);
+        refundType = 'expected_return';
+      } else {
+        // For grid/cex robots, refund the price (principal)
+        refundAmount = parseFloat(robot.price);
+        refundType = 'price';
+      }
+    }
+
+    // Update robot status to cancelled
+    await dbQuery(
+      `UPDATE robot_purchases 
+       SET status = 'cancelled', 
+           cancelled_at = NOW(),
+           updated_at = NOW()
+       WHERE id = ?`,
+      [id]
+    );
+
+    // Process refund if requested
+    if (refund && refundAmount > 0) {
+      await dbQuery(
+        `UPDATE user_balances 
+         SET usdt_balance = usdt_balance + ?,
+             updated_at = NOW()
+         WHERE wallet_address = ?`,
+        [refundAmount, robot.wallet_address]
+      );
+
+      // Log the refund transaction
+      await dbQuery(
+        `INSERT INTO transaction_history 
+         (wallet_address, type, amount, token, description, status, created_at)
+         VALUES (?, 'robot_cancel_refund', ?, 'USDT', ?, 'completed', NOW())`,
+        [robot.wallet_address, refundAmount, `Admin cancelled robot #${id}, refund ${refundType}`]
+      );
+    }
+
+    // Log admin operation
+    await dbQuery(
+      `INSERT INTO admin_operation_logs 
+       (admin_id, admin_username, operation_type, operation_target, operation_detail, ip_address, created_at)
+       VALUES (?, ?, 'CANCEL_ROBOT', ?, ?, ?, NOW())`,
+      [
+        req.admin?.id || 0,
+        adminUsername,
+        robot.wallet_address,
+        JSON.stringify({
+          robot_id: id,
+          robot_type: robot.robot_type,
+          price: robot.price,
+          refund: refund,
+          refund_amount: refundAmount,
+          reason: reason
+        }),
+        req.ip
+      ]
+    );
+
+    secureLog('info', `Robot #${id} cancelled by ${adminUsername}`, {
+      wallet: robot.wallet_address,
+      robot_type: robot.robot_type,
+      refund: refund,
+      refund_amount: refundAmount
+    });
+
+    res.json({
+      success: true,
+      message: `Robot cancelled successfully${refund ? `, refunded ${refundAmount} USDT` : ''}`,
+      data: {
+        robot_id: id,
+        wallet_address: robot.wallet_address,
+        refund: refund,
+        refund_amount: refundAmount
+      }
+    });
+  } catch (error) {
+    console.error('关闭机器人失败:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to cancel robot: ' + error.message });
+  }
+});
+
+/**
+ * POST /api/admin/robots/batch-cancel
+ * Cancel multiple robots at once (Admin Only)
+ */
+router.post('/robots/batch-cancel', authMiddleware, async (req, res) => {
+  try {
+    const { ids, refund = false, reason = 'Batch admin cancellation' } = req.body;
+    const adminUsername = req.admin?.username || 'admin';
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, message: 'No robot IDs provided' });
+    }
+
+    let cancelled = 0, skipped = 0, totalRefund = 0;
+    const results = [];
+
+    for (const id of ids) {
+      try {
+        // Get robot details
+        const robots = await dbQuery(
+          'SELECT * FROM robot_purchases WHERE id = ?',
+          [id]
+        );
+
+        if (!robots || robots.length === 0) {
+          skipped++;
+          results.push({ id, status: 'not_found' });
+          continue;
+        }
+
+        const robot = robots[0];
+
+        if (robot.status !== 'active') {
+          skipped++;
+          results.push({ id, status: 'already_' + robot.status });
+          continue;
+        }
+
+        // Calculate refund
+        let refundAmount = 0;
+        if (refund) {
+          if (robot.robot_type === 'high' || robot.robot_type === 'dex') {
+            refundAmount = parseFloat(robot.expected_return) || parseFloat(robot.price);
+          } else {
+            refundAmount = parseFloat(robot.price);
+          }
+        }
+
+        // Update status
+        await dbQuery(
+          `UPDATE robot_purchases 
+           SET status = 'cancelled', 
+               cancelled_at = NOW(),
+               updated_at = NOW()
+           WHERE id = ?`,
+          [id]
+        );
+
+        // Process refund
+        if (refund && refundAmount > 0) {
+          await dbQuery(
+            `UPDATE user_balances 
+             SET usdt_balance = usdt_balance + ?,
+                 updated_at = NOW()
+             WHERE wallet_address = ?`,
+            [refundAmount, robot.wallet_address]
+          );
+          totalRefund += refundAmount;
+        }
+
+        cancelled++;
+        results.push({ id, wallet: robot.wallet_address, status: 'cancelled', refund: refundAmount });
+      } catch (err) {
+        skipped++;
+        results.push({ id, status: 'error', error: err.message });
+      }
+    }
+
+    // Log batch operation
+    await dbQuery(
+      `INSERT INTO admin_operation_logs 
+       (admin_id, admin_username, operation_type, operation_target, operation_detail, ip_address, created_at)
+       VALUES (?, ?, 'BATCH_CANCEL_ROBOTS', 'batch', ?, ?, NOW())`,
+      [
+        req.admin?.id || 0,
+        adminUsername,
+        JSON.stringify({ count: cancelled, refund: refund, total_refund: totalRefund, reason: reason }),
+        req.ip
+      ]
+    );
+
+    secureLog('info', `Batch cancelled ${cancelled} robots by ${adminUsername}`, {
+      total_refund: totalRefund
+    });
+
+    res.json({
+      success: true,
+      message: `Cancelled ${cancelled} robots, skipped ${skipped}`,
+      data: {
+        cancelled,
+        skipped,
+        total_refund: totalRefund,
+        results: results.slice(0, 50)
+      }
+    });
+  } catch (error) {
+    console.error('批量关闭机器人失败:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to batch cancel robots' });
+  }
+});
+
+/**
+ * POST /api/admin/robots/cancel-by-user/:wallet_address
+ * Cancel all active robots for a specific user (Admin Only)
+ */
+router.post('/robots/cancel-by-user/:wallet_address', authMiddleware, async (req, res) => {
+  try {
+    const { wallet_address } = req.params;
+    const { refund = false, reason = 'Admin cancellation - all user robots' } = req.body;
+    const walletAddr = wallet_address.toLowerCase();
+    const adminUsername = req.admin?.username || 'admin';
+
+    // Get all active robots for the user
+    const activeRobots = await dbQuery(
+      'SELECT * FROM robot_purchases WHERE wallet_address = ? AND status = "active"',
+      [walletAddr]
+    );
+
+    if (!activeRobots || activeRobots.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'No active robots found for this user' 
+      });
+    }
+
+    let totalRefund = 0;
+    const robotIds = [];
+
+    for (const robot of activeRobots) {
+      // Calculate refund
+      let refundAmount = 0;
+      if (refund) {
+        if (robot.robot_type === 'high' || robot.robot_type === 'dex') {
+          refundAmount = parseFloat(robot.expected_return) || parseFloat(robot.price);
+        } else {
+          refundAmount = parseFloat(robot.price);
+        }
+        totalRefund += refundAmount;
+      }
+      robotIds.push(robot.id);
+    }
+
+    // Batch update all robots
+    await dbQuery(
+      `UPDATE robot_purchases 
+       SET status = 'cancelled', 
+           cancelled_at = NOW(),
+           updated_at = NOW()
+       WHERE wallet_address = ? AND status = 'active'`,
+      [walletAddr]
+    );
+
+    // Process refund if requested
+    if (refund && totalRefund > 0) {
+      await dbQuery(
+        `UPDATE user_balances 
+         SET usdt_balance = usdt_balance + ?,
+             updated_at = NOW()
+         WHERE wallet_address = ?`,
+        [totalRefund, walletAddr]
+      );
+
+      // Log the refund transaction
+      await dbQuery(
+        `INSERT INTO transaction_history 
+         (wallet_address, type, amount, token, description, status, created_at)
+         VALUES (?, 'robot_batch_cancel_refund', ?, 'USDT', ?, 'completed', NOW())`,
+        [walletAddr, totalRefund, `Admin cancelled ${activeRobots.length} robots, total refund`]
+      );
+    }
+
+    // Log admin operation
+    await dbQuery(
+      `INSERT INTO admin_operation_logs 
+       (admin_id, admin_username, operation_type, operation_target, operation_detail, ip_address, created_at)
+       VALUES (?, ?, 'CANCEL_USER_ROBOTS', ?, ?, ?, NOW())`,
+      [
+        req.admin?.id || 0,
+        adminUsername,
+        walletAddr,
+        JSON.stringify({
+          robot_count: activeRobots.length,
+          robot_ids: robotIds,
+          refund: refund,
+          total_refund: totalRefund,
+          reason: reason
+        }),
+        req.ip
+      ]
+    );
+
+    secureLog('info', `All robots cancelled for user ${walletAddr} by ${adminUsername}`, {
+      count: activeRobots.length,
+      total_refund: totalRefund
+    });
+
+    res.json({
+      success: true,
+      message: `Cancelled ${activeRobots.length} robots for user${refund ? `, refunded ${totalRefund} USDT` : ''}`,
+      data: {
+        wallet_address: walletAddr,
+        robots_cancelled: activeRobots.length,
+        robot_ids: robotIds,
+        refund: refund,
+        total_refund: totalRefund
+      }
+    });
+  } catch (error) {
+    console.error('关闭用户机器人失败:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to cancel user robots: ' + error.message });
+  }
+});
+
+/**
+ * GET /api/admin/robots/cancelled
+ * Get list of cancelled robots (Admin Only)
+ */
+router.get('/robots/cancelled', authMiddleware, async (req, res) => {
+  try {
+    const { page = 1, limit = 50, wallet_address, robot_type, days = 30 } = req.query;
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const daysAgo = new Date(Date.now() - parseInt(days) * 24 * 60 * 60 * 1000);
+
+    let whereConditions = ['rp.status = "cancelled"', 'rp.cancelled_at >= ?'];
+    let params = [daysAgo];
+
+    if (wallet_address) {
+      whereConditions.push('rp.wallet_address = ?');
+      params.push(wallet_address.toLowerCase());
+    }
+
+    if (robot_type) {
+      whereConditions.push('rp.robot_type = ?');
+      params.push(robot_type);
+    }
+
+    const whereClause = whereConditions.join(' AND ');
+
+    // Get total count
+    const countResult = await dbQuery(
+      `SELECT COUNT(*) as total FROM robot_purchases rp WHERE ${whereClause}`,
+      params
+    );
+    const total = countResult[0]?.total || 0;
+
+    // Get cancelled robots
+    const robots = await dbQuery(
+      `SELECT 
+        rp.id,
+        rp.wallet_address,
+        rp.robot_id,
+        rp.robot_name,
+        rp.robot_type,
+        rp.price,
+        rp.expected_return,
+        rp.total_profit,
+        rp.cancelled_at,
+        rp.created_at
+      FROM robot_purchases rp
+      WHERE ${whereClause}
+      ORDER BY rp.cancelled_at DESC
+      LIMIT ? OFFSET ?`,
+      [...params, parseInt(limit), offset]
+    );
+
+    // Get summary
+    const summary = await dbQuery(
+      `SELECT 
+        COUNT(*) as total_cancelled,
+        SUM(price) as total_investment,
+        SUM(total_profit) as total_profit
+      FROM robot_purchases rp
+      WHERE ${whereClause}`,
+      params
+    );
+
+    res.json({
+      success: true,
+      data: robots,
+      summary: {
+        total_cancelled: summary[0]?.total_cancelled || 0,
+        total_investment: parseFloat(summary[0]?.total_investment || 0).toFixed(2),
+        total_profit: parseFloat(summary[0]?.total_profit || 0).toFixed(4)
+      },
+      pagination: { total, page: parseInt(page), limit: parseInt(limit), pages: Math.ceil(total / parseInt(limit)) }
+    });
+  } catch (error) {
+    console.error('获取已取消机器人列表失败:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to get cancelled robots' });
+  }
+});
+
+/**
+ * POST /api/admin/robots/:id/reactivate
+ * Reactivate a cancelled robot (Admin Only) - for recovery purposes
+ */
+router.post('/robots/:id/reactivate', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { extend_days = 0 } = req.body;
+    const adminUsername = req.admin?.username || 'admin';
+
+    // Get robot details
+    const robots = await dbQuery(
+      'SELECT * FROM robot_purchases WHERE id = ?',
+      [id]
+    );
+
+    if (!robots || robots.length === 0) {
+      return res.status(404).json({ success: false, message: 'Robot not found' });
+    }
+
+    const robot = robots[0];
+
+    if (robot.status === 'active') {
+      return res.status(400).json({ success: false, message: 'Robot is already active' });
+    }
+
+    // Calculate new end time
+    let newEndTime = new Date();
+    if (extend_days > 0) {
+      newEndTime = new Date(Date.now() + extend_days * 24 * 60 * 60 * 1000);
+    } else if (robot.end_time) {
+      // Use original end time if not extending
+      const originalEnd = new Date(robot.end_time);
+      const now = new Date();
+      if (originalEnd > now) {
+        newEndTime = originalEnd;
+      } else {
+        // If original end time has passed, extend by original duration
+        const originalDuration = robot.duration_hours || 24;
+        newEndTime = new Date(Date.now() + originalDuration * 60 * 60 * 1000);
+      }
+    }
+
+    // Reactivate the robot
+    await dbQuery(
+      `UPDATE robot_purchases 
+       SET status = 'active', 
+           cancelled_at = NULL,
+           end_time = ?,
+           updated_at = NOW()
+       WHERE id = ?`,
+      [newEndTime, id]
+    );
+
+    // Log admin operation
+    await dbQuery(
+      `INSERT INTO admin_operation_logs 
+       (admin_id, admin_username, operation_type, operation_target, operation_detail, ip_address, created_at)
+       VALUES (?, ?, 'REACTIVATE_ROBOT', ?, ?, ?, NOW())`,
+      [
+        req.admin?.id || 0,
+        adminUsername,
+        robot.wallet_address,
+        JSON.stringify({
+          robot_id: id,
+          robot_type: robot.robot_type,
+          previous_status: robot.status,
+          new_end_time: newEndTime.toISOString(),
+          extend_days: extend_days
+        }),
+        req.ip
+      ]
+    );
+
+    secureLog('info', `Robot #${id} reactivated by ${adminUsername}`, {
+      wallet: robot.wallet_address,
+      extend_days: extend_days
+    });
+
+    res.json({
+      success: true,
+      message: `Robot reactivated successfully`,
+      data: {
+        robot_id: id,
+        wallet_address: robot.wallet_address,
+        new_end_time: newEndTime.toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('重新激活机器人失败:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to reactivate robot: ' + error.message });
+  }
+});
+
 // ==================== 辅助函数 ====================
 
 /**
@@ -7032,22 +7552,38 @@ router.post('/data-cleanup/clear-fake-balance', authMiddleware, async (req, res)
     
     const normalizedAddress = wallet_address.toLowerCase();
     
-    // 备份数据
+    // 获取当前余额用于记录
+    const currentBalance = await dbQuery(
+      'SELECT usdt_balance, wld_balance, total_deposit FROM user_balances WHERE wallet_address = ?',
+      [normalizedAddress]
+    );
+    
+    if (!currentBalance || currentBalance.length === 0) {
+      return res.status(404).json({ success: false, message: '账户不存在' });
+    }
+    
+    const oldBalance = parseFloat(currentBalance[0].usdt_balance || 0);
+    
+    // 备份数据 (使用正确的表结构)
     await dbQuery(`
       INSERT INTO user_balances_cleanup_log 
-      (wallet_address, usdt_balance_before, wld_balance_before, total_deposit_before, action, admin_user, created_at)
-      SELECT wallet_address, usdt_balance, wld_balance, total_deposit, 'clear_fake', ?, NOW()
-      FROM user_balances WHERE wallet_address = ?
-    `, [req.admin?.username || 'admin', normalizedAddress]);
+      (wallet_address, cleanup_type, old_balance, new_balance, reason, operator, created_at)
+      VALUES (?, 'clear_fake_balance', ?, 0, ?, ?, NOW())
+    `, [
+      normalizedAddress, 
+      oldBalance,
+      `USDT: ${currentBalance[0].usdt_balance}, WLD: ${currentBalance[0].wld_balance}, Deposit: ${currentBalance[0].total_deposit}`,
+      req.admin?.username || 'admin'
+    ]);
     
     // 获取真实充值金额
-    const [realDeposit] = await dbQuery(`
+    const realDepositResult = await dbQuery(`
       SELECT COALESCE(SUM(amount), 0) as real_amount
       FROM deposit_records 
       WHERE wallet_address = ? AND status = 'completed'
     `, [normalizedAddress]);
     
-    const realAmount = parseFloat(realDeposit?.real_amount || 0);
+    const realAmount = parseFloat(realDepositResult[0]?.real_amount || 0);
     
     // 清理余额
     if (keep_real_deposit && realAmount > 0) {
@@ -7059,7 +7595,6 @@ router.post('/data-cleanup/clear-fake-balance', authMiddleware, async (req, res)
             total_deposit = ?,
             total_profit = 0,
             total_referral_reward = 0,
-            manual_added_balance = 0,
             updated_at = NOW()
         WHERE wallet_address = ?
       `, [realAmount, normalizedAddress]);
@@ -7073,7 +7608,6 @@ router.post('/data-cleanup/clear-fake-balance', authMiddleware, async (req, res)
             total_withdraw = 0,
             total_profit = 0,
             total_referral_reward = 0,
-            manual_added_balance = 0,
             updated_at = NOW()
         WHERE wallet_address = ?
       `, [normalizedAddress]);
@@ -7113,22 +7647,38 @@ router.post('/data-cleanup/batch-clear', authMiddleware, async (req, res) => {
     for (const address of wallet_addresses) {
       const normalizedAddress = address.toLowerCase();
       
-      // 备份
+      // 获取当前余额
+      const currentBalance = await dbQuery(
+        'SELECT usdt_balance, wld_balance, total_deposit FROM user_balances WHERE wallet_address = ?',
+        [normalizedAddress]
+      );
+      
+      if (!currentBalance || currentBalance.length === 0) {
+        continue;
+      }
+      
+      const oldBalance = parseFloat(currentBalance[0].usdt_balance || 0);
+      
+      // 备份 (使用正确的表结构)
       await dbQuery(`
         INSERT INTO user_balances_cleanup_log 
-        (wallet_address, usdt_balance_before, wld_balance_before, total_deposit_before, action, admin_user, created_at)
-        SELECT wallet_address, usdt_balance, wld_balance, total_deposit, 'batch_clear', ?, NOW()
-        FROM user_balances WHERE wallet_address = ?
-      `, [req.admin?.username || 'admin', normalizedAddress]);
+        (wallet_address, cleanup_type, old_balance, new_balance, reason, operator, created_at)
+        VALUES (?, 'batch_clear', ?, 0, ?, ?, NOW())
+      `, [
+        normalizedAddress, 
+        oldBalance,
+        `USDT: ${currentBalance[0].usdt_balance}, WLD: ${currentBalance[0].wld_balance}`,
+        req.admin?.username || 'admin'
+      ]);
       
       // 获取真实充值
-      const [realDeposit] = await dbQuery(`
+      const realDepositResult = await dbQuery(`
         SELECT COALESCE(SUM(amount), 0) as real_amount
         FROM deposit_records 
         WHERE wallet_address = ? AND status = 'completed'
       `, [normalizedAddress]);
       
-      const realAmount = parseFloat(realDeposit?.real_amount || 0);
+      const realAmount = parseFloat(realDepositResult[0]?.real_amount || 0);
       
       // 清理
       await dbQuery(`
@@ -7138,7 +7688,6 @@ router.post('/data-cleanup/batch-clear', authMiddleware, async (req, res) => {
             total_deposit = ?,
             total_profit = 0,
             total_referral_reward = 0,
-            manual_added_balance = 0,
             updated_at = NOW()
         WHERE wallet_address = ?
       `, [realAmount, normalizedAddress]);
@@ -8038,6 +8587,982 @@ router.get('/invite-stats-adjusted', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('获取调整用户列表失败:', error.message);
     res.status(500).json({ success: false, message: '获取失败: ' + error.message });
+  }
+});
+
+// ==================== Fake Account Detection API ====================
+
+/**
+ * GET /api/admin/fake-accounts
+ * Detect fake accounts (users with no deposit records AND no admin balance operations)
+ * 
+ * IMPORTANT: Excludes accounts that received balance via admin operations
+ * to prevent accidental cleanup of test accounts or manually credited accounts
+ */
+router.get('/fake-accounts', authMiddleware, async (req, res) => {
+  try {
+    const { page = 1, limit = 50, minBalance = 0, sortBy = 'created_at', sortOrder = 'DESC', includeAdminOps = 'false' } = req.query;
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const minBal = parseFloat(minBalance) || 0;
+    const showAdminOps = includeAdminOps === 'true';
+
+    // Build admin ops exclusion condition (by default exclude admin-modified accounts and robot purchasers)
+    const adminOpsCondition = showAdminOps ? '' : `
+        AND NOT EXISTS (
+          SELECT 1 FROM admin_operation_logs aol 
+          WHERE aol.operation_target = ub.wallet_address 
+          AND aol.operation_type = 'balance_update'
+        )
+        AND NOT EXISTS (
+          SELECT 1 FROM robot_purchases rp
+          WHERE rp.wallet_address = ub.wallet_address
+        )`;
+
+    // Get total count of fake accounts (users with balance but no deposit records)
+    const countResult = await dbQuery(`
+      SELECT COUNT(*) as total FROM user_balances ub
+      WHERE ub.total_deposit = 0 
+        AND (ub.usdt_balance > ? OR ub.wld_balance > 0 OR ub.total_profit > 0)
+        AND NOT EXISTS (
+          SELECT 1 FROM deposit_records dr 
+          WHERE dr.wallet_address = ub.wallet_address AND dr.status = 'completed'
+        )
+        ${adminOpsCondition}
+    `, [minBal]);
+    const total = countResult[0]?.total || 0;
+
+    // Get fake accounts with details
+    const validSortFields = ['created_at', 'usdt_balance', 'total_profit', 'wallet_address'];
+    const sortField = validSortFields.includes(sortBy) ? sortBy : 'created_at';
+    const order = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+
+    const fakeAccounts = await dbQuery(`
+      SELECT 
+        ub.wallet_address,
+        ub.usdt_balance,
+        ub.wld_balance,
+        ub.frozen_usdt,
+        ub.total_deposit,
+        ub.total_withdraw,
+        ub.total_profit,
+        ub.total_referral_reward,
+        ub.is_banned,
+        ub.created_at,
+        ub.updated_at,
+        (SELECT COUNT(*) FROM robot_purchases rp WHERE rp.wallet_address = ub.wallet_address) as robot_count,
+        (SELECT COUNT(*) FROM user_pledges pr WHERE pr.wallet_address = ub.wallet_address) as pledge_count,
+        (SELECT COUNT(*) FROM follow_records fr WHERE fr.wallet_address = ub.wallet_address) as follow_count,
+        (SELECT COUNT(*) FROM admin_operation_logs aol WHERE aol.operation_target = ub.wallet_address AND aol.operation_type = 'balance_update') as admin_balance_ops
+      FROM user_balances ub
+      WHERE ub.total_deposit = 0 
+        AND (ub.usdt_balance > ? OR ub.wld_balance > 0 OR ub.total_profit > 0)
+        AND NOT EXISTS (
+          SELECT 1 FROM deposit_records dr 
+          WHERE dr.wallet_address = ub.wallet_address AND dr.status = 'completed'
+        )
+        ${adminOpsCondition}
+      ORDER BY ${sortField} ${order}
+      LIMIT ? OFFSET ?
+    `, [minBal, parseInt(limit), offset]);
+
+    // Get summary statistics
+    const summaryResult = await dbQuery(`
+      SELECT 
+        COUNT(*) as fake_count,
+        COALESCE(SUM(usdt_balance), 0) as total_usdt,
+        COALESCE(SUM(wld_balance), 0) as total_wld,
+        COALESCE(SUM(total_profit), 0) as total_profit
+      FROM user_balances ub
+      WHERE ub.total_deposit = 0 
+        AND (ub.usdt_balance > 0 OR ub.wld_balance > 0 OR ub.total_profit > 0)
+        AND NOT EXISTS (
+          SELECT 1 FROM deposit_records dr 
+          WHERE dr.wallet_address = ub.wallet_address AND dr.status = 'completed'
+        )
+        ${adminOpsCondition}
+    `);
+    const summary = summaryResult[0] || { fake_count: 0, total_usdt: 0, total_wld: 0, total_profit: 0 };
+
+    res.json({
+      success: true,
+      data: fakeAccounts,
+      summary: {
+        fakeAccountCount: parseInt(summary.fake_count) || 0,
+        totalUSDT: parseFloat(summary.total_usdt) || 0,
+        totalWLD: parseFloat(summary.total_wld) || 0,
+        totalProfit: parseFloat(summary.total_profit) || 0
+      },
+      pagination: { total, page: parseInt(page), limit: parseInt(limit), pages: Math.ceil(total / parseInt(limit)) }
+    });
+  } catch (error) {
+    console.error('[FakeAccounts] Error detecting:', error);
+    res.status(500).json({ success: false, message: 'Failed to detect fake accounts' });
+  }
+});
+
+/**
+ * DELETE /api/admin/fake-accounts/:wallet_address
+ * Clean single fake account
+ * 
+ * SAFETY: Will reject accounts with admin balance operations unless force=true
+ */
+router.delete('/fake-accounts/:wallet_address', authMiddleware, async (req, res) => {
+  try {
+    const { wallet_address } = req.params;
+    const { force = 'false' } = req.query;
+    const walletAddr = wallet_address.toLowerCase();
+    const adminUsername = req.admin?.username || 'admin';
+
+    // Verify it's a fake account (no deposits)
+    const depositCheck = await dbQuery(
+      'SELECT COUNT(*) as cnt FROM deposit_records WHERE wallet_address = ? AND status = "completed"',
+      [walletAddr]
+    );
+    if (depositCheck[0]?.cnt > 0) {
+      return res.status(400).json({ success: false, message: 'This account has deposit records and cannot be cleaned' });
+    }
+
+    // Check for admin balance operations (safety check)
+    const adminOpsCheck = await dbQuery(
+      `SELECT COUNT(*) as cnt FROM admin_operation_logs 
+       WHERE operation_target = ? AND operation_type = 'balance_update'`,
+      [walletAddr]
+    );
+    if (adminOpsCheck[0]?.cnt > 0 && force !== 'true') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'This account has admin balance operations and may be a test account. Use force=true to override.',
+        adminOpsCount: adminOpsCheck[0].cnt
+      });
+    }
+
+    // Check for robot purchases (may have earned through referrals)
+    const robotCheck = await dbQuery(
+      'SELECT COUNT(*) as cnt FROM robot_purchases WHERE wallet_address = ?',
+      [walletAddr]
+    );
+    if (robotCheck[0]?.cnt > 0 && force !== 'true') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'This account has robot purchases and may have earned through referrals. Use force=true to override.',
+        robotCount: robotCheck[0].cnt
+      });
+    }
+
+    // Get current balance for logging
+    const currentBalance = await dbQuery('SELECT * FROM user_balances WHERE wallet_address = ?', [walletAddr]);
+    if (!currentBalance || currentBalance.length === 0) {
+      return res.status(404).json({ success: false, message: 'Account not found' });
+    }
+
+    // Log the cleanup
+    const reason = adminOpsCheck[0]?.cnt > 0 
+      ? `Force cleaned - had ${adminOpsCheck[0].cnt} admin balance ops` 
+      : 'No deposit records - fake account';
+    await dbQuery(
+      `INSERT INTO user_balances_cleanup_log (wallet_address, cleanup_type, old_balance, new_balance, reason, operator, created_at)
+       VALUES (?, 'fake_account_cleanup', ?, 0, ?, ?, NOW())`,
+      [walletAddr, currentBalance[0].usdt_balance, reason, adminUsername]
+    );
+
+    // Delete related records
+    await dbQuery('DELETE FROM robot_purchases WHERE wallet_address = ?', [walletAddr]);
+    await dbQuery('DELETE FROM user_pledges WHERE wallet_address = ?', [walletAddr]);
+    await dbQuery('DELETE FROM follow_records WHERE wallet_address = ?', [walletAddr]);
+    await dbQuery('DELETE FROM balance_logs WHERE wallet_address = ?', [walletAddr]);
+    await dbQuery('DELETE FROM referral_relationships WHERE user_wallet = ? OR referrer_wallet = ?', [walletAddr, walletAddr]);
+    await dbQuery('DELETE FROM user_balances WHERE wallet_address = ?', [walletAddr]);
+
+    secureLog('info', `Fake account cleaned: ${walletAddr} by ${adminUsername} (force=${force})`);
+    res.json({ success: true, message: 'Fake account cleaned successfully' });
+  } catch (error) {
+    console.error('[FakeAccounts] Error cleaning:', error);
+    res.status(500).json({ success: false, message: 'Failed to clean fake account' });
+  }
+});
+
+/**
+ * POST /api/admin/fake-accounts/batch-clean
+ * Batch clean fake accounts
+ * 
+ * SAFETY: Will skip accounts with admin balance operations unless force=true
+ */
+router.post('/fake-accounts/batch-clean', authMiddleware, async (req, res) => {
+  try {
+    const { wallet_addresses, force = false } = req.body;
+    const adminUsername = req.admin?.username || 'admin';
+
+    if (!wallet_addresses || !Array.isArray(wallet_addresses) || wallet_addresses.length === 0) {
+      return res.status(400).json({ success: false, message: 'No wallet addresses provided' });
+    }
+
+    let cleaned = 0, skipped = 0, adminOpSkipped = 0;
+    const skippedDetails = [];
+
+    for (const addr of wallet_addresses) {
+      const walletAddr = addr.toLowerCase();
+
+      // Verify no deposits
+      const depositCheck = await dbQuery(
+        'SELECT COUNT(*) as cnt FROM deposit_records WHERE wallet_address = ? AND status = "completed"',
+        [walletAddr]
+      );
+      if (depositCheck[0]?.cnt > 0) { 
+        skipped++; 
+        skippedDetails.push({ wallet: walletAddr, reason: 'has_deposits' });
+        continue; 
+      }
+
+      // Check for admin balance operations (safety check)
+      const adminOpsCheck = await dbQuery(
+        `SELECT COUNT(*) as cnt FROM admin_operation_logs 
+         WHERE operation_target = ? AND operation_type = 'balance_update'`,
+        [walletAddr]
+      );
+      if (adminOpsCheck[0]?.cnt > 0 && !force) { 
+        adminOpSkipped++; 
+        skippedDetails.push({ wallet: walletAddr, reason: 'admin_balance_ops', count: adminOpsCheck[0].cnt });
+        continue; 
+      }
+
+      // Check for robot purchases (may have earned through referrals)
+      const robotCheck = await dbQuery(
+        'SELECT COUNT(*) as cnt FROM robot_purchases WHERE wallet_address = ?',
+        [walletAddr]
+      );
+      if (robotCheck[0]?.cnt > 0 && !force) { 
+        skipped++; 
+        skippedDetails.push({ wallet: walletAddr, reason: 'has_robot_purchases', count: robotCheck[0].cnt });
+        continue; 
+      }
+
+      // Get balance for logging
+      const balance = await dbQuery('SELECT usdt_balance FROM user_balances WHERE wallet_address = ?', [walletAddr]);
+      if (!balance || balance.length === 0) { 
+        skipped++; 
+        skippedDetails.push({ wallet: walletAddr, reason: 'not_found' });
+        continue; 
+      }
+
+      // Log and delete
+      const reason = adminOpsCheck[0]?.cnt > 0 
+        ? `Batch cleanup (force) - had ${adminOpsCheck[0].cnt} admin balance ops` 
+        : 'Batch cleanup - no deposits';
+      await dbQuery(
+        `INSERT INTO user_balances_cleanup_log (wallet_address, cleanup_type, old_balance, new_balance, reason, operator, created_at)
+         VALUES (?, 'fake_account_batch_cleanup', ?, 0, ?, ?, NOW())`,
+        [walletAddr, balance[0].usdt_balance, reason, adminUsername]
+      );
+
+      await dbQuery('DELETE FROM robot_purchases WHERE wallet_address = ?', [walletAddr]);
+      await dbQuery('DELETE FROM user_pledges WHERE wallet_address = ?', [walletAddr]);
+      await dbQuery('DELETE FROM follow_records WHERE wallet_address = ?', [walletAddr]);
+      await dbQuery('DELETE FROM balance_logs WHERE wallet_address = ?', [walletAddr]);
+      await dbQuery('DELETE FROM referral_relationships WHERE user_wallet = ? OR referrer_wallet = ?', [walletAddr, walletAddr]);
+      await dbQuery('DELETE FROM user_balances WHERE wallet_address = ?', [walletAddr]);
+      cleaned++;
+    }
+
+    secureLog('info', `Batch cleaned ${cleaned} fake accounts by ${adminUsername} (force=${force}, adminOpSkipped=${adminOpSkipped})`);
+    res.json({ 
+      success: true, 
+      message: `Cleaned ${cleaned} accounts, skipped ${skipped + adminOpSkipped}`, 
+      cleaned, 
+      skipped, 
+      adminOpSkipped,
+      skippedDetails: skippedDetails.slice(0, 20)
+    });
+  } catch (error) {
+    console.error('[FakeAccounts] Error batch cleaning:', error);
+    res.status(500).json({ success: false, message: 'Failed to batch clean fake accounts' });
+  }
+});
+
+/**
+ * GET /api/admin/fake-accounts/zero-balance
+ * Get accounts with zero balance and no activity
+ */
+router.get('/fake-accounts/zero-balance', authMiddleware, async (req, res) => {
+  try {
+    const { page = 1, limit = 50, days = 30 } = req.query;
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const daysAgo = new Date(Date.now() - parseInt(days) * 24 * 60 * 60 * 1000);
+
+    // Get zero balance inactive accounts
+    const countResult = await dbQuery(`
+      SELECT COUNT(*) as total FROM user_balances ub
+      WHERE ub.usdt_balance = 0 AND ub.wld_balance = 0 AND ub.total_deposit = 0 AND ub.total_profit = 0
+        AND ub.created_at < ?
+        AND NOT EXISTS (SELECT 1 FROM robot_purchases rp WHERE rp.wallet_address = ub.wallet_address)
+        AND NOT EXISTS (SELECT 1 FROM user_pledges pr WHERE pr.wallet_address = ub.wallet_address)
+    `, [daysAgo]);
+    const total = countResult[0]?.total || 0;
+
+    const accounts = await dbQuery(`
+      SELECT ub.wallet_address, ub.created_at, ub.updated_at
+      FROM user_balances ub
+      WHERE ub.usdt_balance = 0 AND ub.wld_balance = 0 AND ub.total_deposit = 0 AND ub.total_profit = 0
+        AND ub.created_at < ?
+        AND NOT EXISTS (SELECT 1 FROM robot_purchases rp WHERE rp.wallet_address = ub.wallet_address)
+        AND NOT EXISTS (SELECT 1 FROM user_pledges pr WHERE pr.wallet_address = ub.wallet_address)
+      ORDER BY ub.created_at ASC
+      LIMIT ? OFFSET ?
+    `, [daysAgo, parseInt(limit), offset]);
+
+    res.json({
+      success: true,
+      data: accounts,
+      pagination: { total, page: parseInt(page), limit: parseInt(limit), pages: Math.ceil(total / parseInt(limit)) }
+    });
+  } catch (error) {
+    console.error('[FakeAccounts] Error getting zero balance:', error);
+    res.status(500).json({ success: false, message: 'Failed to get zero balance accounts' });
+  }
+});
+
+// ==================== Cleanup Recovery API ====================
+
+/**
+ * GET /api/admin/cleanup-recovery/list
+ * Get list of cleaned accounts that can be recovered
+ */
+router.get('/cleanup-recovery/list', authMiddleware, async (req, res) => {
+  try {
+    const { page = 1, limit = 50, days = 7 } = req.query;
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const daysAgo = new Date(Date.now() - parseInt(days) * 24 * 60 * 60 * 1000);
+
+    // Get total count
+    const countResult = await dbQuery(`
+      SELECT COUNT(*) as total FROM user_balances_cleanup_log
+      WHERE created_at >= ?
+    `, [daysAgo]);
+    const total = countResult[0]?.total || 0;
+
+    // Get cleanup records with recovery info
+    const records = await dbQuery(`
+      SELECT 
+        cl.id,
+        cl.wallet_address,
+        cl.cleanup_type,
+        cl.old_balance,
+        cl.new_balance,
+        cl.reason,
+        cl.operator,
+        cl.created_at,
+        CASE WHEN ub.wallet_address IS NOT NULL THEN 'exists' ELSE 'deleted' END as account_status,
+        ub.usdt_balance as current_usdt,
+        ub.wld_balance as current_wld
+      FROM user_balances_cleanup_log cl
+      LEFT JOIN user_balances ub ON cl.wallet_address = ub.wallet_address
+      WHERE cl.created_at >= ?
+      ORDER BY cl.created_at DESC
+      LIMIT ? OFFSET ?
+    `, [daysAgo, parseInt(limit), offset]);
+
+    // Parse reason field to extract WLD balance
+    const enrichedRecords = records.map(record => {
+      let wld_balance_before = 0;
+      if (record.reason) {
+        const wldMatch = record.reason.match(/WLD:\s*([\d.]+)/);
+        if (wldMatch) {
+          wld_balance_before = parseFloat(wldMatch[1]) || 0;
+        }
+      }
+      return {
+        ...record,
+        wld_balance_before,
+        can_recover: record.account_status === 'deleted' || parseFloat(record.current_usdt || 0) === 0
+      };
+    });
+
+    res.json({
+      success: true,
+      data: enrichedRecords,
+      pagination: { total, page: parseInt(page), limit: parseInt(limit), pages: Math.ceil(total / parseInt(limit)) }
+    });
+  } catch (error) {
+    console.error('[CleanupRecovery] Error listing:', error);
+    res.status(500).json({ success: false, message: 'Failed to list cleanup records' });
+  }
+});
+
+/**
+ * POST /api/admin/cleanup-recovery/restore/:id
+ * Restore a cleaned account from cleanup log
+ */
+router.post('/cleanup-recovery/restore/:id', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const adminUsername = req.admin?.username || 'admin';
+
+    // Get cleanup record
+    const cleanupRecord = await dbQuery(
+      'SELECT * FROM user_balances_cleanup_log WHERE id = ?',
+      [id]
+    );
+
+    if (!cleanupRecord || cleanupRecord.length === 0) {
+      return res.status(404).json({ success: false, message: 'Cleanup record not found' });
+    }
+
+    const record = cleanupRecord[0];
+    const walletAddr = record.wallet_address;
+
+    // Parse WLD balance from reason field
+    let wldBalance = 0;
+    if (record.reason) {
+      const wldMatch = record.reason.match(/WLD:\s*([\d.]+)/);
+      if (wldMatch) {
+        wldBalance = parseFloat(wldMatch[1]) || 0;
+      }
+    }
+
+    const usdtBalance = parseFloat(record.old_balance) || 0;
+
+    // Check if account already exists
+    const existingAccount = await dbQuery(
+      'SELECT * FROM user_balances WHERE wallet_address = ?',
+      [walletAddr]
+    );
+
+    if (existingAccount && existingAccount.length > 0) {
+      // Account exists - restore balance
+      const current = existingAccount[0];
+      await dbQuery(`
+        UPDATE user_balances 
+        SET usdt_balance = usdt_balance + ?,
+            wld_balance = wld_balance + ?,
+            updated_at = NOW()
+        WHERE wallet_address = ?
+      `, [usdtBalance, wldBalance, walletAddr]);
+
+      // Log the recovery
+      await dbQuery(`
+        INSERT INTO user_balances_cleanup_log 
+        (wallet_address, cleanup_type, old_balance, new_balance, reason, operator, created_at)
+        VALUES (?, 'recovery', ?, ?, ?, ?, NOW())
+      `, [
+        walletAddr, 
+        current.usdt_balance, 
+        parseFloat(current.usdt_balance) + usdtBalance,
+        `Recovered from cleanup #${id}: +${usdtBalance} USDT, +${wldBalance} WLD`,
+        adminUsername
+      ]);
+
+      secureLog('info', `Account balance recovered: ${walletAddr} by ${adminUsername}`, {
+        cleanup_id: id,
+        usdt_restored: usdtBalance,
+        wld_restored: wldBalance
+      });
+
+      res.json({
+        success: true,
+        message: `Balance restored successfully`,
+        restored: { usdt: usdtBalance, wld: wldBalance }
+      });
+    } else {
+      // Account deleted - recreate it
+      await dbQuery(`
+        INSERT INTO user_balances 
+        (wallet_address, usdt_balance, wld_balance, total_deposit, total_withdraw, 
+         total_profit, total_referral_reward, frozen_usdt, is_banned, created_at, updated_at)
+        VALUES (?, ?, ?, 0, 0, 0, 0, 0, 0, NOW(), NOW())
+      `, [walletAddr, usdtBalance, wldBalance]);
+
+      // Also recreate user record if needed
+      const userExists = await dbQuery(
+        'SELECT wallet_address FROM users WHERE wallet_address = ?',
+        [walletAddr]
+      );
+      if (!userExists || userExists.length === 0) {
+        await dbQuery(`
+          INSERT INTO users (wallet_address, created_at)
+          VALUES (?, NOW())
+        `, [walletAddr]);
+      }
+
+      // Log the recovery
+      await dbQuery(`
+        INSERT INTO user_balances_cleanup_log 
+        (wallet_address, cleanup_type, old_balance, new_balance, reason, operator, created_at)
+        VALUES (?, 'recovery_recreate', 0, ?, ?, ?, NOW())
+      `, [
+        walletAddr, 
+        usdtBalance,
+        `Account recreated from cleanup #${id}: ${usdtBalance} USDT, ${wldBalance} WLD`,
+        adminUsername
+      ]);
+
+      secureLog('info', `Account recreated and recovered: ${walletAddr} by ${adminUsername}`, {
+        cleanup_id: id,
+        usdt_restored: usdtBalance,
+        wld_restored: wldBalance
+      });
+
+      res.json({
+        success: true,
+        message: `Account recreated and balance restored successfully`,
+        restored: { usdt: usdtBalance, wld: wldBalance }
+      });
+    }
+  } catch (error) {
+    console.error('[CleanupRecovery] Error restoring:', error);
+    res.status(500).json({ success: false, message: 'Failed to restore account: ' + error.message });
+  }
+});
+
+/**
+ * POST /api/admin/cleanup-recovery/batch-restore
+ * Batch restore multiple cleaned accounts
+ */
+router.post('/cleanup-recovery/batch-restore', authMiddleware, async (req, res) => {
+  try {
+    const { ids } = req.body;
+    const adminUsername = req.admin?.username || 'admin';
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, message: 'No cleanup record IDs provided' });
+    }
+
+    let restored = 0, failed = 0;
+    const results = [];
+
+    for (const id of ids) {
+      try {
+        // Get cleanup record
+        const cleanupRecord = await dbQuery(
+          'SELECT * FROM user_balances_cleanup_log WHERE id = ?',
+          [id]
+        );
+
+        if (!cleanupRecord || cleanupRecord.length === 0) {
+          failed++;
+          results.push({ id, status: 'not_found' });
+          continue;
+        }
+
+        const record = cleanupRecord[0];
+        const walletAddr = record.wallet_address;
+
+        // Parse WLD balance
+        let wldBalance = 0;
+        if (record.reason) {
+          const wldMatch = record.reason.match(/WLD:\s*([\d.]+)/);
+          if (wldMatch) {
+            wldBalance = parseFloat(wldMatch[1]) || 0;
+          }
+        }
+
+        const usdtBalance = parseFloat(record.old_balance) || 0;
+
+        // Check if account exists
+        const existingAccount = await dbQuery(
+          'SELECT usdt_balance FROM user_balances WHERE wallet_address = ?',
+          [walletAddr]
+        );
+
+        if (existingAccount && existingAccount.length > 0) {
+          // Restore balance
+          await dbQuery(`
+            UPDATE user_balances 
+            SET usdt_balance = usdt_balance + ?,
+                wld_balance = wld_balance + ?,
+                updated_at = NOW()
+            WHERE wallet_address = ?
+          `, [usdtBalance, wldBalance, walletAddr]);
+        } else {
+          // Recreate account
+          await dbQuery(`
+            INSERT INTO user_balances 
+            (wallet_address, usdt_balance, wld_balance, total_deposit, total_withdraw, 
+             total_profit, total_referral_reward, frozen_usdt, is_banned, created_at, updated_at)
+            VALUES (?, ?, ?, 0, 0, 0, 0, 0, 0, NOW(), NOW())
+          `, [walletAddr, usdtBalance, wldBalance]);
+
+          // Recreate user if needed
+          const userExists = await dbQuery(
+            'SELECT wallet_address FROM users WHERE wallet_address = ?',
+            [walletAddr]
+          );
+          if (!userExists || userExists.length === 0) {
+            await dbQuery(`
+              INSERT INTO users (wallet_address, created_at)
+              VALUES (?, NOW())
+            `, [walletAddr]);
+          }
+        }
+
+        // Log recovery
+        await dbQuery(`
+          INSERT INTO user_balances_cleanup_log 
+          (wallet_address, cleanup_type, old_balance, new_balance, reason, operator, created_at)
+          VALUES (?, 'batch_recovery', 0, ?, ?, ?, NOW())
+        `, [
+          walletAddr, 
+          usdtBalance,
+          `Batch recovered from cleanup #${id}: ${usdtBalance} USDT, ${wldBalance} WLD`,
+          adminUsername
+        ]);
+
+        restored++;
+        results.push({ id, wallet: walletAddr, status: 'restored', usdt: usdtBalance, wld: wldBalance });
+      } catch (err) {
+        failed++;
+        results.push({ id, status: 'error', error: err.message });
+      }
+    }
+
+    secureLog('info', `Batch recovery completed by ${adminUsername}`, { restored, failed });
+
+    res.json({
+      success: true,
+      message: `Restored ${restored} accounts, failed ${failed}`,
+      restored,
+      failed,
+      results: results.slice(0, 50) // Limit results for response size
+    });
+  } catch (error) {
+    console.error('[CleanupRecovery] Error batch restoring:', error);
+    res.status(500).json({ success: false, message: 'Failed to batch restore accounts' });
+  }
+});
+
+/**
+ * GET /api/admin/cleanup-recovery/stats
+ * Get cleanup recovery statistics
+ */
+router.get('/cleanup-recovery/stats', authMiddleware, async (req, res) => {
+  try {
+    const stats = await dbQuery(`
+      SELECT 
+        cleanup_type,
+        COUNT(*) as count,
+        SUM(old_balance) as total_balance_affected,
+        DATE(created_at) as date
+      FROM user_balances_cleanup_log
+      WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+      GROUP BY cleanup_type, DATE(created_at)
+      ORDER BY date DESC, cleanup_type
+    `);
+
+    // Get summary
+    const summary = await dbQuery(`
+      SELECT 
+        SUM(CASE WHEN cleanup_type NOT LIKE '%recovery%' THEN 1 ELSE 0 END) as total_cleanups,
+        SUM(CASE WHEN cleanup_type LIKE '%recovery%' THEN 1 ELSE 0 END) as total_recoveries,
+        SUM(CASE WHEN cleanup_type NOT LIKE '%recovery%' THEN old_balance ELSE 0 END) as total_cleaned_balance,
+        SUM(CASE WHEN cleanup_type LIKE '%recovery%' THEN new_balance ELSE 0 END) as total_recovered_balance
+      FROM user_balances_cleanup_log
+      WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+    `);
+
+    res.json({
+      success: true,
+      summary: summary[0] || { total_cleanups: 0, total_recoveries: 0, total_cleaned_balance: 0, total_recovered_balance: 0 },
+      daily_stats: stats
+    });
+  } catch (error) {
+    console.error('[CleanupRecovery] Error getting stats:', error);
+    res.status(500).json({ success: false, message: 'Failed to get stats' });
+  }
+});
+
+// ==================== 系统维护公告管理 ====================
+
+/**
+ * GET /api/admin/maintenance/status
+ * Get current maintenance status (Public API - No Auth Required)
+ */
+router.get('/maintenance/status', async (req, res) => {
+  try {
+    // Get maintenance status
+    const rows = await dbQuery(
+      'SELECT is_enabled, title, message, estimated_duration, start_time, end_time FROM system_maintenance WHERE id = 1'
+    );
+
+    if (!rows || rows.length === 0) {
+      return res.json({
+        success: true,
+        data: {
+          is_enabled: false,
+          title: '',
+          message: '',
+          estimated_duration: 120,
+          translations: {}
+        }
+      });
+    }
+
+    const maintenance = rows[0];
+
+    // If maintenance is enabled, get translations
+    let translations = {};
+    if (maintenance.is_enabled) {
+      const transRows = await dbQuery(
+        'SELECT language_code, title, message FROM maintenance_translations WHERE maintenance_id = 1'
+      );
+      
+      if (transRows && transRows.length > 0) {
+        transRows.forEach(row => {
+          translations[row.language_code] = {
+            title: row.title,
+            message: row.message
+          };
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      data: {
+        is_enabled: maintenance.is_enabled === 1,
+        title: maintenance.title,
+        message: maintenance.message,
+        estimated_duration: maintenance.estimated_duration,
+        start_time: maintenance.start_time,
+        end_time: maintenance.end_time,
+        translations
+      }
+    });
+  } catch (error) {
+    console.error('[Maintenance] Error getting status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get maintenance status'
+    });
+  }
+});
+
+/**
+ * GET /api/admin/maintenance
+ * Get full maintenance configuration (Admin Only)
+ */
+router.get('/maintenance', authMiddleware, async (req, res) => {
+  try {
+    // Get maintenance status
+    const rows = await dbQuery(
+      'SELECT * FROM system_maintenance WHERE id = 1'
+    );
+
+    // Get all translations
+    const transRows = await dbQuery(
+      'SELECT * FROM maintenance_translations WHERE maintenance_id = 1 ORDER BY language_code'
+    );
+
+    const maintenance = rows && rows.length > 0 ? rows[0] : {
+      id: 1,
+      is_enabled: false,
+      title: 'System Maintenance',
+      message: 'The system is currently under maintenance.',
+      estimated_duration: 120
+    };
+
+    res.json({
+      success: true,
+      data: {
+        ...maintenance,
+        is_enabled: maintenance.is_enabled === 1,
+        translations: transRows || []
+      }
+    });
+  } catch (error) {
+    console.error('[Maintenance] Error getting config:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get maintenance configuration'
+    });
+  }
+});
+
+/**
+ * PUT /api/admin/maintenance
+ * Update maintenance status and settings (Admin Only)
+ */
+router.put('/maintenance', authMiddleware, async (req, res) => {
+  try {
+    const { is_enabled, title, message, estimated_duration, translations } = req.body;
+    const adminUsername = req.admin?.username || 'admin';
+
+    // Calculate end time based on estimated duration
+    const startTime = is_enabled ? new Date() : null;
+    const endTime = is_enabled && estimated_duration 
+      ? new Date(Date.now() + estimated_duration * 60 * 1000) 
+      : null;
+
+    // Update main maintenance record
+    await dbQuery(
+      `INSERT INTO system_maintenance (id, is_enabled, title, message, estimated_duration, start_time, end_time, updated_by)
+       VALUES (1, ?, ?, ?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE 
+         is_enabled = VALUES(is_enabled),
+         title = VALUES(title),
+         message = VALUES(message),
+         estimated_duration = VALUES(estimated_duration),
+         start_time = VALUES(start_time),
+         end_time = VALUES(end_time),
+         updated_by = VALUES(updated_by)`,
+      [
+        is_enabled ? 1 : 0,
+        title || 'System Maintenance',
+        message || 'The system is currently under maintenance.',
+        estimated_duration || 120,
+        startTime,
+        endTime,
+        adminUsername
+      ]
+    );
+
+    // Update translations if provided
+    if (translations && Array.isArray(translations)) {
+      for (const trans of translations) {
+        if (trans.language_code && trans.title && trans.message) {
+          await dbQuery(
+            `INSERT INTO maintenance_translations (maintenance_id, language_code, title, message)
+             VALUES (1, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE 
+               title = VALUES(title),
+               message = VALUES(message)`,
+            [trans.language_code, trans.title, trans.message]
+          );
+        }
+      }
+    }
+
+    // Log the operation
+    try {
+      await dbQuery(
+        `INSERT INTO admin_operation_logs (admin_id, admin_username, operation_type, operation_target, operation_detail, ip_address)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          req.admin?.id || 0,
+          adminUsername,
+          is_enabled ? 'ENABLE_MAINTENANCE' : 'DISABLE_MAINTENANCE',
+          'system_maintenance',
+          JSON.stringify({ is_enabled, title, estimated_duration }),
+          req.ip
+        ]
+      );
+    } catch (logError) {
+      console.warn('[Maintenance] Failed to log operation:', logError.message);
+    }
+
+    console.log(`[Maintenance] ${is_enabled ? 'Enabled' : 'Disabled'} by ${adminUsername}`);
+
+    res.json({
+      success: true,
+      message: is_enabled ? 'Maintenance mode enabled' : 'Maintenance mode disabled'
+    });
+  } catch (error) {
+    console.error('[Maintenance] Error updating status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update maintenance status'
+    });
+  }
+});
+
+/**
+ * PUT /api/admin/maintenance/translations
+ * Update single translation (Admin Only)
+ */
+router.put('/maintenance/translations', authMiddleware, async (req, res) => {
+  try {
+    const { language_code, title, message } = req.body;
+
+    if (!language_code || !title || !message) {
+      return res.status(400).json({
+        success: false,
+        message: 'Language code, title and message are required'
+      });
+    }
+
+    await dbQuery(
+      `INSERT INTO maintenance_translations (maintenance_id, language_code, title, message)
+       VALUES (1, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE 
+         title = VALUES(title),
+         message = VALUES(message)`,
+      [language_code, title, message]
+    );
+
+    res.json({
+      success: true,
+      message: 'Translation updated successfully'
+    });
+  } catch (error) {
+    console.error('[Maintenance] Error updating translation:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update translation'
+    });
+  }
+});
+
+/**
+ * POST /api/admin/maintenance/toggle
+ * Quick toggle maintenance mode (Admin Only)
+ */
+router.post('/maintenance/toggle', authMiddleware, async (req, res) => {
+  try {
+    const adminUsername = req.admin?.username || 'admin';
+
+    // Get current status
+    const rows = await dbQuery(
+      'SELECT is_enabled, estimated_duration FROM system_maintenance WHERE id = 1'
+    );
+
+    const currentStatus = rows && rows.length > 0 ? rows[0].is_enabled : 0;
+    const newStatus = currentStatus === 1 ? 0 : 1;
+    const estimatedDuration = rows && rows.length > 0 ? rows[0].estimated_duration : 120;
+
+    // Calculate times
+    const startTime = newStatus ? new Date() : null;
+    const endTime = newStatus 
+      ? new Date(Date.now() + estimatedDuration * 60 * 1000) 
+      : null;
+
+    // Update status
+    await dbQuery(
+      `UPDATE system_maintenance 
+       SET is_enabled = ?, start_time = ?, end_time = ?, updated_by = ?
+       WHERE id = 1`,
+      [newStatus, startTime, endTime, adminUsername]
+    );
+
+    // Log the operation
+    try {
+      await dbQuery(
+        `INSERT INTO admin_operation_logs (admin_id, admin_username, operation_type, operation_target, operation_detail, ip_address)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          req.admin?.id || 0,
+          adminUsername,
+          newStatus ? 'ENABLE_MAINTENANCE' : 'DISABLE_MAINTENANCE',
+          'system_maintenance',
+          JSON.stringify({ toggled: true }),
+          req.ip
+        ]
+      );
+    } catch (logError) {
+      console.warn('[Maintenance] Failed to log toggle:', logError.message);
+    }
+
+    console.log(`[Maintenance] Toggled to ${newStatus ? 'ON' : 'OFF'} by ${adminUsername}`);
+
+    res.json({
+      success: true,
+      data: {
+        is_enabled: newStatus === 1
+      },
+      message: newStatus ? 'Maintenance mode enabled' : 'Maintenance mode disabled'
+    });
+  } catch (error) {
+    console.error('[Maintenance] Error toggling status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to toggle maintenance status'
+    });
   }
 });
 

@@ -585,5 +585,10 @@
     "remainingDays": "Remaining Days",
     "usdt": "USDT",
     "wld": "WLD"
+  },
+  "maintenance": {
+    "title": "System Maintenance",
+    "message": "The system is currently under maintenance. Please try again in 2 hours. Thank you for your patience.",
+    "estimatedTime": "Estimated Time"
   }
 }

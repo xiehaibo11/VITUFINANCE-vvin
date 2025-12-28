@@ -139,6 +139,18 @@
             <template #title>数据清理</template>
           </el-menu-item>
           
+          <!-- 维护公告 -->
+          <el-menu-item index="/maintenance">
+            <el-icon><WarnTriangleFilled /></el-icon>
+            <template #title>维护公告</template>
+          </el-menu-item>
+          
+          <!-- 虚假账户检测 -->
+          <el-menu-item index="/fake-accounts">
+            <el-icon><Avatar /></el-icon>
+            <template #title>虚假账户</template>
+          </el-menu-item>
+          
           <!-- 系统管理 -->
           <el-sub-menu index="system">
             <template #title>
@@ -445,7 +457,9 @@ import {
   Timer,
   Delete,
   Lock,
-  Present
+  Present,
+  WarnTriangleFilled,
+  Avatar
 } from '@element-plus/icons-vue'
 import request from '@/api'
 import { useThemeStore } from '@/stores/theme'

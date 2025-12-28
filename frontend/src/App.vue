@@ -1,23 +1,94 @@
 <template>
   <div id="app">
     <el-config-provider :locale="elLocale">
-      <Navigation v-if="showNavigation" />
-      <router-view />
+      <!-- Maintenance Overlay - shows when system is in maintenance mode -->
+      <MaintenanceOverlay 
+        :isVisible="isMaintenanceMode" 
+        :maintenanceData="maintenanceData" 
+      />
+      
+      <!-- Normal content - hidden during maintenance -->
+      <template v-if="!isMaintenanceMode">
+        <Navigation v-if="showNavigation" />
+        <router-view />
+      </template>
     </el-config-provider>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { ElConfigProvider } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import Navigation from './components/Navigation.vue'
+import MaintenanceOverlay from './components/MaintenanceOverlay.vue'
 import { useWalletStore } from '@/stores/wallet'
 import { ensureReferralBound } from '@/utils/wallet'
+import { checkMaintenanceStatus } from '@/api/maintenance'
 
 const route = useRoute()
 const walletStore = useWalletStore()
+
+// ==================== Maintenance Mode ====================
+
+// Maintenance state
+const isMaintenanceMode = ref(false)
+const maintenanceData = ref({
+  is_enabled: false,
+  title: '',
+  message: '',
+  estimated_duration: 120,
+  translations: {}
+})
+
+// Maintenance check interval (every 60 seconds)
+let maintenanceCheckInterval = null
+
+/**
+ * Check if system is in maintenance mode
+ * Called on mount and periodically
+ */
+const checkMaintenance = async () => {
+  try {
+    const result = await checkMaintenanceStatus()
+    if (result.success && result.data) {
+      isMaintenanceMode.value = result.data.is_enabled === true
+      maintenanceData.value = result.data
+      
+      if (result.data.is_enabled) {
+        console.log('[App] System is in maintenance mode')
+      }
+    }
+  } catch (error) {
+    console.error('[App] Failed to check maintenance status:', error)
+    // Don't block users if maintenance check fails
+    isMaintenanceMode.value = false
+  }
+}
+
+/**
+ * Start periodic maintenance check
+ */
+const startMaintenanceCheck = () => {
+  // Initial check
+  checkMaintenance()
+  
+  // Check every 60 seconds
+  maintenanceCheckInterval = setInterval(() => {
+    checkMaintenance()
+  }, 60000)
+}
+
+/**
+ * Stop maintenance check
+ */
+const stopMaintenanceCheck = () => {
+  if (maintenanceCheckInterval) {
+    clearInterval(maintenanceCheckInterval)
+    maintenanceCheckInterval = null
+  }
+}
 
 // 需要隐藏导航栏的路由
 const hiddenNavRoutes = ['/robot/caption']
@@ -45,7 +116,7 @@ const handleReferralCode = () => {
   }
 }
 
-// 页面加载时检查推荐码
+// 页面加载时检查推荐码和维护状态
 onMounted(() => {
   handleReferralCode()
   
@@ -54,6 +125,14 @@ onMounted(() => {
   if (savedRefCode && walletStore.isConnected) {
     ensureReferralBound()
   }
+  
+  // Start maintenance status check
+  startMaintenanceCheck()
+})
+
+// Cleanup on unmount
+onUnmounted(() => {
+  stopMaintenanceCheck()
 })
 
 // 监听路由变化，处理推荐码

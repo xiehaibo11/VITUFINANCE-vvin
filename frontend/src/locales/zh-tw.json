@@ -660,5 +660,10 @@
     "insufficientPointsDetail": "幸運值不足，需要 {need}，當前 {current}",
     "spinFailed": "抽獎失敗，請重試",
     "won": "獲得"
+  },
+  "maintenance": {
+    "title": "系統維護中",
+    "message": "系統正在維護中，請2個小時後再次訪問。感謝您的耐心等待。",
+    "estimatedTime": "預計時間"
   }
 }

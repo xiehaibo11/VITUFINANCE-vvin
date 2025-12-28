@@ -1,92 +1,103 @@
 /**
- * 管理后台路由 - 主入口
+ * Admin Routes - Main Entry Point
  * 
- * 优化说明:
- * - 将原来5647行的 adminRoutes.js 拆分成多个模块
- * - 每个模块负责单一功能,代码行数控制在500行以内
- * - 添加缓存支持,减少数据库查询
- * - 使用数据库索引优化查询性能
- * - 添加响应压缩
+ * Module Organization:
+ * - authRoutes: Authentication (login, info)
+ * - dashboardRoutes: Dashboard statistics
+ * - userRoutes: User management
+ * - depositRoutes: Deposit records
+ * - withdrawalRoutes: Withdrawal records
+ * - robotRoutes: Robot management
+ * - fakeAccountRoutes: Fake account detection & cleanup
+ * - teamDividendRoutes: Team dividend management
+ * - maintenanceRoutes: System maintenance
  * 
- * 模块划分:
- * - authRoutes: 认证相关 (登录、信息获取)
- * - dashboardRoutes: 仪表盘统计
- * - userRoutes: 用户管理
- * - depositRoutes: 充值记录
- * - withdrawalRoutes: 提款记录
- * - robotRoutes: 机器人管理
- * - announcementRoutes: 公告管理
- * - referralRoutes: 推荐关系
- * - settingsRoutes: 系统设置
+ * Note: The main adminRoutes.js still contains additional routes
+ * that haven't been migrated yet. This index.js provides the new
+ * modular structure while maintaining backward compatibility.
  * 
- * 创建时间: 2025-12-18
+ * Created: 2025-12-18
+ * Updated: 2025-12-29
  */
 import express from 'express';
 import compression from 'compression';
 import { authMiddleware } from '../../middleware/security.js';
 
-// 导入各个模块路由
+// Import route modules
 import authRoutes from './authRoutes.js';
 import dashboardRoutes from './dashboardRoutes.js';
 import userRoutes from './userRoutes.js';
 import depositRoutes from './depositRoutes.js';
 import withdrawalRoutes from './withdrawalRoutes.js';
+import maintenanceRoutes from './maintenanceRoutes.js';
+import robotRoutes from './robotRoutes.js';
+import fakeAccountRoutes from './fakeAccountRoutes.js';
+import teamDividendRoutes from './teamDividendRoutes.js';
 
 const router = express.Router();
 
-// ==================== 中间件 ====================
+// ==================== Middleware ====================
 
-// 响应压缩 (优化传输速度)
+// Response compression
 router.use(compression({
-  level: 6, // 压缩级别 (0-9)
-  threshold: 1024, // 只压缩大于1KB的响应
+  level: 6,
+  threshold: 1024,
   filter: (req, res) => {
-    // 只压缩JSON和文本响应
     const contentType = res.getHeader('Content-Type');
     return /json|text/.test(contentType);
   }
 }));
 
-// ==================== 公开路由 (无需认证) ====================
+// ==================== Public Routes (No Auth) ====================
 
-// 认证相关
+// Authentication
 router.use('/auth', authRoutes);
 
-// ==================== 受保护路由 (需要认证) ====================
+// Maintenance status (public)
+router.get('/maintenance/status', (req, res, next) => {
+  // Forward to maintenance routes for status check
+  req.url = '/status';
+  maintenanceRoutes(req, res, next);
+});
 
-// 仪表盘
+// ==================== Protected Routes (Auth Required) ====================
+
+// Dashboard
 router.use('/dashboard', authMiddleware, dashboardRoutes);
 
-// 用户管理
+// User management
 router.use('/users', authMiddleware, userRoutes);
 
-// 充值记录
+// Deposit records
 router.use('/deposits', authMiddleware, depositRoutes);
 
-// 提款记录
+// Withdrawal records
 router.use('/withdrawals', authMiddleware, withdrawalRoutes);
 
-// 机器人管理
-// router.use('/robots', authMiddleware, robotRoutes);
+// Maintenance management
+router.use('/maintenance', authMiddleware, maintenanceRoutes);
 
-// 公告管理
-// router.use('/announcements', authMiddleware, announcementRoutes);
+// Robot management
+router.use('/robots', authMiddleware, robotRoutes);
 
-// 推荐关系
-// router.use('/referrals', authMiddleware, referralRoutes);
+// Fake account management
+router.use('/fake-accounts', authMiddleware, fakeAccountRoutes);
 
-// 系统设置
-// router.use('/settings', authMiddleware, settingsRoutes);
+// Team dividend management
+router.use('/team-dividend', authMiddleware, teamDividendRoutes);
 
-// ==================== 健康检查 ====================
+// ==================== Health Check ====================
 
 router.get('/health', (req, res) => {
   res.json({
     success: true,
     message: 'Admin API is running',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    modules: [
+      'auth', 'dashboard', 'users', 'deposits', 'withdrawals',
+      'maintenance', 'robots', 'fake-accounts', 'team-dividend'
+    ]
   });
 });
 
 export default router;
-

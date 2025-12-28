@@ -667,5 +667,10 @@
     "insufficientPointsDetail": "Points insuffisants, besoin de {need}, actuel {current}",
     "spinFailed": "Échec du tirage, veuillez réessayer",
     "won": "gagné"
+  },
+  "maintenance": {
+    "title": "Maintenance du Système",
+    "message": "Le système est actuellement en maintenance. Veuillez réessayer dans 2 heures. Merci de votre patience.",
+    "estimatedTime": "Durée estimée"
   }
 }

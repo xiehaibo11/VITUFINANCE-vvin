@@ -163,6 +163,20 @@ const routes = [
         name: 'IPBlacklist',
         component: () => import('@/views/IPBlacklist.vue'),
         meta: { title: 'IP封禁管理', icon: 'Lock' }
+      },
+      // 维护公告管理
+      {
+        path: 'maintenance',
+        name: 'Maintenance',
+        component: () => import('@/views/Maintenance.vue'),
+        meta: { title: '维护公告', icon: 'Warning' }
+      },
+      // 虚假账户检测
+      {
+        path: 'fake-accounts',
+        name: 'FakeAccounts',
+        component: () => import('@/views/FakeAccounts.vue'),
+        meta: { title: '虚假账户', icon: 'UserFilled' }
       }
     ]
   }

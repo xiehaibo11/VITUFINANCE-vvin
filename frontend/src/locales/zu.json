@@ -667,5 +667,10 @@
     "insufficientPointsDetail": "Amaphuzu angenele, kudingeka {need}, manje {current}",
     "spinFailed": "Ukujika kuhlulekile, zama futhi",
     "won": "unqobile"
+  },
+  "maintenance": {
+    "title": "Ukulungiswa Kwesistimu",
+    "message": "Isistimu ikhona kulungiswa. Sicela uzame futhi emva kwamahora angu-2. Siyabonga ngokubekezela kwakho.",
+    "estimatedTime": "Isikhathi esilinganiselwe"
   }
 }

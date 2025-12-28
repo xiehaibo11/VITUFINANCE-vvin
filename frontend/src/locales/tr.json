@@ -667,5 +667,10 @@
     "insufficientPointsDetail": "Yetersiz puan, {need} gerekli, mevcut {current}",
     "spinFailed": "Çevirme başarısız, tekrar deneyin",
     "won": "kazandı"
+  },
+  "maintenance": {
+    "title": "Sistem Bakımı",
+    "message": "Sistem şu anda bakımdadır. Lütfen 2 saat sonra tekrar deneyin. Sabrınız için teşekkür ederiz.",
+    "estimatedTime": "Tahmini süre"
   }
 }

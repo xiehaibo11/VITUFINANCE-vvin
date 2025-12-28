@@ -667,5 +667,10 @@
     "insufficientPointsDetail": "Poin tidak cukup, butuh {need}, saat ini {current}",
     "spinFailed": "Gagal memutar, coba lagi",
     "won": "menang"
+  },
+  "maintenance": {
+    "title": "Pemeliharaan Sistem",
+    "message": "Sistem sedang dalam pemeliharaan. Silakan coba lagi dalam 2 jam. Terima kasih atas kesabaran Anda.",
+    "estimatedTime": "Waktu perkiraan"
   }
 }

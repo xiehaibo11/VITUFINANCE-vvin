@@ -667,5 +667,10 @@
     "insufficientPointsDetail": "Puntos insuficientes, necesita {need}, actual {current}",
     "spinFailed": "Giro fallido, intente de nuevo",
     "won": "ganó"
+  },
+  "maintenance": {
+    "title": "Mantenimiento del Sistema",
+    "message": "El sistema está actualmente en mantenimiento. Por favor, inténtelo de nuevo en 2 horas. Gracias por su paciencia.",
+    "estimatedTime": "Tiempo estimado"
   }
 }

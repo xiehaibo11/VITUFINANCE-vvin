@@ -667,5 +667,10 @@
     "insufficientPointsDetail": "Unzureichende Punkte, benötigt {need}, aktuell {current}",
     "spinFailed": "Drehung fehlgeschlagen, bitte erneut versuchen",
     "won": "gewonnen"
+  },
+  "maintenance": {
+    "title": "Systemwartung",
+    "message": "Das System befindet sich derzeit in Wartung. Bitte versuchen Sie es in 2 Stunden erneut. Vielen Dank für Ihre Geduld.",
+    "estimatedTime": "Geschätzte Zeit"
   }
 }

@@ -667,5 +667,10 @@
     "insufficientPointsDetail": "Mata tidak mencukupi, perlukan {need}, semasa {current}",
     "spinFailed": "Gagal berpusing, sila cuba lagi",
     "won": "menang"
+  },
+  "maintenance": {
+    "title": "Penyelenggaraan Sistem",
+    "message": "Sistem sedang dalam penyelenggaraan. Sila cuba lagi dalam 2 jam. Terima kasih atas kesabaran anda.",
+    "estimatedTime": "Anggaran masa"
   }
 }
