@@ -234,9 +234,98 @@
 
     <template #footer>
       <el-button @click="handleClose">关闭</el-button>
+      <el-button type="warning" @click="openBalanceAdjustDialog">
+        <el-icon><Coin /></el-icon>
+        调整余额
+      </el-button>
       <el-button type="primary" @click="viewMemberDetail">
         <el-icon><User /></el-icon>
         查看成员详情
+      </el-button>
+    </template>
+  </el-dialog>
+
+  <!-- Balance Adjustment Dialog -->
+  <el-dialog
+    v-model="showBalanceDialog"
+    title="调整用户余额"
+    width="550px"
+    :close-on-click-modal="false"
+  >
+    <el-form :model="balanceForm" label-width="100px">
+      <el-form-item label="钱包地址">
+        <el-input v-model="balanceForm.wallet_address" disabled />
+      </el-form-item>
+      <el-form-item label="当前余额">
+        <el-tag type="success" size="large">{{ formatAmount(teamData.current_balance) }} USDT</el-tag>
+      </el-form-item>
+      <el-form-item label="操作类型" required>
+        <el-radio-group v-model="balanceForm.operation_type">
+          <el-radio value="set">
+            <el-icon><Edit /></el-icon>
+            直接设置
+          </el-radio>
+          <el-radio value="increase">
+            <el-icon><Plus /></el-icon>
+            增加余额
+          </el-radio>
+          <el-radio value="decrease">
+            <el-icon><Minus /></el-icon>
+            减少余额
+          </el-radio>
+        </el-radio-group>
+      </el-form-item>
+      <el-form-item :label="balanceForm.operation_type === 'set' ? '新余额' : '调整金额'" required>
+        <el-input-number
+          v-model="balanceForm.amount"
+          :min="0"
+          :max="1000000"
+          :precision="4"
+          :step="10"
+          style="width: 200px"
+        />
+        <span class="unit">USDT</span>
+      </el-form-item>
+      <el-form-item label="调整后余额">
+        <el-tag :type="previewBalanceType" size="large">
+          {{ previewBalance }} USDT
+        </el-tag>
+      </el-form-item>
+      <el-form-item label="调整原因" required>
+        <el-input
+          v-model="balanceForm.reason"
+          type="textarea"
+          :rows="3"
+          placeholder="请输入调整原因（必填）..."
+          maxlength="200"
+          show-word-limit
+        />
+      </el-form-item>
+      <el-alert
+        :type="balanceAlertType"
+        :closable="false"
+        style="margin-top: 10px"
+      >
+        <template v-if="balanceForm.operation_type === 'set'">
+          将用户余额直接设置为 <strong>{{ balanceForm.amount }} USDT</strong>（当前: {{ formatAmount(teamData.current_balance) }} USDT），操作会记录到交易历史和管理员操作日志
+        </template>
+        <template v-else-if="balanceForm.operation_type === 'increase'">
+          将向用户余额增加 <strong>{{ balanceForm.amount }} USDT</strong>，操作会记录到交易历史和管理员操作日志
+        </template>
+        <template v-else>
+          将从用户余额扣减 <strong>{{ balanceForm.amount }} USDT</strong>，请确保用户余额充足，操作会记录到交易历史和管理员操作日志
+        </template>
+      </el-alert>
+    </el-form>
+    <template #footer>
+      <el-button @click="showBalanceDialog = false">取消</el-button>
+      <el-button
+        type="primary"
+        @click="submitBalanceAdjust"
+        :loading="balanceAdjusting"
+        :disabled="!balanceForm.reason || (balanceForm.operation_type !== 'set' && balanceForm.amount <= 0)"
+      >
+        确认调整
       </el-button>
     </template>
   </el-dialog>
@@ -248,10 +337,10 @@
  * Displays comprehensive team information including leader, stats, level progress, and members
  */
 import { ref, watch, computed } from 'vue'
-import { ElMessage } from 'element-plus'
-import { 
-  Avatar, User, UserFilled, Coin, TrendCharts, Medal, 
-  Connection, List, CopyDocument, Check 
+import { ElMessage, ElMessageBox } from 'element-plus'
+import {
+  Avatar, User, UserFilled, Coin, TrendCharts, Medal,
+  Connection, List, CopyDocument, Check, Plus, Minus, Edit
 } from '@element-plus/icons-vue'
 import request from '@/api'
 
@@ -282,19 +371,29 @@ const directMembers = ref([])
 const dividendRecords = ref([])
 const subBrokerCounts = ref({})
 
+// Balance adjustment
+const showBalanceDialog = ref(false)
+const balanceAdjusting = ref(false)
+const balanceForm = ref({
+  wallet_address: '',
+  operation_type: 'increase',
+  amount: 10,
+  reason: ''
+})
+
 // Calculate level progress
 const levelProgress = computed(() => {
   const direct = teamData.value.direct_members || 0
   const performance = parseFloat(teamData.value.team_performance) || 0
   const currentLevel = teamData.value.current_level || 0
-  
+
   return BROKER_LEVELS.slice(1).map(config => {
     const subBrokerCount = subBrokerCounts.value[config.subBrokerLevel] || 0
     const directAchieved = direct >= config.directRequired
     const subBrokerAchieved = config.subBrokerRequired === 0 || subBrokerCount >= config.subBrokerRequired
     const performanceAchieved = performance > config.performanceRequired
     const achieved = directAchieved && subBrokerAchieved && performanceAchieved
-    
+
     return {
       ...config,
       subBrokerCount,
@@ -304,6 +403,37 @@ const levelProgress = computed(() => {
       achieved
     }
   })
+})
+
+// Calculate preview balance after adjustment
+const previewBalance = computed(() => {
+  const current = parseFloat(teamData.value.current_balance) || 0
+  const amount = parseFloat(balanceForm.value.amount) || 0
+
+  if (balanceForm.value.operation_type === 'set') {
+    // Direct set: show the new value
+    return amount.toFixed(4)
+  } else if (balanceForm.value.operation_type === 'increase') {
+    return (current + amount).toFixed(4)
+  } else {
+    return (current - amount).toFixed(4)
+  }
+})
+
+// Get preview balance tag type
+const previewBalanceType = computed(() => {
+  const preview = parseFloat(previewBalance.value)
+  if (preview < 0) return 'danger'
+  if (balanceForm.value.operation_type === 'increase') return 'success'
+  if (balanceForm.value.operation_type === 'set') return 'primary'
+  return 'warning'
+})
+
+// Get alert type based on operation
+const balanceAlertType = computed(() => {
+  if (balanceForm.value.operation_type === 'set') return 'info'
+  if (balanceForm.value.operation_type === 'increase') return 'success'
+  return 'warning'
 })
 
 // Watch visibility
@@ -333,11 +463,17 @@ const loadTeamDetail = async () => {
       }
     }
 
+    // Get user balance from team-management API
+    const userRes = await request.get(`/team-management/user/${props.leaderAddress}`)
+    if (userRes.success) {
+      teamData.value.current_balance = userRes.data.usdt_balance || 0
+    }
+
     // Get direct members with broker level info
     const membersRes = await request.get(`/team-dividend/member/${props.leaderAddress}/direct-members`)
     if (membersRes.success) {
       directMembers.value = membersRes.data.members || []
-      
+
       // Count sub-brokers by level
       const counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
       directMembers.value.forEach(member => {
@@ -426,6 +562,107 @@ const getLevelType = (level) => {
   const types = { 1: 'info', 2: 'success', 3: 'warning', 4: 'danger', 5: 'danger' }
   return types[level] || 'info'
 }
+
+/**
+ * Open balance adjustment dialog
+ */
+const openBalanceAdjustDialog = () => {
+  if (!teamData.value.leader_address) {
+    ElMessage.warning('用户信息加载中，请稍后')
+    return
+  }
+  balanceForm.value = {
+    wallet_address: teamData.value.leader_address,
+    operation_type: 'set', // Default to 'set' for direct modification
+    amount: parseFloat(teamData.value.current_balance) || 0,
+    reason: ''
+  }
+  showBalanceDialog.value = true
+}
+
+/**
+ * Submit balance adjustment
+ */
+const submitBalanceAdjust = async () => {
+  if (!balanceForm.value.reason || !balanceForm.value.reason.trim()) {
+    ElMessage.warning('请输入调整原因')
+    return
+  }
+
+  const amount = parseFloat(balanceForm.value.amount)
+  if (isNaN(amount) || amount < 0) {
+    ElMessage.warning('请输入有效的金额')
+    return
+  }
+
+  // For increase/decrease, amount must be > 0
+  if (balanceForm.value.operation_type !== 'set' && amount === 0) {
+    ElMessage.warning('调整金额必须大于0')
+    return
+  }
+
+  // Check if balance will be negative after operation
+  const currentBalance = parseFloat(teamData.value.current_balance) || 0
+  let newBalance
+
+  if (balanceForm.value.operation_type === 'set') {
+    newBalance = amount
+  } else if (balanceForm.value.operation_type === 'increase') {
+    newBalance = currentBalance + amount
+  } else {
+    newBalance = currentBalance - amount
+  }
+
+  if (newBalance < 0) {
+    ElMessage.error(`操作后余额将为负数（${newBalance.toFixed(4)} USDT），请调整金额`)
+    return
+  }
+
+  // Build confirmation message
+  let confirmMsg
+  if (balanceForm.value.operation_type === 'set') {
+    confirmMsg = `确定要将余额设置为 ${amount} USDT 吗？\n当前余额: ${currentBalance.toFixed(4)} USDT\n调整后: ${newBalance.toFixed(4)} USDT`
+  } else if (balanceForm.value.operation_type === 'increase') {
+    confirmMsg = `确定要增加 ${amount} USDT 吗？\n当前余额: ${currentBalance.toFixed(4)} USDT\n调整后: ${newBalance.toFixed(4)} USDT`
+  } else {
+    confirmMsg = `确定要减少 ${amount} USDT 吗？\n当前余额: ${currentBalance.toFixed(4)} USDT\n调整后: ${newBalance.toFixed(4)} USDT`
+  }
+
+  try {
+    await ElMessageBox.confirm(confirmMsg, '确认调整余额', {
+      type: 'warning',
+      confirmButtonText: '确认调整',
+      cancelButtonText: '取消'
+    })
+  } catch {
+    return
+  }
+
+  balanceAdjusting.value = true
+  try {
+    const response = await request.post('/team-management/adjust-balance', {
+      wallet_address: balanceForm.value.wallet_address,
+      amount: balanceForm.value.amount,
+      operation_type: balanceForm.value.operation_type,
+      reason: balanceForm.value.reason
+    })
+
+    if (response.success) {
+      ElMessage.success(response.message || '余额调整成功')
+      showBalanceDialog.value = false
+      // Reload team detail to get updated balance
+      loadTeamDetail()
+    } else {
+      ElMessage.error(response.message || '余额调整失败')
+    }
+  } catch (error) {
+    console.error('余额调整失败:', error)
+    ElMessage.error(error.response?.data?.message || '余额调整失败')
+  } finally {
+    balanceAdjusting.value = false
+  }
+}
+
 </script>
 
 <style scoped>
@@ -569,6 +806,13 @@ const getLevelType = (level) => {
 .qualified {
   color: #67C23A;
   font-weight: 600;
+}
+
+/* Balance adjustment dialog */
+.unit {
+  margin-left: 8px;
+  color: var(--admin-text-secondary);
+  font-size: 14px;
 }
 </style>
 

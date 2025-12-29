@@ -82,15 +82,18 @@
             <span class="amount warning">{{ formatMoney(row.total_team_dividend) }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="280" fixed="right">
+        <el-table-column label="操作" width="360" fixed="right">
           <template #default="{ row }">
             <el-button size="small" type="primary" @click="viewUserDetail(row)">
               <el-icon><View /></el-icon> 详情
             </el-button>
+            <el-button size="small" type="warning" @click="openBalanceDialog(row)">
+              <el-icon><Edit /></el-icon> 调整余额
+            </el-button>
             <el-button size="small" type="success" @click="openAwardDialog(row, 'referral')">
               发奖励
             </el-button>
-            <el-button size="small" type="warning" @click="openAwardDialog(row, 'dividend')">
+            <el-button size="small" type="info" @click="openAwardDialog(row, 'dividend')">
               发分红
             </el-button>
           </template>
@@ -263,6 +266,53 @@
       </template>
     </el-dialog>
 
+    <!-- Balance Adjustment Dialog -->
+    <el-dialog v-model="showBalanceDialog" title="调整用户余额" width="550px" :close-on-click-modal="false">
+      <el-form :model="balanceForm" label-width="100px">
+        <el-form-item label="钱包地址">
+          <el-input v-model="balanceForm.wallet_address" disabled />
+        </el-form-item>
+        <el-form-item label="当前余额">
+          <el-tag type="success" size="large">{{ formatMoney(balanceForm.current_balance) }} USDT</el-tag>
+        </el-form-item>
+        <el-form-item label="操作类型" required>
+          <el-radio-group v-model="balanceForm.operation_type">
+            <el-radio value="set"><el-icon><Edit /></el-icon> 直接设置</el-radio>
+            <el-radio value="increase"><el-icon><Plus /></el-icon> 增加余额</el-radio>
+            <el-radio value="decrease"><el-icon><Minus /></el-icon> 减少余额</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item :label="balanceForm.operation_type === 'set' ? '新余额' : '调整金额'" required>
+          <el-input-number v-model="balanceForm.amount" :min="0" :max="1000000" :precision="4" :step="10" style="width: 200px" />
+          <span class="unit">USDT</span>
+        </el-form-item>
+        <el-form-item label="调整后余额">
+          <el-tag :type="previewBalanceType" size="large">{{ previewBalance }} USDT</el-tag>
+        </el-form-item>
+        <el-form-item label="调整原因" required>
+          <el-input v-model="balanceForm.reason" type="textarea" :rows="3" placeholder="请输入调整原因（必填）..." maxlength="200" show-word-limit />
+        </el-form-item>
+        <el-alert :type="balanceAlertType" :closable="false" style="margin-top: 10px">
+          <template v-if="balanceForm.operation_type === 'set'">
+            将用户余额直接设置为 <strong>{{ balanceForm.amount }} USDT</strong>，操作会记录到交易历史
+          </template>
+          <template v-else-if="balanceForm.operation_type === 'increase'">
+            将向用户余额增加 <strong>{{ balanceForm.amount }} USDT</strong>，操作会记录到交易历史
+          </template>
+          <template v-else>
+            将从用户余额扣减 <strong>{{ balanceForm.amount }} USDT</strong>，请确保余额充足
+          </template>
+        </el-alert>
+      </el-form>
+      <template #footer>
+        <el-button @click="showBalanceDialog = false">取消</el-button>
+        <el-button type="primary" @click="submitBalanceAdjust" :loading="balanceAdjusting" 
+          :disabled="!balanceForm.reason || (balanceForm.operation_type !== 'set' && balanceForm.amount <= 0)">
+          确认调整
+        </el-button>
+      </template>
+    </el-dialog>
+
     <!-- Level Dialog -->
     <el-dialog v-model="showLevelDialog" title="调整经纪人等级" width="450px">
       <el-form :model="levelForm" label-width="100px">
@@ -340,7 +390,7 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
   UserFilled, Search, Money, View, CopyDocument, User, Coin, 
-  Connection, DataLine, Setting 
+  Connection, DataLine, Setting, Edit, Plus, Minus
 } from '@element-plus/icons-vue'
 import request from '@/api'
 
@@ -385,6 +435,17 @@ const levelForm = reactive({
   reason: ''
 })
 
+// Balance adjustment dialog
+const showBalanceDialog = ref(false)
+const balanceAdjusting = ref(false)
+const balanceForm = reactive({
+  wallet_address: '',
+  current_balance: 0,
+  operation_type: 'set',
+  amount: 0,
+  reason: ''
+})
+
 // Batch award
 const showBatchAwardDialog = ref(false)
 const batchAwarding = ref(false)
@@ -398,6 +459,31 @@ const batchForm = reactive({
 
 const hierarchyTree = computed(() => {
   return hierarchyData.value.hierarchy || []
+})
+
+// Calculate preview balance after adjustment
+const previewBalance = computed(() => {
+  const current = parseFloat(balanceForm.current_balance) || 0
+  const amount = parseFloat(balanceForm.amount) || 0
+  if (balanceForm.operation_type === 'set') return amount.toFixed(4)
+  if (balanceForm.operation_type === 'increase') return (current + amount).toFixed(4)
+  return (current - amount).toFixed(4)
+})
+
+// Get preview balance tag type
+const previewBalanceType = computed(() => {
+  const preview = parseFloat(previewBalance.value)
+  if (preview < 0) return 'danger'
+  if (balanceForm.operation_type === 'increase') return 'success'
+  if (balanceForm.operation_type === 'set') return 'primary'
+  return 'warning'
+})
+
+// Get alert type based on operation
+const balanceAlertType = computed(() => {
+  if (balanceForm.operation_type === 'set') return 'info'
+  if (balanceForm.operation_type === 'increase') return 'success'
+  return 'warning'
 })
 
 const parsedBatchList = computed(() => {
@@ -545,6 +631,81 @@ const submitAward = async () => {
     ElMessage.error(error.response?.data?.message || '发放失败')
   } finally {
     awarding.value = false
+  }
+}
+
+/**
+ * Open balance adjustment dialog
+ */
+const openBalanceDialog = (user) => {
+  balanceForm.wallet_address = user.wallet_address
+  balanceForm.current_balance = parseFloat(user.usdt_balance) || 0
+  balanceForm.operation_type = 'set'
+  balanceForm.amount = parseFloat(user.usdt_balance) || 0
+  balanceForm.reason = ''
+  showBalanceDialog.value = true
+}
+
+/**
+ * Submit balance adjustment
+ */
+const submitBalanceAdjust = async () => {
+  if (!balanceForm.reason || !balanceForm.reason.trim()) {
+    ElMessage.warning('请输入调整原因')
+    return
+  }
+
+  const amount = parseFloat(balanceForm.amount)
+  if (isNaN(amount) || amount < 0) {
+    ElMessage.warning('请输入有效的金额')
+    return
+  }
+
+  if (balanceForm.operation_type !== 'set' && amount === 0) {
+    ElMessage.warning('调整金额必须大于0')
+    return
+  }
+
+  // Check if balance will be negative
+  const current = parseFloat(balanceForm.current_balance) || 0
+  let newBalance = balanceForm.operation_type === 'set' ? amount : 
+    (balanceForm.operation_type === 'increase' ? current + amount : current - amount)
+
+  if (newBalance < 0) {
+    ElMessage.error(`操作后余额将为负数（${newBalance.toFixed(4)} USDT），请调整金额`)
+    return
+  }
+
+  const opText = balanceForm.operation_type === 'set' ? '设置为' : 
+    (balanceForm.operation_type === 'increase' ? '增加' : '减少')
+
+  await ElMessageBox.confirm(
+    `确定要${opText} ${amount} USDT 吗？\n当前余额: ${current.toFixed(4)} USDT\n调整后: ${newBalance.toFixed(4)} USDT`,
+    '确认调整余额',
+    { type: 'warning' }
+  )
+
+  balanceAdjusting.value = true
+  try {
+    const response = await request.post('/team-management/adjust-balance', {
+      wallet_address: balanceForm.wallet_address,
+      amount: balanceForm.amount,
+      operation_type: balanceForm.operation_type,
+      reason: balanceForm.reason
+    })
+
+    if (response.success) {
+      ElMessage.success(response.message || '余额调整成功')
+      showBalanceDialog.value = false
+      searchUsers()
+    } else {
+      ElMessage.error(response.message || '余额调整失败')
+    }
+  } catch (error) {
+    console.error('Balance adjust error:', error)
+    ElMessage.error(error.response?.data?.message || '余额调整失败')
+  } finally {
+    balanceAdjusting.value = false
   }
 }
 

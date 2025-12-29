@@ -9782,6 +9782,103 @@ router.get('/team-management/hierarchy/:wallet_address', authMiddleware, async (
 });
 
 /**
+ * POST /api/admin/team-management/adjust-balance
+ * Adjust user USDT balance (increase, decrease, or set directly)
+ */
+router.post('/team-management/adjust-balance', authMiddleware, async (req, res) => {
+  try {
+    const { wallet_address, amount, operation_type, reason } = req.body;
+    const adminUsername = req.admin?.username || 'admin';
+
+    if (!wallet_address) {
+      return res.status(400).json({ success: false, message: 'Invalid wallet address' });
+    }
+
+    if (!operation_type || !['increase', 'decrease', 'set'].includes(operation_type)) {
+      return res.status(400).json({ success: false, message: 'Invalid operation type (increase, decrease, or set)' });
+    }
+
+    const walletAddr = wallet_address.toLowerCase();
+    const inputAmount = parseFloat(amount);
+
+    if (isNaN(inputAmount) || inputAmount < 0) {
+      return res.status(400).json({ success: false, message: 'Invalid amount' });
+    }
+
+    // Check user exists
+    const userCheck = await dbQuery('SELECT wallet_address, usdt_balance FROM user_balances WHERE wallet_address = ?', [walletAddr]);
+    if (!userCheck || userCheck.length === 0) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const currentBalance = parseFloat(userCheck[0].usdt_balance || 0);
+    let newBalance;
+    let finalAmount; // The actual change amount
+
+    if (operation_type === 'set') {
+      newBalance = inputAmount;
+      finalAmount = newBalance - currentBalance;
+    } else if (operation_type === 'increase') {
+      if (inputAmount === 0) {
+        return res.status(400).json({ success: false, message: 'Amount must be greater than 0' });
+      }
+      finalAmount = inputAmount;
+      newBalance = currentBalance + finalAmount;
+    } else { // decrease
+      if (inputAmount === 0) {
+        return res.status(400).json({ success: false, message: 'Amount must be greater than 0' });
+      }
+      finalAmount = -inputAmount;
+      newBalance = currentBalance + finalAmount;
+    }
+
+    // Prevent negative balance
+    if (newBalance < 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Insufficient balance. Current: ${currentBalance} USDT, new balance would be: ${newBalance} USDT`
+      });
+    }
+
+    // Update user balance
+    if (operation_type === 'set') {
+      await dbQuery(`UPDATE user_balances SET usdt_balance = ?, updated_at = NOW() WHERE wallet_address = ?`, [newBalance, walletAddr]);
+    } else {
+      await dbQuery(`UPDATE user_balances SET usdt_balance = usdt_balance + ?, updated_at = NOW() WHERE wallet_address = ?`, [finalAmount, walletAddr]);
+    }
+
+    // Record transaction
+    const operationText = operation_type === 'set' ? 'set to' : operation_type;
+    await dbQuery(
+      `INSERT INTO transaction_history (wallet_address, type, amount, token, description, status, created_at)
+       VALUES (?, 'admin_balance_adjustment', ?, 'USDT', ?, 'completed', NOW())`,
+      [walletAddr, finalAmount, reason || `Admin balance ${operationText} ${operation_type === 'set' ? inputAmount : ''} by ${adminUsername}`]
+    );
+
+    // Log admin operation
+    await dbQuery(
+      `INSERT INTO admin_operation_logs (admin_id, admin_username, operation_type, operation_target, operation_detail, ip_address, created_at)
+       VALUES (?, ?, 'ADJUST_BALANCE', ?, ?, ?, NOW())`,
+      [req.admin?.id || 0, adminUsername, walletAddr, JSON.stringify({
+        operation: operation_type, input_amount: inputAmount, change_amount: finalAmount,
+        old_balance: currentBalance, new_balance: newBalance, reason
+      }), req.ip]
+    );
+
+    secureLog('info', `Balance adjusted: ${walletAddr} ${operation_type} ${inputAmount} USDT (${currentBalance} -> ${newBalance}) by ${adminUsername}`);
+
+    res.json({
+      success: true,
+      message: `Successfully adjusted balance: ${operation_type} ${operation_type === 'set' ? 'to' : ''} ${inputAmount} USDT`,
+      data: { wallet_address: walletAddr, operation_type, input_amount: inputAmount, change_amount: finalAmount, old_balance: currentBalance, new_balance: newBalance }
+    });
+  } catch (error) {
+    console.error('[TeamManagement] Error adjusting balance:', error);
+    res.status(500).json({ success: false, message: 'Failed to adjust balance' });
+  }
+});
+
+/**
  * POST /api/admin/team-management/award-referral
  * Manually award referral bonus (real USDT to balance)
  */
