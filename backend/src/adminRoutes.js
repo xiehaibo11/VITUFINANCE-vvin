@@ -9672,7 +9672,8 @@ router.get('/team-management/user/:wallet_address', authMiddleware, async (req, 
       FROM team_tree
     `, [walletAddr]);
 
-    // Get team performance
+    // Get team performance with deposits and withdrawals
+    // Include team_stat_adjustment records from the user's own account
     const performanceRows = await dbQuery(`
       WITH RECURSIVE team_tree AS (
         SELECT wallet_address FROM user_referrals WHERE referrer_address = ?
@@ -9680,9 +9681,20 @@ router.get('/team-management/user/:wallet_address', authMiddleware, async (req, 
         SELECT r.wallet_address FROM user_referrals r
         INNER JOIN team_tree t ON r.referrer_address = t.wallet_address
       )
-      SELECT COALESCE(SUM(d.amount), 0) as total_team_deposits FROM deposit_records d
-      WHERE d.wallet_address IN (SELECT wallet_address FROM team_tree) AND d.status = 'completed'
-    `, [walletAddr]);
+      SELECT 
+        (
+          COALESCE((SELECT SUM(amount) FROM deposit_records WHERE wallet_address IN (SELECT wallet_address FROM team_tree) AND status = 'completed'), 0) +
+          COALESCE((SELECT SUM(amount) FROM deposit_records WHERE wallet_address = ? AND status = 'completed' AND remark = 'team_stat_adjustment'), 0)
+        ) as total_team_deposits,
+        (
+          COALESCE((SELECT SUM(amount) FROM withdraw_records WHERE wallet_address IN (SELECT wallet_address FROM team_tree) AND status = 'completed'), 0) +
+          COALESCE((SELECT SUM(amount) FROM withdraw_records WHERE wallet_address = ? AND status = 'completed' AND remark = 'team_stat_adjustment'), 0)
+        ) as total_team_withdrawals
+    `, [walletAddr, walletAddr, walletAddr]);
+
+    // Get user personal deposits and withdrawals (exclude team_stat_adjustment records)
+    const userDeposits = await dbQuery(`SELECT COALESCE(SUM(amount), 0) as total FROM deposit_records WHERE wallet_address = ? AND status = 'completed' AND (remark IS NULL OR remark != 'team_stat_adjustment')`, [walletAddr]);
+    const userWithdrawals = await dbQuery(`SELECT COALESCE(SUM(amount), 0) as total FROM withdraw_records WHERE wallet_address = ? AND status = 'completed' AND (remark IS NULL OR remark != 'team_stat_adjustment')`, [walletAddr]);
 
     // Get rewards
     const referralRewards = await dbQuery(`SELECT COALESCE(SUM(reward_amount), 0) as total FROM referral_rewards WHERE wallet_address = ?`, [walletAddr]);
@@ -9708,6 +9720,12 @@ router.get('/team-management/user/:wallet_address', authMiddleware, async (req, 
         },
         total_referral_reward: parseFloat(referralRewards[0]?.total || 0),
         total_team_dividend: parseFloat(teamDividends[0]?.total || 0),
+        // Community totals
+        team_total_deposits: parseFloat(performanceRows[0]?.total_team_deposits || 0),
+        team_total_withdrawals: parseFloat(performanceRows[0]?.total_team_withdrawals || 0),
+        // User personal
+        user_total_deposits: parseFloat(userDeposits[0]?.total || 0),
+        user_total_withdrawals: parseFloat(userWithdrawals[0]?.total || 0),
         created_at: user.created_at
       }
     });
@@ -9875,6 +9893,173 @@ router.post('/team-management/adjust-balance', authMiddleware, async (req, res) 
   } catch (error) {
     console.error('[TeamManagement] Error adjusting balance:', error);
     res.status(500).json({ success: false, message: 'Failed to adjust balance' });
+  }
+});
+
+/**
+ * POST /api/admin/team-management/adjust-community-stats
+ * Adjust community statistics (deposits/withdrawals)
+ */
+router.post('/team-management/adjust-community-stats', authMiddleware, async (req, res) => {
+  try {
+    const { wallet_address, stat_type, amount, operation_type, reason } = req.body;
+    const adminUsername = req.admin?.username || 'admin';
+
+    // Validate stat_type
+    const validTypes = ['team_deposits', 'team_withdrawals', 'user_deposits', 'user_withdrawals'];
+    if (!stat_type || !validTypes.includes(stat_type)) {
+      return res.status(400).json({ success: false, message: 'Invalid stat_type' });
+    }
+
+    if (!wallet_address) {
+      return res.status(400).json({ success: false, message: 'Invalid wallet address' });
+    }
+
+    if (!operation_type || !['increase', 'decrease', 'set'].includes(operation_type)) {
+      return res.status(400).json({ success: false, message: 'Invalid operation type' });
+    }
+
+    const walletAddr = wallet_address.toLowerCase();
+    const inputAmount = parseFloat(amount);
+
+    if (isNaN(inputAmount) || inputAmount < 0) {
+      return res.status(400).json({ success: false, message: 'Invalid amount' });
+    }
+
+    // Check user exists
+    const userCheck = await dbQuery('SELECT wallet_address FROM user_balances WHERE wallet_address = ?', [walletAddr]);
+    if (!userCheck || userCheck.length === 0) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const typeLabels = {
+      team_deposits: '社区总充值',
+      team_withdrawals: '社区总提现',
+      user_deposits: '个人总充值',
+      user_withdrawals: '个人总提现'
+    };
+
+    // For individual user stats, we can directly modify deposit_records/withdrawals
+    // For team stats, we need to modify via manual adjustment records
+    let recordId;
+    let oldValue = 0;
+    let newValue;
+
+    if (stat_type === 'user_deposits') {
+      // Get current user deposits
+      const current = await dbQuery('SELECT COALESCE(SUM(amount), 0) as total FROM deposit_records WHERE wallet_address = ? AND status = "completed"', [walletAddr]);
+      oldValue = parseFloat(current[0]?.total || 0);
+      
+      // Calculate new value
+      if (operation_type === 'set') newValue = inputAmount;
+      else if (operation_type === 'increase') newValue = oldValue + inputAmount;
+      else newValue = Math.max(0, oldValue - inputAmount);
+
+      const adjustAmount = newValue - oldValue;
+      
+      // Insert adjustment record
+      const result = await dbQuery(
+        `INSERT INTO deposit_records (wallet_address, amount, token, status, tx_hash, remark, created_at, completed_at)
+         VALUES (?, ?, 'USDT', 'completed', ?, 'admin_adjustment', NOW(), NOW())`,
+        [walletAddr, adjustAmount, `ADMIN_ADJUST_${Date.now()}`]
+      );
+      recordId = result.insertId;
+
+    } else if (stat_type === 'user_withdrawals') {
+      // Get current user withdrawals
+      const current = await dbQuery('SELECT COALESCE(SUM(amount), 0) as total FROM withdraw_records WHERE wallet_address = ? AND status = "completed"', [walletAddr]);
+      oldValue = parseFloat(current[0]?.total || 0);
+      
+      // Calculate new value
+      if (operation_type === 'set') newValue = inputAmount;
+      else if (operation_type === 'increase') newValue = oldValue + inputAmount;
+      else newValue = Math.max(0, oldValue - inputAmount);
+
+      const adjustAmount = newValue - oldValue;
+      
+      // Insert adjustment record
+      const result = await dbQuery(
+        `INSERT INTO withdraw_records (wallet_address, amount, fee, actual_amount, token, status, tx_hash, remark, created_at, completed_at)
+         VALUES (?, ?, 0, ?, 'USDT', 'completed', ?, 'admin_adjustment', NOW(), NOW())`,
+        [walletAddr, adjustAmount, adjustAmount, `ADMIN_ADJUST_${Date.now()}`]
+      );
+      recordId = result.insertId;
+
+    } else {
+      // For team stats (team_deposits/team_withdrawals), we need to modify the broker_levels or a separate stats table
+      // Since this is aggregated data, we'll store adjustment in a special stats table or just log the operation
+      
+      if (stat_type === 'team_deposits') {
+        const current = await dbQuery(`
+          WITH RECURSIVE team_tree AS (
+            SELECT wallet_address FROM user_referrals WHERE referrer_address = ?
+            UNION ALL
+            SELECT r.wallet_address FROM user_referrals r
+            INNER JOIN team_tree t ON r.referrer_address = t.wallet_address
+          )
+          SELECT COALESCE(SUM(d.amount), 0) as total FROM deposit_records d
+          WHERE d.wallet_address IN (SELECT wallet_address FROM team_tree) AND d.status = 'completed'
+        `, [walletAddr]);
+        oldValue = parseFloat(current[0]?.total || 0);
+      } else {
+        const current = await dbQuery(`
+          WITH RECURSIVE team_tree AS (
+            SELECT wallet_address FROM user_referrals WHERE referrer_address = ?
+            UNION ALL
+            SELECT r.wallet_address FROM user_referrals r
+            INNER JOIN team_tree t ON r.referrer_address = t.wallet_address
+          )
+          SELECT COALESCE(SUM(w.amount), 0) as total FROM withdraw_records w
+          WHERE w.wallet_address IN (SELECT wallet_address FROM team_tree) AND w.status = 'completed'
+        `, [walletAddr]);
+        oldValue = parseFloat(current[0]?.total || 0);
+      }
+
+      // Calculate new value
+      if (operation_type === 'set') newValue = inputAmount;
+      else if (operation_type === 'increase') newValue = oldValue + inputAmount;
+      else newValue = Math.max(0, oldValue - inputAmount);
+
+      const adjustAmount = newValue - oldValue;
+
+      // Insert adjustment into the leader's own deposits/withdrawals as it affects team totals
+      if (stat_type === 'team_deposits') {
+        const result = await dbQuery(
+          `INSERT INTO deposit_records (wallet_address, amount, token, status, tx_hash, remark, created_at, completed_at)
+           VALUES (?, ?, 'USDT', 'completed', ?, 'team_stat_adjustment', NOW(), NOW())`,
+          [walletAddr, adjustAmount, `TEAM_ADJUST_${Date.now()}`]
+        );
+        recordId = result.insertId;
+      } else {
+        const result = await dbQuery(
+          `INSERT INTO withdraw_records (wallet_address, amount, fee, actual_amount, token, status, tx_hash, remark, created_at, completed_at)
+           VALUES (?, ?, 0, ?, 'USDT', 'completed', ?, 'team_stat_adjustment', NOW(), NOW())`,
+          [walletAddr, adjustAmount, adjustAmount, `TEAM_ADJUST_${Date.now()}`]
+        );
+        recordId = result.insertId;
+      }
+    }
+
+    // Log admin operation
+    await dbQuery(
+      `INSERT INTO admin_operation_logs (admin_id, admin_username, operation_type, operation_target, operation_detail, ip_address, created_at)
+       VALUES (?, ?, 'ADJUST_COMMUNITY_STATS', ?, ?, ?, NOW())`,
+      [req.admin?.id || 0, adminUsername, walletAddr, JSON.stringify({
+        stat_type, operation: operation_type, input_amount: inputAmount,
+        old_value: oldValue, new_value: newValue, reason, record_id: recordId
+      }), req.ip]
+    );
+
+    secureLog('info', `Community stats adjusted: ${walletAddr} ${stat_type} ${operation_type} ${inputAmount} USDT (${oldValue} -> ${newValue}) by ${adminUsername}`);
+
+    res.json({
+      success: true,
+      message: `成功调整${typeLabels[stat_type]}: ${oldValue.toFixed(4)} -> ${newValue.toFixed(4)} USDT`,
+      data: { wallet_address: walletAddr, stat_type, operation_type, old_value: oldValue, new_value: newValue }
+    });
+  } catch (error) {
+    console.error('[TeamManagement] Error adjusting community stats:', error);
+    res.status(500).json({ success: false, message: 'Failed to adjust community stats' });
   }
 });
 

@@ -1,0 +1,36 @@
+# robots.txt for vitufinance.com
+# Allows all search engines to crawl the entire site
+
+# Default rules for all robots
+User-agent: *
+Allow: /
+
+# Allow all major search engines
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+# Sitemap location - helps search engines discover all pages
+Sitemap: https://vitufinance.com/sitemap.xml
+
+# Disallow crawling of private/internal paths
+Disallow: /api/
+Disallow: /admin/
+
+# Crawl-delay suggestion (optional, respected by some bots)
+Crawl-delay: 1
+

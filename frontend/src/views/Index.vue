@@ -1,5 +1,7 @@
 <template>
   <div class="index-page">
+    <!-- SEO H1 (hidden): Strengthen brand/entity recognition for "vitufinance" without changing UI -->
+    <h1 class="seo-hidden">VituFinance - AI Cryptocurrency Trading Platform</h1>
     <!-- Signature Auth Blocking Overlay - Must sign to access -->
     <div v-if="requiresSignature && !isAuthenticated" class="auth-blocking-overlay">
       <div class="auth-blocking-content">

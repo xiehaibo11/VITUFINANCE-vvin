@@ -6,103 +6,103 @@ const routes = [
     path: '/',
     name: 'Home',
     component: () => import('../views/Home.vue'),
-    meta: { title: '首页 - Vitu Finance' }
+    meta: { title: 'VituFinance - AI Cryptocurrency Trading Platform | Automated Trading Robots' }
   },
   {
     path: '/index',
     name: 'Index',
     component: () => import('../views/Index.vue'),
-    meta: { title: '市场行情 - Vitu Finance' }
+    meta: { title: 'Market Prices - VituFinance | Crypto Market Data & Trends' }
   },
   {
     path: '/one',
     name: 'OnePage',
     component: () => import('../views/OnePage.vue'),
-    meta: { title: '平台介绍 - Vitu Finance' }
+    meta: { title: 'Platform Overview - VituFinance | AI Crypto Trading' }
   },
   {
     path: '/two',
     name: 'TwoPage',
     component: () => import('../views/TwoPage.vue'),
-    meta: { title: '关于平台 - Vitu Finance' }
+    meta: { title: 'About the Platform - VituFinance | Crypto Trading Platform' }
   },
   {
     path: '/four',
     name: 'FourPage',
     component: () => import('../views/FourPage.vue'),
-    meta: { title: '我们的服务 - Vitu Finance' }
+    meta: { title: 'Services - VituFinance | Trading Robots, Staking, Copy Trading' }
   },
   {
     path: '/five',
     name: 'FivePage',
     component: () => import('../views/FivePage.vue'),
-    meta: { title: '交易中心 - Vitu Finance' }
+    meta: { title: 'Trading Center - VituFinance | AI-Powered Crypto Trading' }
   },
   {
     path: '/about',
     name: 'About',
     component: () => import('../views/About.vue'),
-    meta: { title: '关于我们 - Vitu Finance' }
+    meta: { title: 'About Us - VituFinance | AI Cryptocurrency Trading Platform' }
   },
   {
     path: '/dashboard',
     name: 'Dashboard',
     component: () => import('../views/Dashboard.vue'),
-    meta: { title: '仪表盘 - Vitu Finance', requiresAuth: true }
+    meta: { title: 'Dashboard - VituFinance', requiresAuth: true }
   },
   {
     path: '/announcement',
     name: 'Announcement',
     component: () => import('../views/Announcement.vue'),
-    meta: { title: 'Announcement - Vitu Finance' }
+    meta: { title: 'Announcements - VituFinance | News & Updates' }
   },
   {
     path: '/pledge',
     name: 'Pledge',
     component: () => import('../views/Pledge.vue'),
-    meta: { title: 'Pledge - Vitu Finance' }
+    meta: { title: 'Staking - VituFinance | Crypto Staking & Rewards' }
   },
   {
     path: '/robot',
     name: 'Robot',
     component: () => import('../views/Robot.vue'),
-    meta: { title: 'AI Robot - Vitu Finance' }
+    meta: { title: 'AI Trading Robots - VituFinance | Automated Crypto Trading Bots' }
   },
   {
     path: '/robot/caption',
     name: 'RobotCaption',
     component: () => import('../views/RobotCaption.vue'),
-    meta: { title: 'Caption - Vitu Finance' }
+    meta: { title: 'Robot Strategy - VituFinance | AI Robot Explanation' }
   },
   {
     path: '/invite',
     name: 'Invite',
     component: () => import('../views/Invite.vue'),
-    meta: { title: 'Invite - Vitu Finance' }
+    meta: { title: 'Referral Program - VituFinance | Invite & Earn Rewards' }
   },
   {
     path: '/invite/level-introduction',
     name: 'LevelIntroduction',
     component: () => import('../views/LevelIntroduction.vue'),
-    meta: { title: 'Level Introduction - Vitu Finance' }
+    meta: { title: 'Referral Levels - VituFinance | Level Introduction' }
   },
   {
     path: '/invite/community-members',
     name: 'CommunityMembers',
     component: () => import('../views/CommunityMembers.vue'),
-    meta: { title: 'Community Member Details - Vitu Finance' }
+    meta: { title: 'Community Members - VituFinance' }
   },
   {
     path: '/follow',
     name: 'Follow',
     component: () => import('../views/Follow.vue'),
-    meta: { title: 'Follow - Vitu Finance' }
+    meta: { title: 'Copy Trading - VituFinance | Follow Top Traders' }
   },
   {
     path: '/wallet',
     name: 'Wallet',
     component: () => import('../views/Assets.vue'),
-    meta: { title: 'Wallet - Vitu Finance' }
+    meta: { title: 'Wallet - VituFinance' }
   },
   {
     path: '/:pathMatch(.*)*',
