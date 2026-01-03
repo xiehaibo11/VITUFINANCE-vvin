@@ -49,7 +49,7 @@ router.get('/team-management/user/:wallet_address', authMiddleware, async (req, 
       FROM team_tree tt
     `, [walletAddr]);
 
-    // Get team performance (total deposits)
+    // Get team performance (total deposits) - downline only, excluding self
     const performanceRows = await dbQuery(`
       WITH RECURSIVE team_tree AS (
         SELECT wallet_address FROM user_referrals WHERE referrer_address = ?
@@ -58,7 +58,7 @@ router.get('/team-management/user/:wallet_address', authMiddleware, async (req, 
         INNER JOIN team_tree t ON r.referrer_address = t.wallet_address
       )
       SELECT COALESCE(SUM(d.amount), 0) as total_team_deposits
-      FROM deposits d
+      FROM deposit_records d
       WHERE d.wallet_address IN (SELECT wallet_address FROM team_tree)
         AND d.status = 'completed'
     `, [walletAddr]);

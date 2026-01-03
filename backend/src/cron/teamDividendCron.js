@@ -168,18 +168,42 @@ async function calculateBrokerLevel(walletAddr, visitedAddresses = new Set()) {
         }
         
         // 3. Calculate team total investment (8 levels downline robot purchases).
-        // IMPORTANT: Business rule uses "investment" (robot purchases), not "recharge" (deposit records).
+        // 3. Calculate team performance (8 levels downline only).
+        //
+        // IMPORTANT (Business Rule):
+        // - Per latest requirement, team performance MUST be calculated by DOWNLINE DEPOSITS only,
+        //   and MUST NOT include the broker's own deposit.
+        // - Historical code used robot_purchases SUM(price), which can explain why some users
+        //   receive daily dividends even when downline deposits are < 1000.
+        //
+        // Compatibility:
+        // - You can override the performance source via env:
+        //   TEAM_PERFORMANCE_MODE=robot_purchases  (legacy)
+        //   TEAM_PERFORMANCE_MODE=deposit_records  (default)
+        const TEAM_PERFORMANCE_MODE = (process.env.TEAM_PERFORMANCE_MODE || 'deposit_records').toLowerCase();
         let totalPerformance = 0;
         if (allTeamWallets.length > 0) {
             const teamPlaceholders = allTeamWallets.map(() => '?').join(',');
-            const performanceResult = await dbQuery(
-                `SELECT COALESCE(SUM(price), 0) as total
-                 FROM robot_purchases
-                 WHERE wallet_address IN (${teamPlaceholders})
-                   AND status IN ('active', 'expired')`,
-                allTeamWallets
-            );
-            totalPerformance = parseFloat(performanceResult[0]?.total) || 0;
+            if (TEAM_PERFORMANCE_MODE === 'robot_purchases') {
+                const performanceResult = await dbQuery(
+                    `SELECT COALESCE(SUM(price), 0) as total
+                     FROM robot_purchases
+                     WHERE wallet_address IN (${teamPlaceholders})
+                       AND status IN ('active', 'expired')`,
+                    allTeamWallets
+                );
+                totalPerformance = parseFloat(performanceResult[0]?.total) || 0;
+            } else {
+                // Default: deposit_records completed deposits (BSC/ETH all included)
+                const performanceResult = await dbQuery(
+                    `SELECT COALESCE(SUM(amount), 0) as total
+                     FROM deposit_records
+                     WHERE wallet_address IN (${teamPlaceholders})
+                       AND status = 'completed'`,
+                    allTeamWallets
+                );
+                totalPerformance = parseFloat(performanceResult[0]?.total) || 0;
+            }
         }
         
         // 如果连1级的基本条件都不满足，直接返回0
