@@ -185,14 +185,14 @@ async function calculateBrokerLevel(walletAddr, visitedAddresses = new Set()) {
         if (allTeamWallets.length > 0) {
             const teamPlaceholders = allTeamWallets.map(() => '?').join(',');
             if (TEAM_PERFORMANCE_MODE === 'robot_purchases') {
-                const performanceResult = await dbQuery(
-                    `SELECT COALESCE(SUM(price), 0) as total
-                     FROM robot_purchases
-                     WHERE wallet_address IN (${teamPlaceholders})
-                       AND status IN ('active', 'expired')`,
-                    allTeamWallets
-                );
-                totalPerformance = parseFloat(performanceResult[0]?.total) || 0;
+            const performanceResult = await dbQuery(
+                `SELECT COALESCE(SUM(price), 0) as total
+                 FROM robot_purchases
+                 WHERE wallet_address IN (${teamPlaceholders})
+                   AND status IN ('active', 'expired')`,
+                allTeamWallets
+            );
+            totalPerformance = parseFloat(performanceResult[0]?.total) || 0;
             } else {
                 // Default: deposit_records completed deposits (BSC/ETH all included)
                 const performanceResult = await dbQuery(

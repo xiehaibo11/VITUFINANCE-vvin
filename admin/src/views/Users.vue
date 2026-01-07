@@ -50,6 +50,19 @@
           </el-tooltip>
         </template>
       </el-table-column>
+
+      <el-table-column prop="is_banned" label="状态" width="100" align="center">
+        <template #default="{ row }">
+          <el-tooltip
+            v-if="Number(row.is_banned) === 1"
+            :content="`冻结原因：${row.ban_reason || '-'}\n冻结时间：${row.banned_at ? formatTime(row.banned_at) : '-'}\n操作员：${row.banned_by || '-'}`"
+            placement="top"
+          >
+            <el-tag type="danger" size="small">冻结</el-tag>
+          </el-tooltip>
+          <el-tag v-else type="success" size="small">正常</el-tag>
+        </template>
+      </el-table-column>
       
       <el-table-column prop="usdt_balance" label="USDT余额" width="140" align="right">
         <template #default="{ row }">
@@ -91,6 +104,24 @@
           </el-button>
           <el-button type="warning" link size="small" @click="handleDiagnose(row)">
             诊断
+          </el-button>
+          <el-button
+            v-if="Number(row.is_banned) === 1"
+            type="success"
+            link
+            size="small"
+            @click="handleUnban(row)"
+          >
+            解冻
+          </el-button>
+          <el-button
+            v-else
+            type="danger"
+            link
+            size="small"
+            @click="handleBan(row)"
+          >
+            冻结
           </el-button>
         </template>
       </el-table-column>
@@ -405,10 +436,10 @@
  * 用户管理页面
  */
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, CopyDocument, Loading } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
-import { getUsers, updateUserBalance, diagnoseUserBalance, getUserBalanceDetails } from '@/api'
+import { getUsers, updateUserBalance, diagnoseUserBalance, getUserBalanceDetails, banUser, unbanUser } from '@/api'
 
 // 加载状态
 const loading = ref(false)
@@ -479,6 +510,66 @@ const fetchUsers = async () => {
     console.error('获取用户列表失败:', error)
   } finally {
     loading.value = false
+  }
+}
+
+/**
+ * 冻结用户（封禁）
+ * 后端接口：POST /api/admin/users/:wallet_address/ban
+ * 必填：reason
+ */
+const handleBan = async (row) => {
+  try {
+    const { value: reason } = await ElMessageBox.prompt(
+      `确定要冻结该用户吗？\n钱包地址：${shortenAddress(row.wallet_address)}`,
+      '确认冻结',
+      {
+        confirmButtonText: '冻结',
+        cancelButtonText: '取消',
+        inputPlaceholder: '请输入冻结原因（必填）',
+        inputType: 'textarea',
+        inputValidator: (val) => {
+          if (!val || !String(val).trim()) return '冻结原因不能为空'
+          if (String(val).trim().length < 3) return '原因太短（至少 3 个字符）'
+          return true
+        },
+        type: 'warning'
+      }
+    )
+
+    const res = await banUser(row.wallet_address, { reason: String(reason).trim() })
+    if (res.success) {
+      ElMessage.success('已冻结用户')
+      fetchUsers()
+    } else {
+      ElMessage.error(res.message || '冻结失败')
+    }
+  } catch (e) {
+    // user cancelled or error
+  }
+}
+
+/**
+ * 解冻用户（解封）
+ * 后端接口：POST /api/admin/users/:wallet_address/unban
+ */
+const handleUnban = async (row) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要解冻该用户吗？\n钱包地址：${shortenAddress(row.wallet_address)}`,
+      '确认解冻',
+      { type: 'warning', confirmButtonText: '解冻', cancelButtonText: '取消' }
+    )
+
+    const res = await unbanUser(row.wallet_address)
+    if (res.success) {
+      ElMessage.success('已解冻用户')
+      fetchUsers()
+    } else {
+      ElMessage.error(res.message || '解冻失败')
+    }
+  } catch (e) {
+    // cancelled
   }
 }
 
