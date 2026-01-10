@@ -23,6 +23,7 @@ import de from './de.json'
 import ms from './ms.json'
 import uk from './uk.json'
 import zhTw from './zh-tw.json'
+import it from './it.json'  // Italian language
 
 // All supported languages
 const messages = {
@@ -38,6 +39,7 @@ const messages = {
   de,
   ms,
   uk,
+  it,  // Italian
   'zh-tw': zhTw
 }
 
@@ -86,6 +88,9 @@ const countryToLanguage = {
   
   // Ukrainian
   'UA': 'uk',
+  
+  // Italian speaking countries (Note: CH/Switzerland already mapped to 'fr' above, Italy is primary)
+  'IT': 'it', 'SM': 'it', 'VA': 'it',
   
   // Traditional Chinese
   'TW': 'zh-tw', 'HK': 'zh-tw', 'MO': 'zh-tw'
@@ -262,6 +267,7 @@ export function getLanguageOptions() {
     { code: 'es', name: 'Español' },
     { code: 'fr', name: 'Français' },
     { code: 'id', name: 'Bahasa Indonesia' },
+    { code: 'it', name: 'Italiano' },  // Italian
     { code: 'ms', name: 'Bahasa Melayu' },
     { code: 'pt', name: 'Português' },
     { code: 'tr', name: 'Türkçe' },

@@ -269,7 +269,9 @@
     "quantifyFailed": "Quantificação falhou",
     "quantifyFailedRetry": "Quantificação falhou, por favor tente novamente",
     "quantifySuccessTitle": "Quantificação Bem-Sucedida!",
-    "quantifySuccessDesc": "Adicionado ao seu saldo"
+    "quantifySuccessDesc": "Adicionado ao seu saldo",
+    "warmPromptTitle": "Aviso Amigável",
+    "robotLimitReached": "Você atingiu o limite máximo de compra ({count}) para este robô"
   },
   "invitePage": {
     "comingSoon": "Em Breve",
@@ -467,7 +469,9 @@
     "statusPending": "Pendente",
     "statusCompleted": "Concluído",
     "statusFailed": "Falhou",
-    "statusProcessing": "Processando"
+    "statusProcessing": "Processando",
+    "teamRewardRecord": "Recompensa da Equipe",
+    "dailyDividend": "Dividendo Diário"
   },
   "captionPage": {
     "faq1Title": "Como o Vitu Finance funciona para gerar renda?",
@@ -618,7 +622,17 @@
     "biometricTitle": "Ativar Reconhecimento Facial",
     "biometricDesc": "Para uma experiência de assinatura mais conveniente, recomendamos ativar o reconhecimento facial ou impressão digital em sua carteira TokenPocket.\n\nCaminho: TokenPocket → Configurações → Configurações de Segurança → Biométrico",
     "biometricConfirm": "Entendi",
-    "biometricDontRemind": "Não me lembre mais"
+    "biometricDontRemind": "Não me lembre mais",
+    "blockingDesc": "Para proteger seus ativos, complete primeiro a autenticação de assinatura da carteira",
+    "retry": "Tentar Novamente",
+    "signTitle": "Verificação de Segurança VituFinance",
+    "walletLabel": "Endereço da Carteira",
+    "timeLabel": "Hora",
+    "signNote": "Esta assinatura é usada apenas para verificar a propriedade da carteira e não transferirá nenhum ativo.",
+    "noWallet": "Por favor abra no navegador da carteira",
+    "success": "Autenticação de assinatura bem-sucedida",
+    "tip1": "A assinatura não transferirá nenhum ativo",
+    "tip2": "Usado apenas para verificar a propriedade da carteira"
   },
   "depositModal": {
     "title": "Depósito",

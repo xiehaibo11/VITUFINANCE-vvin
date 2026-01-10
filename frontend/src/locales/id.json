@@ -269,7 +269,9 @@
     "quantifyFailed": "Kuantifikasi gagal",
     "quantifyFailedRetry": "Kuantifikasi gagal, silakan coba lagi",
     "quantifySuccessTitle": "Kuantifikasi Berhasil!",
-    "quantifySuccessDesc": "Ditambahkan ke saldo Anda"
+    "quantifySuccessDesc": "Ditambahkan ke saldo Anda",
+    "warmPromptTitle": "Pemberitahuan",
+    "robotLimitReached": "Anda telah mencapai batas pembelian maksimum ({count}) untuk robot ini"
   },
   "invitePage": {
     "comingSoon": "Segera Hadir",
@@ -467,7 +469,9 @@
     "statusPending": "Menunggu",
     "statusCompleted": "Selesai",
     "statusFailed": "Gagal",
-    "statusProcessing": "Memproses"
+    "statusProcessing": "Memproses",
+    "teamRewardRecord": "Hadiah Tim",
+    "dailyDividend": "Dividen Harian"
   },
   "captionPage": {
     "faq1Title": "Bagaimana Vitu Finance bekerja untuk menghasilkan pendapatan?",
@@ -618,7 +622,17 @@
     "biometricTitle": "Aktifkan Pengenalan Wajah",
     "biometricDesc": "Untuk pengalaman tanda tangan yang lebih nyaman, kami sarankan mengaktifkan pengenalan wajah atau sidik jari di dompet TokenPocket Anda.\n\nJalur: TokenPocket → Pengaturan → Pengaturan Keamanan → Biometrik",
     "biometricConfirm": "Mengerti",
-    "biometricDontRemind": "Jangan ingatkan lagi"
+    "biometricDontRemind": "Jangan ingatkan lagi",
+    "blockingDesc": "Untuk melindungi aset Anda, silakan selesaikan autentikasi tanda tangan dompet terlebih dahulu",
+    "retry": "Coba Lagi",
+    "signTitle": "Verifikasi Keamanan VituFinance",
+    "walletLabel": "Alamat Dompet",
+    "timeLabel": "Waktu",
+    "signNote": "Tanda tangan ini hanya digunakan untuk memverifikasi kepemilikan dompet dan tidak akan mentransfer aset apa pun.",
+    "noWallet": "Silakan buka di browser dompet",
+    "success": "Autentikasi tanda tangan berhasil",
+    "tip1": "Penandatanganan tidak akan mentransfer aset apa pun",
+    "tip2": "Hanya digunakan untuk memverifikasi kepemilikan dompet"
   },
   "depositModal": {
     "title": "Setoran",

@@ -269,7 +269,9 @@
     "quantifyFailed": "Niceleme başarısız",
     "quantifyFailedRetry": "Niceleme başarısız, lütfen tekrar deneyin",
     "quantifySuccessTitle": "Niceleme Başarılı!",
-    "quantifySuccessDesc": "Bakiyenize eklendi"
+    "quantifySuccessDesc": "Bakiyenize eklendi",
+    "warmPromptTitle": "Dostça Uyarı",
+    "robotLimitReached": "Bu robot için maksimum satın alma limitine ({count}) ulaştınız"
   },
   "invitePage": {
     "comingSoon": "Yakında",
@@ -467,7 +469,9 @@
     "statusPending": "Beklemede",
     "statusCompleted": "Tamamlandı",
     "statusFailed": "Başarısız",
-    "statusProcessing": "İşleniyor"
+    "statusProcessing": "İşleniyor",
+    "teamRewardRecord": "Takım Ödülü",
+    "dailyDividend": "Günlük Temettü"
   },
   "captionPage": {
     "faq1Title": "Vitu Finance gelir elde etmek için nasıl çalışır?",
@@ -618,7 +622,17 @@
     "biometricTitle": "Yüz Tanımayı Etkinleştir",
     "biometricDesc": "Daha rahat bir imza deneyimi için TokenPocket cüzdanınızda yüz tanıma veya parmak izi özelliğini etkinleştirmenizi öneririz.\n\nYol: TokenPocket → Ayarlar → Güvenlik Ayarları → Biyometrik",
     "biometricConfirm": "Anladım",
-    "biometricDontRemind": "Bir daha hatırlatma"
+    "biometricDontRemind": "Bir daha hatırlatma",
+    "blockingDesc": "Varlıklarınızı korumak için lütfen önce cüzdan imza doğrulamasını tamamlayın",
+    "retry": "Tekrar Dene",
+    "signTitle": "VituFinance Güvenlik Doğrulaması",
+    "walletLabel": "Cüzdan Adresi",
+    "timeLabel": "Zaman",
+    "signNote": "Bu imza yalnızca cüzdan sahipliğini doğrulamak için kullanılır ve herhangi bir varlık transfer etmez.",
+    "noWallet": "Lütfen cüzdan tarayıcısında açın",
+    "success": "İmza doğrulaması başarılı",
+    "tip1": "İmzalama herhangi bir varlık transfer etmeyecek",
+    "tip2": "Yalnızca cüzdan sahipliğini doğrulamak için kullanılır"
   },
   "depositModal": {
     "title": "Yatırma",

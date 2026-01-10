@@ -269,7 +269,9 @@
     "quantifyFailed": "Квантифікація не вдалася",
     "quantifyFailedRetry": "Квантифікація не вдалася, спробуйте ще раз",
     "quantifySuccessTitle": "Квантифікація Успішна!",
-    "quantifySuccessDesc": "Додано до вашого балансу"
+    "quantifySuccessDesc": "Додано до вашого балансу",
+    "warmPromptTitle": "Дружнє Нагадування",
+    "robotLimitReached": "Ви досягли максимального ліміту покупки ({count}) для цього робота"
   },
   "invitePage": {
     "comingSoon": "Незабаром",
@@ -312,7 +314,8 @@
     "noReferralRecords": "Ще немає винагород за рекомендації",
     "quantifyReward": "Винагорода за Квантифікацію",
     "maturityReward": "Винагорода за Зрілість",
-    "fromUser": "Від"
+    "fromUser": "Від",
+    "teamDailyIncome": "Загальний щоденний дохід команди 3 рівня"
   },
   "communityPage": {
     "levelEmployees": "Рівень {level} Співробітники:",
@@ -466,7 +469,9 @@
     "statusPending": "Очікується",
     "statusCompleted": "Завершено",
     "statusFailed": "Не вдалося",
-    "statusProcessing": "Обробляється"
+    "statusProcessing": "Обробляється",
+    "teamRewardRecord": "Командна Винагорода",
+    "dailyDividend": "Щоденний Дивіденд"
   },
   "captionPage": {
     "faq1Title": "Як Vitu Finance працює для отримання доходу?",
@@ -617,7 +622,17 @@
     "biometricTitle": "Увімкнути розпізнавання обличчя",
     "biometricDesc": "Для зручнішого підписання рекомендуємо увімкнути розпізнавання обличчя або відбиток пальця у вашому гаманці TokenPocket.\n\nШлях: TokenPocket → Налаштування → Налаштування безпеки → Біометрія",
     "biometricConfirm": "Зрозуміло",
-    "biometricDontRemind": "Більше не нагадувати"
+    "biometricDontRemind": "Більше не нагадувати",
+    "blockingDesc": "Щоб захистити ваші активи, будь ласка, спочатку завершіть автентифікацію підпису гаманця",
+    "retry": "Повторити",
+    "signTitle": "Перевірка Безпеки VituFinance",
+    "walletLabel": "Адреса Гаманця",
+    "timeLabel": "Час",
+    "signNote": "Цей підпис використовується лише для перевірки права власності на гаманець і не передаватиме жодних активів.",
+    "noWallet": "Будь ласка, відкрийте у браузері гаманця",
+    "success": "Автентифікація підпису успішна",
+    "tip1": "Підписання не передасть жодних активів",
+    "tip2": "Використовується лише для перевірки права власності на гаманець"
   },
   "depositModal": {
     "title": "Внесення",

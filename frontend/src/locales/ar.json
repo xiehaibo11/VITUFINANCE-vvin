@@ -158,7 +158,16 @@
     "joinTgChannel": "انضم إلى قناة TG الخاصة بنا",
     "shareFacebook": "شارك حساب Facebook الخاص بنا",
     "followYoutube": "تابعنا على YouTube",
-    "marketTitle": "السوق"
+    "marketTitle": "السوق",
+    "dailyTasksTitle": "المهام اليومية",
+    "telegramTitle": "تيليجرام Vitu Finance",
+    "tasksListTitle": "قائمة المهام",
+    "tasks": {
+      "dailyReward": "المكافأة اليومية",
+      "joinTelegram": "انضم إلى قناة TG الخاصة بنا",
+      "shareFacebook": "شارك حساب Facebook الخاص بنا",
+      "followYoutube": "تابعنا على YouTube"
+    }
   },
   "bottomNav": {
     "home": "الصفحة",
@@ -260,7 +269,9 @@
     "quantifyFailed": "فشل التحديد الكمي",
     "quantifyFailedRetry": "فشل التحديد الكمي، يرجى المحاولة مرة أخرى",
     "quantifySuccessTitle": "نجح التحديد الكمي!",
-    "quantifySuccessDesc": "تمت الإضافة إلى رصيدك"
+    "quantifySuccessDesc": "تمت الإضافة إلى رصيدك",
+    "warmPromptTitle": "تنبيه ودي",
+    "robotLimitReached": "لقد وصلت إلى الحد الأقصى لشراء ({count}) من هذا الروبوت"
   },
   "invitePage": {
     "comingSoon": "قريباً",
@@ -379,7 +390,11 @@
       "expired": "منتهي الصلاحية",
       "quantifySuccess": "نجاح التحديد الكمي!",
       "highRobotEarningsNote": "سيتم إرجاع الأرباح عند الاستحقاق",
-      "gridRobotEarningsNote": "تمت الإضافة إلى رصيدك"
+      "gridRobotEarningsNote": "تمت الإضافة إلى رصيدك",
+      "dailyProfit": "الربح اليومي",
+      "daysRemaining": "متبقي {days} أيام",
+      "hoursRemaining": "متبقي {hours} ساعات",
+      "matured": "نضج"
     },
     "noMyRobots": "لم يتم شراء أي روبوتات بعد",
     "noExpiredRobots": "لا توجد روبوتات منتهية الصلاحية"
@@ -454,7 +469,9 @@
     "fee": "رسوم",
     "actualAmount": "المبلغ الفعلي",
     "inviteToExchange": "قم بدعوة الأعضاء لفتح تبادل WLD",
-    "enterAmount": "يرجى إدخال مبلغ صالح"
+    "enterAmount": "يرجى إدخال مبلغ صالح",
+    "teamRewardRecord": "مكافأة الفريق",
+    "dailyDividend": "الأرباح اليومية"
   },
   "captionPage": {
     "faq1Title": "كيف يعمل Vitu Finance لتحقيق الدخل؟",
@@ -605,7 +622,17 @@
     "biometricTitle": "تفعيل التعرف على الوجه",
     "biometricDesc": "لتجربة توقيع أكثر سهولة، نوصي بتفعيل التعرف على الوجه أو بصمة الإصبع في محفظة TokenPocket الخاصة بك.\n\nالمسار: TokenPocket → الإعدادات → إعدادات الأمان → التعرف البيومتري",
     "biometricConfirm": "فهمت",
-    "biometricDontRemind": "لا تذكرني مرة أخرى"
+    "biometricDontRemind": "لا تذكرني مرة أخرى",
+    "blockingDesc": "لحماية أصولك، يرجى إكمال مصادقة توقيع المحفظة أولاً",
+    "retry": "إعادة المحاولة",
+    "signTitle": "التحقق الأمني من VituFinance",
+    "walletLabel": "عنوان المحفظة",
+    "timeLabel": "الوقت",
+    "signNote": "يُستخدم هذا التوقيع فقط للتحقق من ملكية المحفظة ولن يقوم بنقل أي أصول.",
+    "noWallet": "يرجى الفتح في متصفح المحفظة",
+    "success": "نجحت مصادقة التوقيع",
+    "tip1": "التوقيع لن ينقل أي أصول",
+    "tip2": "يُستخدم فقط للتحقق من ملكية المحفظة"
   },
   "depositModal": {
     "title": "إيداع",

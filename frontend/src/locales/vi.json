@@ -269,7 +269,9 @@
     "quantifyFailed": "Định lượng thất bại",
     "quantifyFailedRetry": "Định lượng thất bại, vui lòng thử lại",
     "quantifySuccessTitle": "Định Lượng Thành Công!",
-    "quantifySuccessDesc": "Đã thêm vào số dư của bạn"
+    "quantifySuccessDesc": "Đã thêm vào số dư của bạn",
+    "warmPromptTitle": "Lời Nhắc",
+    "robotLimitReached": "Bạn đã đạt giới hạn mua tối đa ({count}) cho robot này"
   },
   "invitePage": {
     "comingSoon": "Sắp Ra Mắt",
@@ -467,7 +469,9 @@
     "statusPending": "Đang chờ",
     "statusCompleted": "Hoàn thành",
     "statusFailed": "Thất bại",
-    "statusProcessing": "Đang xử lý"
+    "statusProcessing": "Đang xử lý",
+    "teamRewardRecord": "Phần Thưởng Nhóm",
+    "dailyDividend": "Cổ Tức Hàng Ngày"
   },
   "captionPage": {
     "faq1Title": "Vitu Finance hoạt động như thế nào để kiếm thu nhập?",
@@ -618,7 +622,17 @@
     "biometricTitle": "Bật nhận dạng khuôn mặt",
     "biometricDesc": "Để có trải nghiệm ký thuận tiện hơn, chúng tôi khuyên bạn nên bật nhận dạng khuôn mặt hoặc vân tay trong ví TokenPocket của bạn.\n\nĐường dẫn: TokenPocket → Cài đặt → Cài đặt bảo mật → Sinh trắc học",
     "biometricConfirm": "Đã hiểu",
-    "biometricDontRemind": "Không nhắc nữa"
+    "biometricDontRemind": "Không nhắc nữa",
+    "blockingDesc": "Để bảo vệ tài sản của bạn, vui lòng hoàn thành xác thực chữ ký ví trước",
+    "retry": "Thử Lại",
+    "signTitle": "Xác Minh Bảo Mật VituFinance",
+    "walletLabel": "Địa Chỉ Ví",
+    "timeLabel": "Thời Gian",
+    "signNote": "Chữ ký này chỉ được sử dụng để xác minh quyền sở hữu ví và sẽ không chuyển bất kỳ tài sản nào.",
+    "noWallet": "Vui lòng mở trong trình duyệt ví",
+    "success": "Xác thực chữ ký thành công",
+    "tip1": "Ký sẽ không chuyển bất kỳ tài sản nào",
+    "tip2": "Chỉ được sử dụng để xác minh quyền sở hữu ví"
   },
   "depositModal": {
     "title": "Gửi tiền",

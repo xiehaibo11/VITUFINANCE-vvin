@@ -269,7 +269,9 @@
     "quantifyFailed": "Quantifizierung fehlgeschlagen",
     "quantifyFailedRetry": "Quantifizierung fehlgeschlagen, bitte versuchen Sie es erneut",
     "quantifySuccessTitle": "Quantifizierung Erfolgreich!",
-    "quantifySuccessDesc": "Zu Ihrem Guthaben hinzugefügt"
+    "quantifySuccessDesc": "Zu Ihrem Guthaben hinzugefügt",
+    "warmPromptTitle": "Freundlicher Hinweis",
+    "robotLimitReached": "Sie haben die maximale Kaufmenge ({count}) für diesen Roboter erreicht"
   },
   "invitePage": {
     "comingSoon": "Demnächst",
@@ -467,7 +469,9 @@
     "statusPending": "Ausstehend",
     "statusCompleted": "Abgeschlossen",
     "statusFailed": "Fehlgeschlagen",
-    "statusProcessing": "Wird verarbeitet"
+    "statusProcessing": "Wird verarbeitet",
+    "teamRewardRecord": "Team-Belohnung",
+    "dailyDividend": "Tägliche Dividende"
   },
   "captionPage": {
     "faq1Title": "Wie funktioniert Vitu Finance, um Einkommen zu erzielen?",
@@ -618,7 +622,17 @@
     "biometricTitle": "Gesichtserkennung aktivieren",
     "biometricDesc": "Für ein bequemeres Signaturerlebnis empfehlen wir, die Gesichtserkennung oder den Fingerabdruck in Ihrer TokenPocket-Wallet zu aktivieren.\n\nPfad: TokenPocket → Einstellungen → Sicherheitseinstellungen → Biometrie",
     "biometricConfirm": "Verstanden",
-    "biometricDontRemind": "Nicht mehr erinnern"
+    "biometricDontRemind": "Nicht mehr erinnern",
+    "blockingDesc": "Um Ihre Vermögenswerte zu schützen, vervollständigen Sie bitte zuerst die Wallet-Signatur-Authentifizierung",
+    "retry": "Erneut versuchen",
+    "signTitle": "VituFinance Sicherheitsüberprüfung",
+    "walletLabel": "Wallet-Adresse",
+    "timeLabel": "Zeit",
+    "signNote": "Diese Signatur wird nur verwendet, um das Wallet-Eigentum zu verifizieren und überträgt keine Vermögenswerte.",
+    "noWallet": "Bitte in Wallet-Browser öffnen",
+    "success": "Signatur-Authentifizierung erfolgreich",
+    "tip1": "Das Signieren überträgt keine Vermögenswerte",
+    "tip2": "Wird nur zur Verifizierung des Wallet-Eigentums verwendet"
   },
   "depositModal": {
     "title": "Einzahlung",

@@ -158,7 +158,16 @@
     "joinTgChannel": "Join our TG channel",
     "shareFacebook": "Share our Facebook account",
     "followYoutube": "Follow us on YouTube",
-    "marketTitle": "Market"
+    "marketTitle": "Market",
+    "dailyTasksTitle": "Daily Tasks",
+    "telegramTitle": "Vitu Finance Telegram",
+    "tasksListTitle": "Tasks List",
+    "tasks": {
+      "dailyReward": "Daily Reward",
+      "joinTelegram": "Join our TG channel",
+      "shareFacebook": "Share our Facebook account",
+      "followYoutube": "Follow us on YouTube"
+    }
   },
   "bottomNav": {
     "home": "Home",
@@ -256,7 +265,13 @@
     "quantifyFailed": "Quantification failed",
     "quantifyFailedRetry": "Quantification failed, please try again",
     "quantifySuccessTitle": "Quantification Success!",
-    "quantifySuccessDesc": "Added to your balance"
+    "quantifySuccessDesc": "Added to your balance",
+    "walletNotExist": "Wallet address does not exist",
+    "usdtInsufficient": "Insufficient USDT balance.",
+    "cancelBtn": "Cancel",
+    "sureBtn": "Confirm",
+    "warmPromptTitle": "Warm Prompt",
+    "robotLimitReached": "You have reached the maximum purchase limit ({count}) for this robot"
   },
   "invitePage": {
     "comingSoon": "Coming Soon",
@@ -298,7 +313,9 @@
     "noReferralRecords": "No referral rewards yet",
     "quantifyReward": "Quantify Reward",
     "maturityReward": "Maturity Reward",
-    "fromUser": "From"
+    "fromUser": "From",
+    "clickToLottery": "Click to Spin",
+    "teamDailyIncome": "Team Level 3 Daily Total Income"
   },
   "communityPage": {
     "levelEmployees": "Level {level} Employees:",
@@ -372,8 +389,15 @@
       "expired": "Expired",
       "quantifySuccess": "Quantification Success!",
       "highRobotEarningsNote": "Profit will be returned at maturity",
-      "gridRobotEarningsNote": "Added to your balance"
-    }
+      "gridRobotEarningsNote": "Added to your balance",
+      "dailyProfit": "Daily Profit",
+      "daysRemaining": "{days} days remaining",
+      "hoursRemaining": "{hours} hours remaining",
+      "matured": "Matured"
+    },
+    "sureBtn": "OK",
+    "alreadyQuantified": "Already quantified today",
+    "expectedReturn": "Expected Return"
   },
   "assetsPage": {
     "comingSoon": "Coming Soon",
@@ -421,7 +445,33 @@
     "statusPending": "Pending",
     "statusCompleted": "Completed",
     "statusFailed": "Failed",
-    "statusProcessing": "Processing"
+    "statusProcessing": "Processing",
+    "networkError": "Network error, please check your connection",
+    "operationFailed": "Operation failed",
+    "safeNotFound": "Safe not found",
+    "safeAlreadyExists": "Safe already exists",
+    "invalidTokenType": "Invalid token type",
+    "balanceNotFound": "Balance record not found",
+    "tapToClose": "Tap anywhere to close",
+    "openInNewTab": "Open in new tab",
+    "setupSafe": "Set up Safe",
+    "setPassword": "Set 6-digit password",
+    "wrongPassword": "Wrong password",
+    "safeCreated": "Safe created successfully!",
+    "safebox": "Safe",
+    "depositUsdt": "Deposit USDT",
+    "withdrawUsdt": "Withdraw USDT",
+    "enterDepositAmount": "Enter deposit amount:",
+    "enterWithdrawAmount": "Enter withdrawal amount:",
+    "invalidAmount": "Invalid amount",
+    "insufficientLocked": "Insufficient locked balance",
+    "depositSuccess": "Deposit successful!",
+    "withdrawSuccess": "Withdrawal successful!",
+    "enterPassword": "Enter password:",
+    "create": "Create",
+    "close": "Close",
+    "teamRewardRecord": "Team Reward",
+    "dailyDividend": "Daily Dividend"
   },
   "quantifyHistory": {
     "title": "Quantify Earnings",
@@ -525,13 +575,22 @@
     "depositSuccess": "Deposit successful! Amount: {amount} USDT",
     "transactionCancelled": "Transaction cancelled",
     "insufficientBalance": "Insufficient USDT balance",
-    "transferFailed": "Transfer failed"
+    "transferFailed": "Transfer failed",
+    "walletInsufficientBalance": "Insufficient USDT in wallet. Current balance: {balance} USDT",
+    "depositFailed": "Deposit failed, please try again"
   },
   "withdrawModal": {
     "minWithdrawAmount": "Minimum withdrawal amount is 5 USDT",
     "insufficientBalance": "Insufficient balance",
     "enterValidAmount": "Please enter a valid amount",
-    "connectWalletFirst": "Please connect your wallet first"
+    "connectWalletFirst": "Please connect your wallet first",
+    "title": "Withdraw",
+    "enterAmount": "Please enter withdrawal amount",
+    "tipText": "Minimum withdrawal amount is 5 USDT and withdrawal fee is 0.5%",
+    "requestSubmitted": "Withdrawal request submitted!",
+    "amount": "Amount",
+    "fee": "Fee (0.5%)",
+    "youWillReceive": "You will receive"
   },
   "signatureAuthPopup": {
     "title": "Wallet Signature Authentication",
@@ -547,7 +606,23 @@
     "biometricTitle": "Enable Face Recognition",
     "biometricDesc": "For a more convenient signing experience, we recommend enabling face recognition or fingerprint in your TokenPocket wallet.\n\nPath: TokenPocket → Settings → Security → Biometric",
     "biometricConfirm": "Got it",
-    "biometricDontRemind": "Don't remind me"
+    "biometricDontRemind": "Don't remind me",
+    "lead": "To protect your wallet and verify address ownership, we will request a one-time message signature in TokenPocket's built-in browser. Your wallet may ask for password/biometrics to unlock the private key locally. We never receive your password or private key.",
+    "complianceTitle": "Function Names (Compliance Use)",
+    "complianceItem1Title": "Wallet Signature (Digital/Message Signature)",
+    "complianceItem1Desc": "The wallet uses the private key to sign a message and prove address ownership, authorizing legitimate actions (here for login/identity verification).",
+    "complianceItem2Title": "Wallet Password Verification",
+    "complianceItem2Desc": "Local verification step to unlock the wallet and authorize signing, preventing unauthorized use.",
+    "securityTitle": "Security Notes",
+    "securityItem1": "This is only a message signature. There is no on-chain transaction, no gas, and no transfer/approval.",
+    "securityItem2": "We will never ask for your mnemonic/private key/password. The password is used only locally in the wallet to authorize signing.",
+    "securityItem3": "Verify the domain is {domain} and the signature content is only for login verification.",
+    "summaryTitle": "Summary",
+    "summaryText": "Message signature for login authentication (no transaction). Password/biometrics are verified locally and never shared with the site.",
+    "cancel": "Not now",
+    "success": "Signature authentication successful",
+    "tip1": "Signing will not transfer any assets",
+    "tip2": "Only used to verify wallet ownership"
   },
   "common": {
     "loading": "Loading...",
@@ -585,11 +660,35 @@
     "endDate": "End Date",
     "remainingDays": "Remaining Days",
     "usdt": "USDT",
-    "wld": "WLD"
+    "wld": "WLD",
+    "expired": "Expired",
+    "tips": "Tips"
   },
   "maintenance": {
     "title": "System Maintenance",
     "message": "The system is currently under maintenance. Please try again in 2 hours. Thank you for your patience.",
     "estimatedTime": "Estimated Time"
+  },
+  "luckyWheel": {
+    "title": "Lucky Wheel",
+    "spinning": "Spinning...",
+    "spinNow": "SPIN NOW",
+    "insufficientPoints": "Insufficient Points",
+    "myLuckyPoints": "My lucky points:",
+    "needPoints": "(Needs {points})",
+    "winAnnouncements": "Winner Announcements",
+    "myRecords": "My Records",
+    "noRecords": "No draw records",
+    "congratulations": "🎉 Congratulations! 🎉",
+    "confirm": "OK",
+    "silverWheel": "Silver Wheel",
+    "goldWheel": "Gold Wheel",
+    "diamondWheel": "Diamond Wheel",
+    "silver": "Silver",
+    "gold": "Gold",
+    "diamond": "Diamond",
+    "insufficientPointsDetail": "Insufficient points, need {need}, current {current}",
+    "spinFailed": "Spin failed, please try again",
+    "won": "won"
   }
 }

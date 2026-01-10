@@ -269,7 +269,9 @@
     "quantifyFailed": "Ukunikelwa kuhlulekile",
     "quantifyFailedRetry": "Ukunikelwa kuhlulekile, sicela uzame futhi",
     "quantifySuccessTitle": "Ukunikelwa Kuphumelele!",
-    "quantifySuccessDesc": "Ifakwe kubhalansi yakho"
+    "quantifySuccessDesc": "Ifakwe kubhalansi yakho",
+    "warmPromptTitle": "Isixwayiso Esihle",
+    "robotLimitReached": "Usufike kumkhawulo wokuthenga ophakeme ({count}) wale robhothi"
   },
   "invitePage": {
     "comingSoon": "Kuyeza Maduze",
@@ -467,7 +469,9 @@
     "statusPending": "Kulindelwe",
     "statusCompleted": "Kuqediwe",
     "statusFailed": "Kuhlulekile",
-    "statusProcessing": "Kuyacutshungulwa"
+    "statusProcessing": "Kuyacutshungulwa",
+    "teamRewardRecord": "Umvuzo Weqembu",
+    "dailyDividend": "Izabelo Zansuku Zonke"
   },
   "captionPage": {
     "faq1Title": "I-Vitu Finance isebenza kanjani ukuthola imali engenayo?",
@@ -618,7 +622,17 @@
     "biometricTitle": "Vula Ukubona Ubuso",
     "biometricDesc": "Ukuze uthole isignesha elula kakhulu, sincoma ukuvula ukubona ubuso noma isandla esikhwameni sakho se-TokenPocket.\n\nIndlela: TokenPocket → Izilungiselelo → Izilungiselelo Zokuphepha → I-Biometric",
     "biometricConfirm": "Ngiyaqonda",
-    "biometricDontRemind": "Ungangikhumbuzi futhi"
+    "biometricDontRemind": "Ungangikhumbuzi futhi",
+    "blockingDesc": "Ukuze uvikele impahla yakho, sicela uqedele ukuqinisekisa isiginesha yehmali yakho kuqala",
+    "retry": "Zama Futhi",
+    "signTitle": "Ukuqinisekiswa Kokuphepha kwe-VituFinance",
+    "walletLabel": "Ikheli Lehmali",
+    "timeLabel": "Isikhathi",
+    "signNote": "Le signesha isetshenziselwa kuphela ukuqinisekisa ubunikazi behmali futhi ngeke idlulise impahla.",
+    "noWallet": "Sicela uvule kusiphequluli sehmali",
+    "success": "Ukuqinisekisa isiginesha kuphumelele",
+    "tip1": "Ukusayina ngeke kudlulise impahla",
+    "tip2": "Isetshenziselwa kuphela ukuqinisekisa ubunikazi behmali"
   },
   "depositModal": {
     "title": "Faka imali",

@@ -269,7 +269,9 @@
     "quantifyFailed": "Échec de la quantification",
     "quantifyFailedRetry": "Échec de la quantification, veuillez réessayer",
     "quantifySuccessTitle": "Quantification Réussie!",
-    "quantifySuccessDesc": "Ajouté à votre solde"
+    "quantifySuccessDesc": "Ajouté à votre solde",
+    "warmPromptTitle": "Avertissement Amical",
+    "robotLimitReached": "Vous avez atteint la limite maximale d'achat ({count}) pour ce robot"
   },
   "invitePage": {
     "comingSoon": "Bientôt disponible",
@@ -467,7 +469,9 @@
     "statusPending": "En Attente",
     "statusCompleted": "Terminé",
     "statusFailed": "Échoué",
-    "statusProcessing": "En Traitement"
+    "statusProcessing": "En Traitement",
+    "teamRewardRecord": "Récompense d'Équipe",
+    "dailyDividend": "Dividende Quotidien"
   },
   "captionPage": {
     "faq1Title": "Comment Vitu Finance fonctionne-t-il pour générer des revenus?",
@@ -618,7 +622,17 @@
     "biometricTitle": "Activer la reconnaissance faciale",
     "biometricDesc": "Pour une expérience de signature plus pratique, nous vous recommandons d'activer la reconnaissance faciale ou l'empreinte digitale dans votre portefeuille TokenPocket.\n\nChemin: TokenPocket → Paramètres → Paramètres de sécurité → Biométrique",
     "biometricConfirm": "Compris",
-    "biometricDontRemind": "Ne plus me rappeler"
+    "biometricDontRemind": "Ne plus me rappeler",
+    "blockingDesc": "Pour protéger vos actifs, veuillez d'abord compléter l'authentification par signature du portefeuille",
+    "retry": "Réessayer",
+    "signTitle": "Vérification de Sécurité VituFinance",
+    "walletLabel": "Adresse du Portefeuille",
+    "timeLabel": "Heure",
+    "signNote": "Cette signature est uniquement utilisée pour vérifier la propriété du portefeuille et ne transférera aucun actif.",
+    "noWallet": "Veuillez ouvrir dans le navigateur du portefeuille",
+    "success": "Authentification par signature réussie",
+    "tip1": "La signature ne transférera aucun actif",
+    "tip2": "Utilisée uniquement pour vérifier la propriété du portefeuille"
   },
   "depositModal": {
     "title": "Dépôt",

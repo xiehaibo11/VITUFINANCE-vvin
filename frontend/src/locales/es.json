@@ -269,7 +269,9 @@
     "quantifyFailed": "Cuantificación fallida",
     "quantifyFailedRetry": "Cuantificación fallida, por favor intenta de nuevo",
     "quantifySuccessTitle": "¡Cuantificación Exitosa!",
-    "quantifySuccessDesc": "Agregado a tu saldo"
+    "quantifySuccessDesc": "Agregado a tu saldo",
+    "warmPromptTitle": "Aviso Amigable",
+    "robotLimitReached": "Has alcanzado el límite máximo de compra ({count}) para este robot"
   },
   "invitePage": {
     "comingSoon": "Próximamente",
@@ -467,7 +469,9 @@
     "statusPending": "Pendiente",
     "statusCompleted": "Completado",
     "statusFailed": "Fallido",
-    "statusProcessing": "Procesando"
+    "statusProcessing": "Procesando",
+    "teamRewardRecord": "Recompensa del Equipo",
+    "dailyDividend": "Dividendo Diario"
   },
   "captionPage": {
     "faq1Title": "¿Cómo funciona Vitu Finance para obtener ingresos?",
@@ -618,7 +622,17 @@
     "biometricTitle": "Activar reconocimiento facial",
     "biometricDesc": "Para una experiencia de firma más conveniente, recomendamos activar el reconocimiento facial o la huella dactilar en tu billetera TokenPocket.\n\nRuta: TokenPocket → Configuración → Configuración de seguridad → Biométrico",
     "biometricConfirm": "Entendido",
-    "biometricDontRemind": "No me lo recuerdes"
+    "biometricDontRemind": "No me lo recuerdes",
+    "blockingDesc": "Para proteger sus activos, complete primero la autenticación de firma de billetera",
+    "retry": "Reintentar",
+    "signTitle": "Verificación de Seguridad VituFinance",
+    "walletLabel": "Dirección de Billetera",
+    "timeLabel": "Hora",
+    "signNote": "Esta firma solo se utiliza para verificar la propiedad de la billetera y no transferirá ningún activo.",
+    "noWallet": "Por favor abra en el navegador de billetera",
+    "success": "Autenticación de firma exitosa",
+    "tip1": "La firma no transferirá ningún activo",
+    "tip2": "Solo se usa para verificar la propiedad de la billetera"
   },
   "depositModal": {
     "title": "Depósito",
