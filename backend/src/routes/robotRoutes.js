@@ -762,6 +762,29 @@ router.get('/api/robot/quantify-status', async (req, res) => {
         }
         
         const walletAddr = normalizeWalletAddress(wallet_address);
+
+        // If the account is frozen by admin, the user must not be able to quantify.
+        // Return a normal success payload so frontend logic can still render the disabled state.
+        const userStatus = await dbQuery(
+            'SELECT is_banned FROM user_balances WHERE wallet_address = ?',
+            [walletAddr]
+        );
+        if (userStatus.length > 0 && Number(userStatus[0].is_banned) === 1) {
+            return res.json({
+                success: true,
+                data: {
+                    can_quantify: false,
+                    reason: 'Your account has been suspended. Quantification is disabled. Please contact support.',
+                    quantified_today: true,
+                    is_quantified: false,
+                    next_quantify_time: null,
+                    hours_remaining: 0,
+                    last_quantify_time: null,
+                    end_time: null,
+                    is_expired: false
+                }
+            });
+        }
         
         const robots = await dbQuery(
             `SELECT * FROM robot_purchases WHERE id = ? AND wallet_address = ?`,

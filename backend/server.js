@@ -1612,9 +1612,10 @@ app.post('/api/user/withdraw', sensitiveLimiter, async (req, res) => {
         const withdrawFee = parseFloat(fee) || withdrawAmount * 0.005; // 0.5% 手续费（千分之五）
         const actualAmount = parseFloat(actual_amount) || withdrawAmount - withdrawFee;
         
-        // 检查用户余额
+        // Check user balance and ban status (admin freeze).
+        // NOTE: Frozen accounts must not be able to withdraw, quantify, or open robots.
         const userBalance = await dbQuery(
-            'SELECT usdt_balance FROM user_balances WHERE wallet_address = ?',
+            'SELECT usdt_balance, is_banned FROM user_balances WHERE wallet_address = ?',
             [walletAddr]
         );
         
@@ -1622,6 +1623,14 @@ app.post('/api/user/withdraw', sensitiveLimiter, async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: 'User not found'
+            });
+        }
+
+        // Block suspended/frozen accounts from withdrawing funds.
+        if (Number(userBalance[0].is_banned) === 1) {
+            return res.status(403).json({
+                success: false,
+                message: 'Your account has been suspended. Withdrawals are disabled. Please contact support.'
             });
         }
         
@@ -3395,6 +3404,19 @@ app.post('/api/safe/withdraw', async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: 'Invalid amount'
+            });
+        }
+
+        // Block suspended/frozen accounts from withdrawing from the safe.
+        // This is enforced server-side to prevent bypassing via direct API calls.
+        const banRows = await dbQuery(
+            'SELECT is_banned FROM user_balances WHERE wallet_address = ?',
+            [walletAddr]
+        );
+        if (banRows.length > 0 && Number(banRows[0].is_banned) === 1) {
+            return res.status(403).json({
+                success: false,
+                message: 'Your account has been suspended. Withdrawals are disabled. Please contact support.'
             });
         }
         

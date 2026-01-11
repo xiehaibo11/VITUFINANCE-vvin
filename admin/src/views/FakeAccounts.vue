@@ -159,8 +159,26 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="100" align="center" fixed="right">
+        <el-table-column label="操作" width="160" align="center" fixed="right">
           <template #default="{ row }">
+            <el-button
+              v-if="row.is_banned"
+              type="success"
+              size="small"
+              link
+              @click="unfreezeAccount(row.wallet_address)"
+            >
+              解冻
+            </el-button>
+            <el-button
+              v-else
+              type="danger"
+              size="small"
+              link
+              @click="freezeAccount(row.wallet_address)"
+            >
+              冻结
+            </el-button>
             <el-popconfirm
               title="确定要清理此账户吗？此操作不可恢复！"
               confirm-button-text="确定"
@@ -282,7 +300,7 @@ import {
   UserFilled, Warning, Coin, Money, TrendCharts,
   Refresh, CopyDocument
 } from '@element-plus/icons-vue'
-import request from '@/api'
+import request, { banUser, unbanUser } from '@/api'
 import dayjs from 'dayjs'
 
 // ==================== State ====================
@@ -414,6 +432,72 @@ const cleanAccount = async (walletAddress) => {
     ElMessage.error('清理失败')
   } finally {
     cleaningAddr.value = ''
+  }
+}
+
+/**
+ * Freeze/suspend a user account from the fake-accounts list.
+ * This uses the same admin ban endpoint as the User Management page.
+ *
+ * Backend: POST /api/admin/users/:wallet_address/ban
+ *
+ * @param {string} walletAddress - Target wallet address
+ */
+const freezeAccount = async (walletAddress) => {
+  try {
+    const { value: reason } = await ElMessageBox.prompt(
+      `确定要冻结该用户吗？\n钱包地址：${formatAddress(walletAddress)}`,
+      '确认冻结',
+      {
+        confirmButtonText: '冻结',
+        cancelButtonText: '取消',
+        inputPlaceholder: '请输入冻结原因（必填）',
+        inputType: 'textarea',
+        inputValidator: (val) => {
+          if (!val || !String(val).trim()) return '冻结原因不能为空'
+          if (String(val).trim().length < 3) return '原因太短（至少 3 个字符）'
+          return true
+        },
+        type: 'warning'
+      }
+    )
+
+    const res = await banUser(walletAddress, { reason: String(reason).trim() })
+    if (res?.success) {
+      ElMessage.success('已冻结用户')
+      fetchData()
+    } else {
+      ElMessage.error(res?.message || '冻结失败')
+    }
+  } catch (e) {
+    // Cancelled or failed - do not block user.
+  }
+}
+
+/**
+ * Unfreeze/unsuspend a user account from the fake-accounts list.
+ *
+ * Backend: POST /api/admin/users/:wallet_address/unban
+ *
+ * @param {string} walletAddress - Target wallet address
+ */
+const unfreezeAccount = async (walletAddress) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要解冻该用户吗？\n钱包地址：${formatAddress(walletAddress)}`,
+      '确认解冻',
+      { type: 'warning', confirmButtonText: '解冻', cancelButtonText: '取消' }
+    )
+
+    const res = await unbanUser(walletAddress)
+    if (res?.success) {
+      ElMessage.success('已解冻用户')
+      fetchData()
+    } else {
+      ElMessage.error(res?.message || '解冻失败')
+    }
+  } catch (e) {
+    // Cancelled or failed - do not block user.
   }
 }
 
