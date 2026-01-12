@@ -27,6 +27,7 @@ import {
 import {
     normalizeWalletAddress,
     creditUsdtBalance,
+    creditFrozenUsdtBalance,
     ensureUserBalanceRow
 } from '../utils/userBalanceUtils.js';
 
@@ -171,20 +172,12 @@ async function processExpiredRobot(robot) {
         return { success: true, returnAmount: 0, skipped: true, reason: 'already_claimed' };
     }
 
-    // Check if user is banned (banned users do not receive refunds)
+    // Check if user is banned (frozen accounts do not receive withdrawable refunds).
     const userStatus = await dbQuery(
         'SELECT is_banned FROM user_balances WHERE wallet_address = ?',
         [walletAddr]
     );
-    if (userStatus.length > 0 && userStatus[0].is_banned === 1) {
-        console.log(`[Cron] Skipping banned user ${walletAddr.slice(0, 10)}...`);
-        // 只更新状态为expired，不返还资金
-        await dbQuery(
-            `UPDATE robot_purchases SET status = 'expired', updated_at = NOW() WHERE id = ?`,
-            [robot.id]
-        );
-        return { success: true, returnAmount: 0, skipped: true, reason: 'user_banned' };
-    }
+    const isBannedUser = userStatus.length > 0 && Number(userStatus[0].is_banned) === 1;
     
     const config = getRobotConfig(robot.robot_name);
     if (!config) {
@@ -201,6 +194,12 @@ async function processExpiredRobot(robot) {
     let refundCredited = false; // Critical idempotency flag: if true, NEVER unlock/redo refund.
     
     try {
+        // For frozen accounts:
+        // - Principal should still be returned to available balance (usdt_balance)
+        // - Profit (if any) must be credited to frozen balance (frozen_usdt) and remain non-withdrawable
+        let principalReturn = 0;
+        let frozenProfitReturn = 0;
+
         // 根据机器人类型计算返还金额
         switch (robot.robot_type) {
             case 'high':
@@ -242,19 +241,46 @@ async function processExpiredRobot(robot) {
             default:
                 throw new Error(`Unknown robot type: ${robot.robot_type}`);
         }
+
+        // Split maturity return for banned/frozen users:
+        // - principalReturn goes to usdt_balance
+        // - frozenProfitReturn goes to frozen_usdt
+        if (isBannedUser && returnAmount > 0) {
+            const priceAmount = parseFloat(robot.price) || 0;
+            // Principal is capped by both price and returnAmount (defensive).
+            principalReturn = Math.max(0, Math.min(priceAmount, returnAmount));
+            frozenProfitReturn = Math.max(0, returnAmount - principalReturn);
+        }
         
-        // Execute refund
+        // Execute maturity credit
         if (returnAmount > 0) {
             // Ensure balance row exists then credit safely (prevents UPDATE 0 rows)
             await ensureUserBalanceRow(dbQuery, walletAddr);
-            await creditUsdtBalance(dbQuery, walletAddr, returnAmount);
+            // If the user is frozen, credit to frozen_usdt so it is NOT withdrawable.
+            if (isBannedUser) {
+                // Return principal to available balance
+                if (principalReturn > 0) {
+                    await creditUsdtBalance(dbQuery, walletAddr, principalReturn);
+                }
+                // Keep profit frozen
+                if (frozenProfitReturn > 0) {
+                    await creditFrozenUsdtBalance(dbQuery, walletAddr, frozenProfitReturn);
+                }
+            } else {
+                await creditUsdtBalance(dbQuery, walletAddr, returnAmount);
+            }
             refundCredited = true;
             
             // Record transaction history (principal refund)
             const isReturnWithProfit = (robot.robot_type === 'high' || robot.robot_type === 'dex') && robot.is_quantified === 1;
-            const txDescription = isReturnWithProfit
+            const txDescriptionBase = isReturnWithProfit
                 ? `${robot.robot_name} 到期返还（本金+收益） #robot_purchase_id=${robot.id}`
                 : `${robot.robot_name} 到期返还本金 #robot_purchase_id=${robot.id}`;
+            const txDescription = isBannedUser
+                ? (frozenProfitReturn > 0
+                    ? `${txDescriptionBase}（本金已返还，收益冻结）`
+                    : `${txDescriptionBase}（冻结用户：仅返还本金）`)
+                : txDescriptionBase;
             
             // IMPORTANT:
             // If this insert fails after balance credit, we MUST NOT unlock/redo refund.
@@ -270,7 +296,14 @@ async function processExpiredRobot(robot) {
                 console.error('[Cron] Failed to write transaction_history (refund already credited):', logErr.message);
             }
             
-            console.log(`[Cron] Returned ${returnAmount.toFixed(4)} USDT to ${walletAddr.slice(0, 10)}... (robot: ${robot.robot_name})`);
+            if (isBannedUser) {
+                console.log(
+                    `[Cron] Frozen user maturity credit: principal=${principalReturn.toFixed(4)} USDT, profit_frozen=${frozenProfitReturn.toFixed(4)} USDT ` +
+                    `wallet=${walletAddr.slice(0, 10)}... robot=${robot.robot_name}`
+                );
+            } else {
+                console.log(`[Cron] Returned ${returnAmount.toFixed(4)} USDT to ${walletAddr.slice(0, 10)}... (robot: ${robot.robot_name})`);
+            }
         }
         
         // 更新机器人状态
@@ -289,7 +322,10 @@ async function processExpiredRobot(robot) {
         }
         
         // High/DEX 机器人：记录收益并发放推荐奖励（基于收益）
-        if ((robot.robot_type === 'high' || robot.robot_type === 'dex') && profitAmount > 0) {
+        // Business rule:
+        // - If the user is frozen, maturity funds are credited to frozen_usdt (not withdrawable),
+        //   therefore we do NOT distribute referral rewards on that profit.
+        if (!isBannedUser && (robot.robot_type === 'high' || robot.robot_type === 'dex') && profitAmount > 0) {
             // Non-critical: best-effort logs/rewards should not cause unlock/double refund.
             try {
                 await dbQuery(

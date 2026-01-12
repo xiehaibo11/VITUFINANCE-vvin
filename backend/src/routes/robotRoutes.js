@@ -762,7 +762,7 @@ router.get('/api/robot/quantify-status', async (req, res) => {
         }
         
         const walletAddr = normalizeWalletAddress(wallet_address);
-
+        
         // If the account is frozen by admin, the user must not be able to quantify.
         // Return a normal success payload so frontend logic can still render the disabled state.
         const userStatus = await dbQuery(

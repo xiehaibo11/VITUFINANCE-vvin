@@ -70,6 +70,12 @@
         </template>
       </el-table-column>
       
+      <el-table-column prop="frozen_usdt" label="冻结USDT" width="140" align="right">
+        <template #default="{ row }">
+          <span class="amount warning">{{ formatAmount(row.frozen_usdt) }}</span>
+        </template>
+      </el-table-column>
+      
       <el-table-column prop="wld_balance" label="WLD余额" width="140" align="right">
         <template #default="{ row }">
           <span class="amount">{{ formatAmount(row.wld_balance) }}</span>
@@ -94,7 +100,7 @@
         </template>
       </el-table-column>
       
-      <el-table-column label="操作" width="260" fixed="right" align="center">
+      <el-table-column label="操作" width="340" fixed="right" align="center">
         <template #default="{ row }">
           <el-button type="primary" link size="small" @click="handleEdit(row)">
             编辑
@@ -104,6 +110,15 @@
           </el-button>
           <el-button type="warning" link size="small" @click="handleDiagnose(row)">
             诊断
+          </el-button>
+          <el-button
+            v-if="Number(row.frozen_usdt) > 0 && Number(row.is_banned) === 0"
+            type="info"
+            link
+            size="small"
+            @click="handleReleaseFrozenUsdt(row)"
+          >
+            释放冻结
           </el-button>
           <el-button
             v-if="Number(row.is_banned) === 1"
@@ -439,7 +454,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, CopyDocument, Loading } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
-import { getUsers, updateUserBalance, diagnoseUserBalance, getUserBalanceDetails, banUser, unbanUser } from '@/api'
+import { getUsers, updateUserBalance, diagnoseUserBalance, getUserBalanceDetails, banUser, unbanUser, releaseFrozenUsdt } from '@/api'
 
 // 加载状态
 const loading = ref(false)
@@ -567,6 +582,55 @@ const handleUnban = async (row) => {
       fetchUsers()
     } else {
       ElMessage.error(res.message || '解冻失败')
+    }
+  } catch (e) {
+    // cancelled
+  }
+}
+
+/**
+ * Release frozen USDT to available USDT (manual admin action).
+ * Backend: POST /api/admin/users/:wallet_address/release-frozen
+ */
+const handleReleaseFrozenUsdt = async (row) => {
+  try {
+    if (!row?.wallet_address) return
+
+    const frozen = parseFloat(row.frozen_usdt || 0)
+    if (!isFinite(frozen) || frozen <= 0) {
+      ElMessage.warning('冻结USDT余额为 0，无需释放')
+      return
+    }
+
+    const { value } = await ElMessageBox.prompt(
+      `请输入要释放的金额（留空=全部释放）\n钱包地址：${shortenAddress(row.wallet_address)}\n当前冻结：${formatAmount(row.frozen_usdt)} USDT`,
+      '释放冻结余额',
+      {
+        confirmButtonText: '释放',
+        cancelButtonText: '取消',
+        inputPlaceholder: '留空则全部释放',
+        inputValue: '',
+        inputValidator: (val) => {
+          const str = String(val ?? '').trim()
+          if (!str) return true // empty => release all
+          const num = parseFloat(str)
+          if (!isFinite(num) || num <= 0) return '释放金额不合法'
+          if (num > frozen) return `释放金额超过冻结余额（冻结：${frozen.toFixed(4)}）`
+          return true
+        },
+        type: 'warning'
+      }
+    )
+
+    const amountStr = String(value ?? '').trim()
+    const payload = amountStr ? { amount: parseFloat(amountStr) } : {}
+
+    const res = await releaseFrozenUsdt(row.wallet_address, payload)
+    if (res?.success) {
+      ElMessage.success(`已释放冻结余额：${res.data?.released || (amountStr || frozen.toFixed(4))} USDT`)
+      fetchUsers()
+    } else {
+      ElMessage.error(res?.message || '释放失败')
     }
   } catch (e) {
     // cancelled

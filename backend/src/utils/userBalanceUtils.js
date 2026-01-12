@@ -96,4 +96,52 @@ export async function creditUsdtBalance(dbQuery, walletAddr, amount) {
   throw new Error(`Failed to credit user balance for wallet=${walletAddr}`);
 }
 
+/**
+ * Credit frozen USDT balance for a wallet address.
+ *
+ * Business rule:
+ * - When an account is frozen (is_banned=1), we may still need to "return" matured funds,
+ *   but they must NOT become withdrawable. We therefore credit `user_balances.frozen_usdt`.
+ *
+ * Safety behavior:
+ * - Ensures the balance row exists.
+ * - Retries with LOWER(wallet_address) to handle legacy casing.
+ *
+ * @param {Function} dbQuery - mysql2/promise query wrapper
+ * @param {string} walletAddr - normalized wallet address
+ * @param {number} amount - positive number
+ * @returns {Promise<void>}
+ */
+export async function creditFrozenUsdtBalance(dbQuery, walletAddr, amount) {
+  const creditAmount = Number(amount);
+  if (!Number.isFinite(creditAmount) || creditAmount <= 0) {
+    throw new Error('Invalid frozen credit amount');
+  }
+  if (!walletAddr) throw new Error('Invalid wallet address');
+
+  await ensureUserBalanceRow(dbQuery, walletAddr);
+
+  // First attempt: direct match.
+  const result = await dbQuery(
+    `UPDATE user_balances
+     SET frozen_usdt = frozen_usdt + ?, updated_at = NOW()
+     WHERE wallet_address = ?`,
+    [creditAmount, walletAddr]
+  );
+
+  if (result?.affectedRows > 0) return;
+
+  // Retry: case-insensitive match (legacy casing).
+  const retry = await dbQuery(
+    `UPDATE user_balances
+     SET frozen_usdt = frozen_usdt + ?, updated_at = NOW()
+     WHERE LOWER(wallet_address) = LOWER(?)`,
+    [creditAmount, walletAddr]
+  );
+
+  if (retry?.affectedRows > 0) return;
+
+  throw new Error(`Failed to credit frozen_usdt for wallet=${walletAddr}`);
+}
+
 

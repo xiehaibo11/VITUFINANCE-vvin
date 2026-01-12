@@ -1470,6 +1470,99 @@ router.post('/users/:wallet_address/unban', authMiddleware, async (req, res) => 
   }
 });
 
+/**
+ * 释放冻结USDT余额（将 frozen_usdt 转到可用 usdt_balance）
+ * POST /api/admin/users/:wallet_address/release-frozen
+ *
+ * 业务规则：
+ * - 仅允许在“未封禁”(is_banned=0) 的情况下释放
+ * - amount 可选：不传则释放全部冻结USDT
+ * - 释放后的 USDT 进入可用余额（可用于正常业务/提款）
+ */
+router.post('/users/:wallet_address/release-frozen', authMiddleware, async (req, res) => {
+  try {
+    const { wallet_address } = req.params;
+    const { amount } = req.body || {};
+    const admin_username = req.admin.username;
+
+    const walletAddr = String(wallet_address || '').toLowerCase();
+    if (!walletAddr) {
+      return res.status(400).json({ success: false, message: 'wallet_address is required' });
+    }
+
+    // 查询用户冻结余额与状态
+    const rows = await dbQuery(
+      'SELECT usdt_balance, frozen_usdt, is_banned FROM user_balances WHERE wallet_address = ?',
+      [walletAddr]
+    );
+    if (!rows || rows.length === 0) {
+      return res.status(404).json({ success: false, message: '用户不存在' });
+    }
+
+    const user = rows[0];
+    if (Number(user.is_banned) === 1) {
+      return res.status(403).json({
+        success: false,
+        message: '该用户处于冻结状态，不能释放冻结余额'
+      });
+    }
+
+    const frozen = parseFloat(user.frozen_usdt || 0);
+    if (!Number.isFinite(frozen) || frozen <= 0) {
+      return res.status(400).json({ success: false, message: '冻结USDT余额为 0，无需释放' });
+    }
+
+    const releaseAmount = amount === undefined || amount === null || String(amount).trim() === ''
+      ? frozen
+      : parseFloat(amount);
+
+    if (!Number.isFinite(releaseAmount) || releaseAmount <= 0) {
+      return res.status(400).json({ success: false, message: '释放金额不合法' });
+    }
+
+    if (releaseAmount > frozen) {
+      return res.status(400).json({
+        success: false,
+        message: `释放金额超过冻结余额（冻结：${frozen.toFixed(4)}）`
+      });
+    }
+
+    // 执行转账：frozen_usdt -> usdt_balance
+    await dbQuery(
+      `UPDATE user_balances
+       SET frozen_usdt = frozen_usdt - ?,
+           usdt_balance = usdt_balance + ?,
+           updated_at = NOW()
+       WHERE wallet_address = ?`,
+      [releaseAmount, releaseAmount, walletAddr]
+    );
+
+    // 获取最新余额
+    const updated = await dbQuery(
+      'SELECT usdt_balance, frozen_usdt FROM user_balances WHERE wallet_address = ?',
+      [walletAddr]
+    );
+
+    console.log(`[Admin ReleaseFrozen] wallet=${walletAddr}, amount=${releaseAmount.toFixed(4)}, operator=${admin_username}`);
+
+    res.json({
+      success: true,
+      message: '冻结余额已释放',
+      data: {
+        usdt_balance: parseFloat(updated?.[0]?.usdt_balance || 0).toFixed(4),
+        frozen_usdt: parseFloat(updated?.[0]?.frozen_usdt || 0).toFixed(4),
+        released: releaseAmount.toFixed(4)
+      }
+    });
+  } catch (error) {
+    console.error('释放冻结余额失败:', error.message);
+    res.status(500).json({
+      success: false,
+      message: '释放冻结余额失败'
+    });
+  }
+});
+
 // ==================== 充值记录 ====================
 
 /**

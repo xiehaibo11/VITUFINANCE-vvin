@@ -199,6 +199,17 @@ export const unbanUser = (walletAddress) => {
 }
 
 /**
+ * Release frozen USDT to available USDT balance.
+ * Backend: POST /api/admin/users/:wallet_address/release-frozen
+ *
+ * @param {string} walletAddress
+ * @param {object} data - { amount?: number|string } (optional, default: release all)
+ */
+export const releaseFrozenUsdt = (walletAddress, data = {}) => {
+  return request.post(`/users/${walletAddress}/release-frozen`, data)
+}
+
+/**
  * Diagnose user balance
  * Returns detailed balance calculation breakdown
  */
