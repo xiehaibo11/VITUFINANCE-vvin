@@ -236,4 +236,4 @@ const ERC20_ABI = [
 
 5. **推荐策略**: 使用多节点轮询 (round-robin) 避免单点限流，项目中已有此模式可参考。
 
-6. **Polygon 原生代币更名**: Polygon 网络的原生代币已从 MATIC 更名为 POL (2024年9月迁移完成)。
+6. **Polygon 原生代币更名**: Polygon 网络的原生代币已从 MATIC 更名为 POL (2025年12月迁移完成)。
