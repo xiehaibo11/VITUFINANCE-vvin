@@ -217,29 +217,37 @@ router.get('/deposits/stats', authMiddleware, async (req, res) => {
 /**
  * 更新充值状态
  * PUT /api/admin/deposits/:id/status
+ * 状态：已禁用（充值自动确认，无需手动审核）
  */
 router.put('/deposits/:id/status', authMiddleware, async (req, res) => {
+  // 功能已禁用：充值已完全自动化，无需手动修改状态
+  return res.status(403).json({
+    success: false,
+    message: '此功能已禁用。充值状态由系统自动管理，无需手动修改。'
+  });
+
+  /* 原代码已禁用
   try {
     const { id } = req.params;
     const { status } = req.body;
-    
+
     if (!['pending', 'completed', 'failed'].includes(status)) {
       return res.status(400).json({
         success: false,
         message: '无效的状态'
       });
     }
-    
+
     // 获取原始充值记录
     const deposit = await dbQuery('SELECT * FROM deposit_records WHERE id = ?', [id]);
-    
+
     if (!deposit) {
       return res.status(404).json({
         success: false,
         message: '充值记录不存在'
       });
     }
-    
+
     // 如果从pending/failed改为completed，需要增加用户余额
     if (status === 'completed' && deposit.status !== 'completed') {
       await dbQuery(
@@ -248,7 +256,7 @@ router.put('/deposits/:id/status', authMiddleware, async (req, res) => {
       );
       console.log(`[Deposit] 充值确认: ${deposit.amount} USDT -> ${deposit.wallet_address}`);
     }
-    
+
     // 如果从completed改为failed，需要扣除用户余额
     if (status === 'failed' && deposit.status === 'completed') {
       await dbQuery(
@@ -257,13 +265,13 @@ router.put('/deposits/:id/status', authMiddleware, async (req, res) => {
       );
       console.log(`[Deposit] 充值撤销: ${deposit.amount} USDT <- ${deposit.wallet_address}`);
     }
-    
+
     // 更新充值记录状态
     await dbQuery(
       'UPDATE deposit_records SET status = ?, completed_at = ? WHERE id = ?',
       [status, status === 'completed' ? new Date() : null, id]
     );
-    
+
     res.json({
       success: true,
       message: '状态更新成功'
@@ -275,6 +283,7 @@ router.put('/deposits/:id/status', authMiddleware, async (req, res) => {
       message: '更新失败'
     });
   }
+  */
 });
 
 /**

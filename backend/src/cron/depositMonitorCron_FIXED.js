@@ -25,8 +25,8 @@ const BSC_RPC_URLS = [
 // 当前使用的RPC节点索引
 let currentRpcIndex = 0;
 
-// 平台钱包地址
-const PLATFORM_WALLET = (process.env.PLATFORM_WALLET_ADDRESS || '0x0290df8A512Eff68d0B0a3ECe1E3F6aAB49d79D4').toLowerCase();
+// 平台钱包地址 - 实际收款地址
+const PLATFORM_WALLET = (process.env.PLATFORM_WALLET_ADDRESS || '0x537BD2D898a64b0214FfefD8910E77FA89c6B2bB').toLowerCase();
 
 // USDT合约地址 (BSC主网)
 const USDT_CONTRACT = '0x55d398326f99059fF775485246999027B3197955'.toLowerCase();

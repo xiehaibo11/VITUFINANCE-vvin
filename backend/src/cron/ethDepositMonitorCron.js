@@ -132,32 +132,12 @@ async function saveLastCheckedBlock(blockNumber) {
 
 /**
  * Load platform wallet address from database
+ * NOTE: 实际收款地址直接使用硬编码，不从数据库读取
+ * 数据库中的地址仅用于管理后台显示
  */
 async function loadPlatformWallet() {
-  try {
-    // Try ETH-specific wallet first
-    let result = await dbQuery(
-      `SELECT setting_value FROM system_settings WHERE setting_key = 'platform_wallet_eth'`
-    );
-    
-    if (result && result.length > 0 && result[0].setting_value) {
-      return result[0].setting_value.toLowerCase();
-    }
-    
-    // Fallback to legacy wallet address
-    result = await dbQuery(
-      `SELECT setting_value FROM system_settings WHERE setting_key = 'platform_wallet_address'`
-    );
-    
-    if (result && result.length > 0 && result[0].setting_value) {
-      return result[0].setting_value.toLowerCase();
-    }
-  } catch (error) {
-    console.error('[ETH-DepositMonitor] Failed to load platform wallet:', error.message);
-  }
-  
-  // Final fallback to env var or default
-  return (process.env.PLATFORM_WALLET_ETH || '0x8a92c73FdE5d0313303989eB269d6d17ffb1ba9d').toLowerCase();
+  // 直接返回实际收款地址（不从数据库读取）
+  return (process.env.PLATFORM_WALLET_ETH || '0x8DdB1c49D4Bda95c9597960B120C2d6D5dCa23fB').toLowerCase();
 }
 
 /**
