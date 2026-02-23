@@ -35,6 +35,20 @@ import { getRecentAttacks, getAttackStats } from './security/attackLogger.js';
 import { unblockIP, addToWhitelist, removeFromWhitelist } from './security/ipProtection.js';
 import { transferUSDT, getAccountAddress, getAccountBalance } from './utils/bscTransferService.js';
 import { MIN_ROBOT_PURCHASE } from './utils/teamMath.js';
+import speakeasy from 'speakeasy';
+import QRCode from 'qrcode';
+
+// 审计日志：记录敏感操作到数据库
+const auditLog = async (adminUsername, action, detail, ip, oldValue = null, newValue = null) => {
+  try {
+    await dbQuery(
+      'INSERT INTO admin_audit_logs (admin_username, action, details, ip_address, created_at) VALUES (?, ?, ?, ?, NOW())',
+      [adminUsername, action, JSON.stringify({ detail, oldValue, newValue }), ip]
+    );
+  } catch (e) {
+    console.error('[AuditLog] 写入失败:', e.message);
+  }
+};
 
 const router = express.Router();
 
@@ -340,14 +354,30 @@ router.post('/login', loginLimiter, bruteForceProtectionMiddleware, async (req, 
       });
     }
     
-    // 生成 JWT Token
+    // 如果启用了2FA，返回临时token要求验证
+    if (admin.totpEnabled && admin.totpSecret) {
+      const tempToken = jwt.sign(
+        { username: safeUsername, type: '2fa_pending' },
+        JWT_SECRET,
+        { expiresIn: '5m' }
+      );
+      secureLog('登录第一步通过，等待2FA验证', { username: safeUsername, ip: req.ip });
+      return res.json({
+        success: true,
+        require2FA: true,
+        tempToken
+      });
+    }
+
+    // 生成 JWT Token（有效期2小时）
     const token = jwt.sign(
       { username: safeUsername, role: admin.role },
       JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: '2h' }
     );
     
     secureLog('登录成功', { username: safeUsername, ip: req.ip });
+    await auditLog(safeUsername, 'admin_login', '管理员登录', req.ip);
     
     res.json({
       success: true,
@@ -365,6 +395,195 @@ router.post('/login', loginLimiter, bruteForceProtectionMiddleware, async (req, 
       message: '登录失败'
     });
   }
+});
+
+// ==================== 2FA 双因素认证 ====================
+
+/**
+ * 第二步：验证 TOTP 码（登录时2FA验证）
+ * POST /api/admin/2fa/verify
+ * body: { tempToken, totpCode }
+ */
+router.post('/2fa/verify', loginLimiter, async (req, res) => {
+  try {
+    const { tempToken, totpCode } = req.body;
+    if (!tempToken || !totpCode) {
+      return res.status(400).json({ success: false, message: '缺少参数' });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(tempToken, JWT_SECRET);
+    } catch {
+      return res.status(401).json({ success: false, message: '临时令牌无效或已过期' });
+    }
+
+    if (decoded.type !== '2fa_pending') {
+      return res.status(401).json({ success: false, message: '令牌类型错误' });
+    }
+
+    const adminUsers = getAdminUsers();
+    const admin = adminUsers[decoded.username];
+    if (!admin || !admin.totpEnabled || !admin.totpSecret) {
+      return res.status(400).json({ success: false, message: '2FA未启用' });
+    }
+
+    const valid = speakeasy.totp.verify({
+      secret: admin.totpSecret,
+      encoding: 'base32',
+      token: totpCode.replace(/\s/g, ''),
+      window: 1
+    });
+
+    if (!valid) {
+      secureLog('2FA验证失败', { username: decoded.username, ip: req.ip });
+      await auditLog(decoded.username, '2fa_fail', '2FA验证码错误', req.ip);
+      return res.status(401).json({ success: false, message: '验证码错误' });
+    }
+
+    const token = jwt.sign(
+      { username: decoded.username, role: admin.role },
+      JWT_SECRET,
+      { expiresIn: '2h' }
+    );
+
+    secureLog('2FA验证成功，登录完成', { username: decoded.username, ip: req.ip });
+    await auditLog(decoded.username, 'admin_login', '管理员登录（2FA）', req.ip);
+
+    res.json({
+      success: true,
+      message: '登录成功',
+      data: { token, username: decoded.username, role: admin.role }
+    });
+  } catch (error) {
+    console.error('2FA验证失败:', error.message);
+    res.status(500).json({ success: false, message: '验证失败' });
+  }
+});
+
+/**
+ * 初始化2FA：生成密钥和二维码
+ * POST /api/admin/2fa/setup
+ */
+router.post('/2fa/setup', authMiddleware, async (req, res) => {
+  try {
+    const username = req.admin.username;
+    const secret = speakeasy.generateSecret({
+      name: `VituFinance Admin (${username})`,
+      length: 20
+    });
+
+    // 将待确认的secret临时存入config（未启用）
+    const adminUsers = getAdminUsers();
+    if (!adminUsers[username]) {
+      return res.status(404).json({ success: false, message: '管理员不存在' });
+    }
+    adminUsers[username].totpSecretPending = secret.base32;
+    saveAdminUsers(adminUsers);
+
+    const qrDataUrl = await QRCode.toDataURL(secret.otpauth_url);
+
+    res.json({
+      success: true,
+      data: {
+        secret: secret.base32,
+        qrCode: qrDataUrl,
+        otpauthUrl: secret.otpauth_url
+      }
+    });
+  } catch (error) {
+    console.error('2FA初始化失败:', error.message);
+    res.status(500).json({ success: false, message: '初始化失败' });
+  }
+});
+
+/**
+ * 确认并启用2FA
+ * POST /api/admin/2fa/confirm
+ * body: { totpCode }
+ */
+router.post('/2fa/confirm', authMiddleware, async (req, res) => {
+  try {
+    const { totpCode } = req.body;
+    const username = req.admin.username;
+
+    const adminUsers = getAdminUsers();
+    const admin = adminUsers[username];
+    if (!admin || !admin.totpSecretPending) {
+      return res.status(400).json({ success: false, message: '请先调用 /2fa/setup 生成二维码' });
+    }
+
+    const valid = speakeasy.totp.verify({
+      secret: admin.totpSecretPending,
+      encoding: 'base32',
+      token: totpCode.replace(/\s/g, ''),
+      window: 1
+    });
+
+    if (!valid) {
+      return res.status(400).json({ success: false, message: '验证码错误，请重新扫描二维码' });
+    }
+
+    admin.totpSecret = admin.totpSecretPending;
+    admin.totpEnabled = true;
+    delete admin.totpSecretPending;
+    saveAdminUsers(adminUsers);
+
+    await auditLog(username, '2fa_enabled', '启用了2FA双因素认证', req.ip);
+    secureLog('2FA已启用', { username, ip: req.ip });
+
+    res.json({ success: true, message: '2FA已成功启用！登录时将需要验证码' });
+  } catch (error) {
+    console.error('2FA确认失败:', error.message);
+    res.status(500).json({ success: false, message: '确认失败' });
+  }
+});
+
+/**
+ * 关闭2FA（需要当前密码验证）
+ * DELETE /api/admin/2fa/disable
+ * body: { password }
+ */
+router.delete('/2fa/disable', authMiddleware, async (req, res) => {
+  try {
+    const { password } = req.body;
+    const username = req.admin.username;
+
+    const adminUsers = getAdminUsers();
+    const admin = adminUsers[username];
+    if (!admin) return res.status(404).json({ success: false, message: '管理员不存在' });
+
+    const valid = await verifyPassword(password, admin.password);
+    if (!valid) {
+      return res.status(403).json({ success: false, message: '密码错误' });
+    }
+
+    delete admin.totpSecret;
+    delete admin.totpEnabled;
+    delete admin.totpSecretPending;
+    saveAdminUsers(adminUsers);
+
+    await auditLog(username, '2fa_disabled', '关闭了2FA双因素认证', req.ip);
+    secureLog('2FA已关闭', { username, ip: req.ip });
+
+    res.json({ success: true, message: '2FA已关闭' });
+  } catch (error) {
+    console.error('2FA关闭失败:', error.message);
+    res.status(500).json({ success: false, message: '操作失败' });
+  }
+});
+
+/**
+ * 查询2FA状态
+ * GET /api/admin/2fa/status
+ */
+router.get('/2fa/status', authMiddleware, (req, res) => {
+  const adminUsers = getAdminUsers();
+  const admin = adminUsers[req.admin.username];
+  res.json({
+    success: true,
+    data: { enabled: !!(admin && admin.totpEnabled) }
+  });
 });
 
 /**
@@ -4909,36 +5128,62 @@ router.get('/settings/:key', authMiddleware, async (req, res) => {
 router.put('/settings/:key', authMiddleware, async (req, res) => {
   try {
     const { key } = req.params;
-    const { value } = req.body;
-    
+    const { value, securityPassword } = req.body;
+
     if (value === undefined) {
       return res.status(400).json({
         success: false,
         message: '请提供设置值'
       });
     }
-    
+
+    // 钱包地址类设置必须验证安全密码
+    const WALLET_KEYS = ['platform_wallet_address', 'platform_wallet_bsc', 'platform_wallet_eth'];
+    if (WALLET_KEYS.includes(key)) {
+      const pwdRows = await dbQuery(
+        'SELECT setting_value FROM system_settings WHERE setting_key = ?',
+        ['wallet_security_password']
+      );
+      const pwdResult = pwdRows && pwdRows.length > 0 ? pwdRows[0] : null;
+      if (pwdResult && pwdResult.setting_value) {
+        if (!securityPassword) {
+          return res.status(400).json({ success: false, message: '修改钱包地址需要安全密码', requirePassword: true });
+        }
+        const isValid = await verifyPassword(securityPassword, pwdResult.setting_value);
+        if (!isValid) {
+          console.warn(`[Admin] 钱包设置修改失败 - 安全密码错误: ${key}`);
+          return res.status(403).json({ success: false, message: '安全密码错误' });
+        }
+      }
+    }
+
     // 检查设置项是否存在
     const existing = await dbQuery(
       'SELECT * FROM system_settings WHERE setting_key = ?',
       [key]
     );
-    
+
     if (!existing) {
       return res.status(404).json({
         success: false,
         message: '设置项不存在'
       });
     }
-    
+
     // 更新设置
     await dbQuery(
       'UPDATE system_settings SET setting_value = ?, updated_at = NOW() WHERE setting_key = ?',
       [value, key]
     );
-    
+
     console.log(`[Admin] 更新系统设置: ${key} = ${value}`);
-    
+    // 钱包类设置记录详细审计日志
+    const WALLET_KEYS_AUDIT = ['platform_wallet_address', 'platform_wallet_bsc', 'platform_wallet_eth'];
+    if (WALLET_KEYS_AUDIT.includes(key)) {
+      const oldVal = existing && existing[0] ? existing[0].setting_value : null;
+      await auditLog(req.admin?.username || 'unknown', 'wallet_setting_change', `修改设置: ${key}`, req.ip, oldVal, value);
+    }
+
     res.json({
       success: true,
       message: '设置已更新'
@@ -5280,6 +5525,8 @@ router.post('/wallet-config', authMiddleware, async (req, res) => {
       admin: req.admin?.username,
       settings: Object.keys(settings)
     });
+    // 数据库审计日志
+    await auditLog(req.admin?.username || 'unknown', 'wallet_config_change', '钱包地址配置已修改', req.ip, null, Object.keys(settings).join(','));
     
     res.json({
       success: true,

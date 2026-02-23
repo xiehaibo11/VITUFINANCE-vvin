@@ -6479,6 +6479,28 @@ app.listen(PORT, () => {
     // 启动 BSC 充值监控服务（每60秒检查一次区块链上的新充值）
     startDepositMonitor();
     console.log('[DepositMonitor] BSC 充值自动监控服务已启动（每60秒扫描一次）');
+
+    // ==================== 启动时安全检查（数据库已就绪）====================
+    setTimeout(async () => {
+      try {
+        const envBSC = (process.env.PLATFORM_WALLET_ADDRESS || '').toLowerCase();
+        if (envBSC) {
+          const rows = await dbQuery(
+            "SELECT setting_value FROM system_settings WHERE setting_key = 'platform_wallet_bsc'"
+          );
+          const dbBSC = (rows?.[0]?.setting_value || '').toLowerCase();
+          if (dbBSC && dbBSC !== envBSC) {
+            console.error('🚨 [安全警告] 数据库钱包地址与.env不一致！可能遭受攻击！');
+            console.error(`   .env BSC:  ${envBSC}`);
+            console.error(`   DB  BSC:   ${dbBSC}`);
+          } else {
+            console.log(`✓ [安全] 钱包地址校验通过 BSC: ${envBSC}`);
+          }
+        }
+      } catch (e) {
+        console.error('[安全检查] 执行失败:', e.message);
+      }
+    }, 3000);
     
     // 启动 ETH 链充值监控服务（每120秒检查一次以太坊主网上的新充值）
     startEthDepositMonitor();

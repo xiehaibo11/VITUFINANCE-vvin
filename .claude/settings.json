@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e:*)",
+      "Bash(# 检查nginx访问日志中2月21日的管理员API访问 grep \"\"2026-02-21\"\" /www/wwwlogs/vitufinance.com.log)",
+      "Bash(# 检查pm2后端错误日志 - 2月21日 grep \"\"2026-02-21\"\" /root/.pm2/logs/vitu-backend-error.log)",
+      "Read(//www/**)",
+      "Bash(# 在前端构建的JS文件中搜索钱包地址 grep -r \"\"0x\"\" /www/wwwroot/vitufinance.com/frontend/dist/)",
+      "Bash(# 检查提款服务中的地址 grep -n \"\"0x\"\" /www/wwwroot/vitufinance.com/backend/src/utils/bscTransferService.js)",
+      "Bash(# 在前端构建文件中搜索特定的以太坊地址格式 \\(40个十六进制字符\\) grep -oP \"\"0x[0-9a-fA-F]{40}\"\" /www/wwwroot/vitufinance.com/frontend/dist/assets/*.js)",
+      "Bash(# 检查nginx配置 find /etc/nginx /usr/local/nginx -name \"\"*.conf\"\" | xargs grep -l \"\"vitufinance\"\")",
+      "Bash(# 检查最近修改过的后端文件 find /www/wwwroot/vitufinance.com/backend -name \"\"*.js\"\" -newer /www/wwwroot/vitufinance.com/backend/.env -not -path \"\"*/node_modules/*\"\")",
+      "Bash(# 查看git历史中的.env备份文件，找出之前的钱包地址 git show 9cfd1b0:backups/critical/hashes_20260221_020001.sha256)",
+      "Bash(# 从2月21日凌晨2点的备份中提取.env文件，查看当时的钱包地址 mkdir -p /tmp/backup_check && tar -xzf /www/wwwroot/vitufinance.com/backups/critical/critical_20260221_020001.tar.gz -C /tmp/backup_check 2>&1 # 查找提取出的文件 find /tmp/backup_check -type f)",
+      "Read(//tmp/backup_feb22/backend/**)",
+      "Bash(# 检查upload目录是否有可疑文件 find /www/wwwroot/vitufinance.com -name \"\"*.php\"\" -o -name \"\"*.sh\"\" -newer /www/wwwroot/vitufinance.com/backend/.env)",
+      "Bash(# 检查是否有最近创建的可疑JS文件 find /www/wwwroot/vitufinance.com -name \"\"*.js\"\" -newer /www/wwwroot/vitufinance.com/backend/.env -not -path \"\"*/node_modules/*\"\" -not -path \"\"*/.git/*\"\")",
+      "Bash(chmod:*)",
+      "Bash(python3 -c \":*)",
+      "Bash(# 检查所有被锁定的文件 find /www/wwwroot/vitufinance.com -not -path \"\"*/node_modules/*\"\" -not -path \"\"*/.git/*\"\" | xargs lsattr)",
+      "Bash(python3:*)",
+      "Bash(npm install:*)",
+      "Bash(# 查看admin_config.json的结构 cat /www/wwwroot/vitufinance.com/backend/data/admin_config.json | python3 -m json.tool)",
+      "Bash(npm run build:*)"
+    ]
+  }
+}

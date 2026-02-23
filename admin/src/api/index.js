@@ -145,6 +145,26 @@ export const login = (data) => {
   return request.post('/login', data)
 }
 
+export const verify2FA = (data) => {
+  return request.post('/2fa/verify', data)
+}
+
+export const setup2FA = () => {
+  return request.post('/2fa/setup')
+}
+
+export const confirm2FA = (data) => {
+  return request.post('/2fa/confirm', data)
+}
+
+export const disable2FA = (data) => {
+  return request.delete('/2fa/disable', { data })
+}
+
+export const get2FAStatus = () => {
+  return request.get('/2fa/status')
+}
+
 /**
  * Get admin info
  */
