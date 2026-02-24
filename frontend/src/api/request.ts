@@ -28,6 +28,13 @@ service.interceptors.request.use(
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
     }
+
+    // 添加语言信息到请求头
+    const language = localStorage.getItem('language') || 'en'
+    if (config.headers) {
+      config.headers['Accept-Language'] = language
+    }
+
     return config
   },
   (error: any): Promise<never> => {

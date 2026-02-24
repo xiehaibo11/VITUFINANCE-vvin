@@ -539,19 +539,47 @@ app.post('/api/track-behavior', express.text({ type: 'text/plain' }), async (req
 // 获取公告列表（前台）- 只返回激活状态的公告
 app.get('/api/announcements', async (req, res) => {
     try {
+        // 获取用户语言偏好
+        const language = req.headers['accept-language'] || 'en';
+
         const rows = await dbQuery(
-            'SELECT id, title, content, created_at, status FROM announcements WHERE status = ? ORDER BY sort_order DESC, created_at DESC',
+            'SELECT id, title, title_translations, content, content_translations, created_at, status FROM announcements WHERE status = ? ORDER BY sort_order DESC, created_at DESC',
             ['active']
         );
-        
-        // 转换为前端期望的格式
-        const notice = rows.map(row => ({
-            id: row.id,
-            title: row.title,
-            content: row.content,
-            show: false // 默认不展开
-        }));
-        
+
+        // 转换为前端期望的格式，根据语言返回对应翻译
+        const notice = rows.map(row => {
+            let title = row.title;
+            let content = row.content;
+
+            // 从 JSON 字段中提取对应语言的翻译
+            try {
+                if (row.title_translations) {
+                    const titleTranslations = typeof row.title_translations === 'string'
+                        ? JSON.parse(row.title_translations)
+                        : row.title_translations;
+                    title = titleTranslations[language] || titleTranslations['en'] || row.title;
+                }
+
+                if (row.content_translations) {
+                    const contentTranslations = typeof row.content_translations === 'string'
+                        ? JSON.parse(row.content_translations)
+                        : row.content_translations;
+                    content = contentTranslations[language] || contentTranslations['en'] || row.content;
+                }
+            } catch (err) {
+                console.error('解析翻译数据失败:', err.message);
+                // 如果解析失败，使用原始数据
+            }
+
+            return {
+                id: row.id,
+                title: title,
+                content: content,
+                show: false // 默认不展开
+            };
+        });
+
         res.json({
             code: 200,
             msg: 'success',
