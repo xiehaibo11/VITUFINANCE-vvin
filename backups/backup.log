@@ -1936,3 +1936,11 @@ To github.com:gsyi5839-alt/https-vitufinance.com-.git
 [2026-02-28 02:00:05] 3. Generating file integrity hashes...
 [2026-02-28 02:00:05]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260228_020001.sha256
 [2026-02-28 02:00:05] 4. Checking for git changes...
+[2026-02-28 02:00:06]    Git commit created
+[2026-02-28 02:00:06] 5. Cleaning up old backups...
+[2026-02-28 02:00:06]    Old backups cleaned (keeping last 7 days)
+[2026-02-28 02:00:06] ==========================================
+[2026-02-28 02:00:06] Backup completed successfully!
+[2026-02-28 02:00:06] ==========================================
+[2026-02-28 02:00:06]    Total backup size: 165M
+[2026-02-28 02:00:06] ==========================================

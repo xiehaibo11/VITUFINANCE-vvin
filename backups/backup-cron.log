@@ -1,0 +1,2312 @@
+[2025-12-22 02:00:01] ==========================================
+[2025-12-22 02:00:01] Starting backup: vitufinance_backup_20251222_020001
+[2025-12-22 02:00:01] ==========================================
+[2025-12-22 02:00:01] 1. Backing up critical source files...
+[2025-12-22 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20251222_020001.tar.gz
+[2025-12-22 02:00:01] 2. Backing up database...
+[2025-12-22 02:00:01]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20251222_020001.sql.gz
+[2025-12-22 02:00:01] 3. Generating file integrity hashes...
+[2025-12-22 02:00:01]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20251222_020001.sha256
+[2025-12-22 02:00:01] 4. Checking for git changes...
+[main ac34b2e] Auto-backup: 20251222_020001
+ 8 files changed, 128 insertions(+), 5 deletions(-)
+ create mode 100644 backend/.env.bak
+ create mode 100644 backend/.env.bak.20251221203956
+ create mode 100644 backups/critical/critical_20251222_020001.tar.gz
+ create mode 100644 backups/critical/hashes_20251222_020001.sha256
+ create mode 100644 backups/daily/db_20251222_020001.sql.gz
+[2025-12-22 02:00:01]    Git commit created
+[2025-12-22 02:00:01] 5. Cleaning up old backups...
+[2025-12-22 02:00:01]    Old backups cleaned (keeping last 7 days)
+[2025-12-22 02:00:01] ==========================================
+[2025-12-22 02:00:01] Backup completed successfully!
+[2025-12-22 02:00:01] ==========================================
+   Critical files: 100K
+   Database: 588K
+[2025-12-22 02:00:01]    Total backup size: 1.8M
+[2025-12-22 02:00:01] ==========================================
+[2025-12-23 02:00:01] ==========================================
+[2025-12-23 02:00:01] Starting backup: vitufinance_backup_20251223_020001
+[2025-12-23 02:00:01] ==========================================
+[2025-12-23 02:00:01] 1. Backing up critical source files...
+[2025-12-23 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20251223_020001.tar.gz
+[2025-12-23 02:00:01] 2. Backing up database...
+[2025-12-23 02:00:02]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20251223_020001.sql.gz
+[2025-12-23 02:00:02] 3. Generating file integrity hashes...
+[2025-12-23 02:00:02]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20251223_020001.sha256
+[2025-12-23 02:00:02] 4. Checking for git changes...
+[main 54a1277] Auto-backup: 20251223_020001
+ 8 files changed, 312 insertions(+), 165 deletions(-)
+ create mode 100644 CLAUDE.md
+ create mode 100644 backups/critical/critical_20251223_020001.tar.gz
+ create mode 100644 backups/critical/hashes_20251223_020001.sha256
+ create mode 100644 backups/daily/db_20251223_020001.sql.gz
+[2025-12-23 02:00:02]    Git commit created
+[2025-12-23 02:00:02] 5. Cleaning up old backups...
+[2025-12-23 02:00:02]    Old backups cleaned (keeping last 7 days)
+[2025-12-23 02:00:02] ==========================================
+[2025-12-23 02:00:02] Backup completed successfully!
+[2025-12-23 02:00:02] ==========================================
+   Critical files: 104K
+   Database: 836K
+[2025-12-23 02:00:02]    Total backup size: 2.9M
+[2025-12-23 02:00:02] ==========================================
+[2025-12-24 02:00:01] ==========================================
+[2025-12-24 02:00:01] Starting backup: vitufinance_backup_20251224_020001
+[2025-12-24 02:00:01] ==========================================
+[2025-12-24 02:00:01] 1. Backing up critical source files...
+[2025-12-24 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20251224_020001.tar.gz
+[2025-12-24 02:00:01] 2. Backing up database...
+[2025-12-24 02:00:02]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20251224_020001.sql.gz
+[2025-12-24 02:00:02] 3. Generating file integrity hashes...
+[2025-12-24 02:00:02]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20251224_020001.sha256
+[2025-12-24 02:00:02] 4. Checking for git changes...
+[main ffccc72] Auto-backup: 20251224_020001
+ 4 files changed, 21 insertions(+)
+ create mode 100644 backups/critical/critical_20251224_020001.tar.gz
+ create mode 100644 backups/critical/hashes_20251224_020001.sha256
+ create mode 100644 backups/daily/db_20251224_020001.sql.gz
+[2025-12-24 02:00:02]    Git commit created
+[2025-12-24 02:00:02] 5. Cleaning up old backups...
+[2025-12-24 02:00:02]    Old backups cleaned (keeping last 7 days)
+[2025-12-24 02:00:02] ==========================================
+[2025-12-24 02:00:02] Backup completed successfully!
+[2025-12-24 02:00:02] ==========================================
+   Critical files: 104K
+   Database: 1.1M
+[2025-12-24 02:00:02]    Total backup size: 5.1M
+[2025-12-24 02:00:02] ==========================================
+[2025-12-25 02:00:01] ==========================================
+[2025-12-25 02:00:01] Starting backup: vitufinance_backup_20251225_020001
+[2025-12-25 02:00:01] ==========================================
+[2025-12-25 02:00:01] 1. Backing up critical source files...
+[2025-12-25 02:00:02]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20251225_020001.tar.gz
+[2025-12-25 02:00:02] 2. Backing up database...
+[2025-12-25 02:00:03]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20251225_020001.sql.gz
+[2025-12-25 02:00:03] 3. Generating file integrity hashes...
+[2025-12-25 02:00:03]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20251225_020001.sha256
+[2025-12-25 02:00:03] 4. Checking for git changes...
+[main 4193c00] Auto-backup: 20251225_020001
+ 4 files changed, 21 insertions(+)
+ create mode 100644 backups/critical/critical_20251225_020001.tar.gz
+ create mode 100644 backups/critical/hashes_20251225_020001.sha256
+ create mode 100644 backups/daily/db_20251225_020001.sql.gz
+[2025-12-25 02:00:03]    Git commit created
+[2025-12-25 02:00:03] 5. Cleaning up old backups...
+[2025-12-25 02:00:03]    Old backups cleaned (keeping last 7 days)
+[2025-12-25 02:00:03] ==========================================
+[2025-12-25 02:00:03] Backup completed successfully!
+[2025-12-25 02:00:03] ==========================================
+   Critical files: 108K
+   Database: 1.4M
+[2025-12-25 02:00:03]    Total backup size: 6.7M
+[2025-12-25 02:00:03] ==========================================
+[2025-12-25 03:00:01] [INFO] ========== Starting database backup ==========
+[2025-12-25 03:00:01] [INFO] Backup time: 2025-12-25_03-00-01
+[2025-12-25 03:00:01] [INFO] Project: /www/wwwroot/vitufinance.com
+[2025-12-25 03:00:01] [INFO] Database: xie080886 @ 127.0.0.1:3306
+[2025-12-25 03:00:01] [INFO] Creating database backup...
+[2025-12-25 03:00:02] [INFO] Backup created: xie080886_2025-12-25.sql (7.7M)
+[2025-12-25 03:00:02] [INFO] Compressing backup...
+[2025-12-25 03:00:03] [INFO] Backup compressed: xie080886_2025-12-25.sql.gz (1.4M)
+[2025-12-25 03:00:03] [INFO] Cleaning up old backups...
+[2025-12-25 03:00:03] [INFO] Total backups retained: 4
+[2025-12-25 03:00:03] [INFO] Pushing backup to Git repository...
+[2025-12-25 03:00:10] [INFO] Successfully pushed to 'main' branch
+[2025-12-25 03:00:10] [INFO] Git push completed successfully
+[2025-12-25 03:00:10] [INFO] =========================================
+[2025-12-25 03:00:10] [INFO] Backup Summary:
+[2025-12-25 03:00:10] [INFO]   File: xie080886_2025-12-25.sql.gz
+[2025-12-25 03:00:10] [INFO]   Size: 1.4M
+[2025-12-25 03:00:10] [INFO]   Location: /www/wwwroot/vitufinance.com/backups/database
+[2025-12-25 03:00:10] [INFO] ========== Backup completed successfully ==========
+[2025-12-25 03:00:10] [INFO] 
+[2025-12-26 02:00:01] ==========================================
+[2025-12-26 02:00:01] Starting backup: vitufinance_backup_20251226_020001
+[2025-12-26 02:00:01] ==========================================
+[2025-12-26 02:00:01] 1. Backing up critical source files...
+[2025-12-26 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20251226_020001.tar.gz
+[2025-12-26 02:00:01] 2. Backing up database...
+[2025-12-26 02:00:02]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20251226_020001.sql.gz
+[2025-12-26 02:00:02] 3. Generating file integrity hashes...
+[2025-12-26 02:00:02]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20251226_020001.sha256
+[2025-12-26 02:00:02] 4. Checking for git changes...
+[main 1f77d3f] Auto-backup: 20251226_020001
+ 4 files changed, 21 insertions(+)
+ create mode 100644 backups/critical/critical_20251226_020001.tar.gz
+ create mode 100644 backups/critical/hashes_20251226_020001.sha256
+ create mode 100644 backups/daily/db_20251226_020001.sql.gz
+[2025-12-26 02:00:02]    Git commit created
+[2025-12-26 02:00:02] 5. Cleaning up old backups...
+[2025-12-26 02:00:02]    Old backups cleaned (keeping last 7 days)
+[2025-12-26 02:00:02] ==========================================
+[2025-12-26 02:00:02] Backup completed successfully!
+[2025-12-26 02:00:02] ==========================================
+   Critical files: 108K
+   Database: 1.6M
+[2025-12-26 02:00:02]    Total backup size: 9.8M
+[2025-12-26 02:00:02] ==========================================
+[2025-12-27 02:00:02] ==========================================
+[2025-12-27 02:00:02] Starting backup: vitufinance_backup_20251227_020002
+[2025-12-27 02:00:02] ==========================================
+[2025-12-27 02:00:02] 1. Backing up critical source files...
+[2025-12-27 02:00:02]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20251227_020002.tar.gz
+[2025-12-27 02:00:02] 2. Backing up database...
+[2025-12-27 02:00:02]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20251227_020002.sql.gz
+[2025-12-27 02:00:02] 3. Generating file integrity hashes...
+[2025-12-27 02:00:03]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20251227_020002.sha256
+[2025-12-27 02:00:03] 4. Checking for git changes...
+[main 356ade7] Auto-backup: 20251227_020002
+ 10 files changed, 750 insertions(+), 26 deletions(-)
+ create mode 100644 backend/src/cron/ethDepositMonitorCron.js
+ create mode 100644 backend/src/utils/platformWallet.js
+ create mode 100644 backups/critical/critical_20251227_020002.tar.gz
+ create mode 100644 backups/critical/hashes_20251227_020002.sha256
+ create mode 100644 backups/daily/db_20251227_020002.sql.gz
+[2025-12-27 02:00:03]    Git commit created
+[2025-12-27 02:00:03] 5. Cleaning up old backups...
+[2025-12-27 02:00:03]    Old backups cleaned (keeping last 7 days)
+[2025-12-27 02:00:03] ==========================================
+[2025-12-27 02:00:03] Backup completed successfully!
+[2025-12-27 02:00:03] ==========================================
+   Critical files: 112K
+   Database: 1.9M
+[2025-12-27 02:00:03]    Total backup size: 12M
+[2025-12-27 02:00:03] ==========================================
+[2025-12-28 02:00:01] ==========================================
+[2025-12-28 02:00:01] Starting backup: vitufinance_backup_20251228_020001
+[2025-12-28 02:00:01] ==========================================
+[2025-12-28 02:00:01] 1. Backing up critical source files...
+[2025-12-28 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20251228_020001.tar.gz
+[2025-12-28 02:00:01] 2. Backing up database...
+[2025-12-28 02:00:02]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20251228_020001.sql.gz
+[2025-12-28 02:00:02] 3. Generating file integrity hashes...
+[2025-12-28 02:00:02]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20251228_020001.sha256
+[2025-12-28 02:00:02] 4. Checking for git changes...
+[main 7e1e01e] Auto-backup: 20251228_020001
+ 7 files changed, 114 insertions(+), 20 deletions(-)
+ create mode 100644 backups/critical/critical_20251228_020001.tar.gz
+ create mode 100644 backups/critical/hashes_20251228_020001.sha256
+ create mode 100644 backups/daily/db_20251228_020001.sql.gz
+[2025-12-28 02:00:02]    Git commit created
+[2025-12-28 02:00:02] 5. Cleaning up old backups...
+[2025-12-28 02:00:02]    Old backups cleaned (keeping last 7 days)
+[2025-12-28 02:00:02] ==========================================
+[2025-12-28 02:00:02] Backup completed successfully!
+[2025-12-28 02:00:02] ==========================================
+   Critical files: 112K
+   Database: 2.1M
+[2025-12-28 02:00:02]    Total backup size: 15M
+[2025-12-28 02:00:02] ==========================================
+[2025-12-28 03:00:01] [INFO] ========== Starting database backup ==========
+[2025-12-28 03:00:01] [INFO] Backup time: 2025-12-28_03-00-01
+[2025-12-28 03:00:01] [INFO] Project: /www/wwwroot/vitufinance.com
+[2025-12-28 03:00:01] [INFO] Database: xie080886 @ 127.0.0.1:3306
+[2025-12-28 03:00:01] [INFO] Creating database backup...
+[2025-12-28 03:00:02] [INFO] Backup created: xie080886_2025-12-28.sql (13M)
+[2025-12-28 03:00:02] [INFO] Compressing backup...
+[2025-12-28 03:00:04] [INFO] Backup compressed: xie080886_2025-12-28.sql.gz (2.1M)
+[2025-12-28 03:00:04] [INFO] Cleaning up old backups...
+[2025-12-28 03:00:04] [INFO] Total backups retained: 5
+[2025-12-28 03:00:04] [INFO] Pushing backup to Git repository...
+[2025-12-28 03:00:14] [INFO] Successfully pushed to 'main' branch
+[2025-12-28 03:00:14] [INFO] Git push completed successfully
+[2025-12-28 03:00:14] [INFO] =========================================
+[2025-12-28 03:00:14] [INFO] Backup Summary:
+[2025-12-28 03:00:14] [INFO]   File: xie080886_2025-12-28.sql.gz
+[2025-12-28 03:00:14] [INFO]   Size: 2.1M
+[2025-12-28 03:00:14] [INFO]   Location: /www/wwwroot/vitufinance.com/backups/database
+[2025-12-28 03:00:14] [INFO] ========== Backup completed successfully ==========
+[2025-12-28 03:00:14] [INFO] 
+[2025-12-29 02:00:01] ==========================================
+[2025-12-29 02:00:01] Starting backup: vitufinance_backup_20251229_020001
+[2025-12-29 02:00:01] ==========================================
+[2025-12-29 02:00:01] 1. Backing up critical source files...
+[2025-12-29 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20251229_020001.tar.gz
+[2025-12-29 02:00:01] 2. Backing up database...
+[2025-12-29 02:00:02]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20251229_020001.sql.gz
+[2025-12-29 02:00:02] 3. Generating file integrity hashes...
+[2025-12-29 02:00:03]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20251229_020001.sha256
+[2025-12-29 02:00:03] 4. Checking for git changes...
+[main 3f13d53] Auto-backup: 20251229_020001
+ 38 files changed, 6693 insertions(+), 69 deletions(-)
+ create mode 100644 admin/src/views/FakeAccounts.vue
+ create mode 100644 admin/src/views/Maintenance.vue
+ create mode 100644 backend/migrations/add_maintenance_table.sql
+ create mode 100644 backend/src/routes/admin/fakeAccountRoutes.js
+ create mode 100644 backend/src/routes/admin/maintenanceRoutes.js
+ create mode 100644 backend/src/routes/admin/robotRoutes.js
+ create mode 100644 backend/src/routes/admin/shared.js
+ create mode 100644 backend/src/routes/admin/teamDividendRoutes.js
+ create mode 100644 backups/critical/critical_20251229_020001.tar.gz
+ create mode 100644 backups/critical/hashes_20251229_020001.sha256
+ create mode 100644 backups/daily/db_20251229_020001.sql.gz
+ create mode 100644 backups/emergency/before_restore_20251228_225142.sql.gz
+ create mode 100644 frontend/src/api/maintenance.js
+ create mode 100644 frontend/src/components/MaintenanceBackground3D.vue
+ create mode 100644 frontend/src/components/MaintenanceOverlay.vue
+ create mode 100644 frontend/src/utils/deviceDetect.js
+[2025-12-29 02:00:03]    Git commit created
+[2025-12-29 02:00:03] 5. Cleaning up old backups...
+[2025-12-29 02:00:03]    Old backups cleaned (keeping last 7 days)
+[2025-12-29 02:00:03] ==========================================
+[2025-12-29 02:00:03] Backup completed successfully!
+[2025-12-29 02:00:03] ==========================================
+   Critical files: 112K
+   Database: 2.2M
+[2025-12-29 02:00:03]    Total backup size: 21M
+[2025-12-29 02:00:03] ==========================================
+[2025-12-30 02:00:01] ==========================================
+[2025-12-30 02:00:01] Starting backup: vitufinance_backup_20251230_020001
+[2025-12-30 02:00:01] ==========================================
+[2025-12-30 02:00:01] 1. Backing up critical source files...
+[2025-12-30 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20251230_020001.tar.gz
+[2025-12-30 02:00:01] 2. Backing up database...
+[2025-12-30 02:00:03]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20251230_020001.sql.gz
+[2025-12-30 02:00:03] 3. Generating file integrity hashes...
+[2025-12-30 02:00:03]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20251230_020001.sha256
+[2025-12-30 02:00:03] 4. Checking for git changes...
+[main 9bdd915] Auto-backup: 20251230_020001
+ 8 files changed, 665 insertions(+), 11 deletions(-)
+ create mode 100644 backups/critical/critical_20251230_020001.tar.gz
+ create mode 100644 backups/critical/hashes_20251230_020001.sha256
+ create mode 100644 backups/daily/db_20251230_020001.sql.gz
+[2025-12-30 02:00:03]    Git commit created
+[2025-12-30 02:00:03] 5. Cleaning up old backups...
+[2025-12-30 02:00:03]    Old backups cleaned (keeping last 7 days)
+[2025-12-30 02:00:03] ==========================================
+[2025-12-30 02:00:03] Backup completed successfully!
+[2025-12-30 02:00:03] ==========================================
+   Critical files: 112K
+   Database: 2.4M
+[2025-12-30 02:00:03]    Total backup size: 22M
+[2025-12-30 02:00:03] ==========================================
+[2025-12-31 02:00:01] ==========================================
+[2025-12-31 02:00:01] Starting backup: vitufinance_backup_20251231_020001
+[2025-12-31 02:00:01] ==========================================
+[2025-12-31 02:00:01] 1. Backing up critical source files...
+[2025-12-31 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20251231_020001.tar.gz
+[2025-12-31 02:00:01] 2. Backing up database...
+[2025-12-31 02:00:03]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20251231_020001.sql.gz
+[2025-12-31 02:00:03] 3. Generating file integrity hashes...
+[2025-12-31 02:00:03]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20251231_020001.sha256
+[2025-12-31 02:00:03] 4. Checking for git changes...
+[main 096306a] Auto-backup: 20251231_020001
+ 22 files changed, 752 insertions(+), 156 deletions(-)
+ delete mode 100644 backups/critical/critical_20251221_192158.tar.gz
+ delete mode 100644 backups/critical/critical_20251222_020001.tar.gz
+ create mode 100644 backups/critical/critical_20251231_020001.tar.gz
+ delete mode 100644 backups/critical/hashes_20251221_192158.sha256
+ delete mode 100644 backups/critical/hashes_20251222_020001.sha256
+ create mode 100644 backups/critical/hashes_20251231_020001.sha256
+ delete mode 100644 backups/daily/db_20251221_192158.sql.gz
+ delete mode 100644 backups/daily/db_20251222_020001.sql.gz
+ create mode 100644 backups/daily/db_20251231_020001.sql.gz
+ create mode 100644 frontend/public/googlec66d5e61411b0cfd.html
+ create mode 100644 frontend/public/robots.txt
+ create mode 100644 frontend/public/sitemap.xml
+ create mode 100644 frontend/public/static/two/og-image.png
+ create mode 100644 googlec66d5e61411b0cfd.html
+ create mode 100644 "\350\260\267\346\255\214.md"
+[2025-12-31 02:00:03]    Git commit created
+[2025-12-31 02:00:03] 5. Cleaning up old backups...
+[2025-12-31 02:00:03]    Old backups cleaned (keeping last 7 days)
+[2025-12-31 02:00:03] ==========================================
+[2025-12-31 02:00:03] Backup completed successfully!
+[2025-12-31 02:00:03] ==========================================
+   Critical files: 112K
+   Database: 2.6M
+[2025-12-31 02:00:03]    Total backup size: 24M
+[2025-12-31 02:00:03] ==========================================
+[2025-12-31 03:00:01] [INFO] ========== Starting database backup ==========
+[2025-12-31 03:00:01] [INFO] Backup time: 2025-12-31_03-00-01
+[2025-12-31 03:00:01] [INFO] Project: /www/wwwroot/vitufinance.com
+[2025-12-31 03:00:01] [INFO] Database: xie080886 @ 127.0.0.1:3306
+[2025-12-31 03:00:01] [INFO] Creating database backup...
+[2025-12-31 03:00:02] [INFO] Backup created: xie080886_2025-12-31.sql (16M)
+[2025-12-31 03:00:02] [INFO] Compressing backup...
+[2025-12-31 03:00:05] [INFO] Backup compressed: xie080886_2025-12-31.sql.gz (2.5M)
+[2025-12-31 03:00:05] [INFO] Cleaning up old backups...
+[2025-12-31 03:00:05] [INFO] Total backups retained: 4
+[2025-12-31 03:00:05] [INFO] Pushing backup to Git repository...
+[2025-12-31 03:00:15] [INFO] Successfully pushed to 'main' branch
+[2025-12-31 03:00:15] [INFO] Git push completed successfully
+[2025-12-31 03:00:15] [INFO] =========================================
+[2025-12-31 03:00:15] [INFO] Backup Summary:
+[2025-12-31 03:00:15] [INFO]   File: xie080886_2025-12-31.sql.gz
+[2025-12-31 03:00:15] [INFO]   Size: 2.5M
+[2025-12-31 03:00:15] [INFO]   Location: /www/wwwroot/vitufinance.com/backups/database
+[2025-12-31 03:00:15] [INFO] ========== Backup completed successfully ==========
+[2025-12-31 03:00:15] [INFO] 
+[2026-01-01 02:00:01] ==========================================
+[2026-01-01 02:00:01] Starting backup: vitufinance_backup_20260101_020001
+[2026-01-01 02:00:01] ==========================================
+[2026-01-01 02:00:01] 1. Backing up critical source files...
+[2026-01-01 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260101_020001.tar.gz
+[2026-01-01 02:00:02] 2. Backing up database...
+[2026-01-01 02:00:03]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260101_020001.sql.gz
+[2026-01-01 02:00:03] 3. Generating file integrity hashes...
+[2026-01-01 02:00:03]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260101_020001.sha256
+[2026-01-01 02:00:03] 4. Checking for git changes...
+[main 7e9aee4] Auto-backup: 20260101_020001
+ 8 files changed, 31 insertions(+), 7 deletions(-)
+ delete mode 100644 backups/critical/critical_20251223_020001.tar.gz
+ create mode 100644 backups/critical/critical_20260101_020001.tar.gz
+ rename backups/critical/{hashes_20251223_020001.sha256 => hashes_20260101_020001.sha256} (57%)
+ delete mode 100644 backups/daily/db_20251223_020001.sql.gz
+ create mode 100644 backups/daily/db_20260101_020001.sql.gz
+ delete mode 100644 backups/database/xie080886_2025-12-20.sql.gz
+ delete mode 100644 backups/database/xie080886_2025-12-21.sql.gz
+[2026-01-01 02:00:03]    Git commit created
+[2026-01-01 02:00:03] 5. Cleaning up old backups...
+[2026-01-01 02:00:03]    Old backups cleaned (keeping last 7 days)
+[2026-01-01 02:00:03] ==========================================
+[2026-01-01 02:00:03] Backup completed successfully!
+[2026-01-01 02:00:03] ==========================================
+   Critical files: 112K
+   Database: 2.8M
+[2026-01-01 02:00:03]    Total backup size: 28M
+[2026-01-01 02:00:03] ==========================================
+[2026-01-01 03:00:01] [INFO] ========== Starting database backup ==========
+[2026-01-01 03:00:01] [INFO] Backup time: 2026-01-01_03-00-01
+[2026-01-01 03:00:01] [INFO] Project: /www/wwwroot/vitufinance.com
+[2026-01-01 03:00:01] [INFO] Database: xie080886 @ 127.0.0.1:3306
+[2026-01-01 03:00:01] [INFO] Creating database backup...
+[2026-01-01 03:00:02] [INFO] Backup created: xie080886_2026-01-01.sql (17M)
+[2026-01-01 03:00:02] [INFO] Compressing backup...
+[2026-01-01 03:00:05] [INFO] Backup compressed: xie080886_2026-01-01.sql.gz (2.8M)
+[2026-01-01 03:00:05] [INFO] Cleaning up old backups...
+[2026-01-01 03:00:05] [INFO] Total backups retained: 4
+[2026-01-01 03:00:05] [INFO] Pushing backup to Git repository...
+[2026-01-01 03:00:14] [INFO] Successfully pushed to 'main' branch
+[2026-01-01 03:00:14] [INFO] Git push completed successfully
+[2026-01-01 03:00:14] [INFO] =========================================
+[2026-01-01 03:00:14] [INFO] Backup Summary:
+[2026-01-01 03:00:14] [INFO]   File: xie080886_2026-01-01.sql.gz
+[2026-01-01 03:00:14] [INFO]   Size: 2.8M
+[2026-01-01 03:00:14] [INFO]   Location: /www/wwwroot/vitufinance.com/backups/database
+[2026-01-01 03:00:14] [INFO] ========== Backup completed successfully ==========
+[2026-01-01 03:00:14] [INFO] 
+[2026-01-02 02:00:01] ==========================================
+[2026-01-02 02:00:01] Starting backup: vitufinance_backup_20260102_020001
+[2026-01-02 02:00:01] ==========================================
+[2026-01-02 02:00:01] 1. Backing up critical source files...
+[2026-01-02 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260102_020001.tar.gz
+[2026-01-02 02:00:01] 2. Backing up database...
+[2026-01-02 02:00:02]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260102_020001.sql.gz
+[2026-01-02 02:00:02] 3. Generating file integrity hashes...
+[2026-01-02 02:00:02]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260102_020001.sha256
+[2026-01-02 02:00:02] 4. Checking for git changes...
+[main 26ddc82] Auto-backup: 20260102_020001
+ 7 files changed, 31 insertions(+), 7 deletions(-)
+ delete mode 100644 backups/critical/critical_20251224_020001.tar.gz
+ create mode 100644 backups/critical/critical_20260102_020001.tar.gz
+ rename backups/critical/{hashes_20251224_020001.sha256 => hashes_20260102_020001.sha256} (57%)
+ delete mode 100644 backups/daily/db_20251224_020001.sql.gz
+ create mode 100644 backups/daily/db_20260102_020001.sql.gz
+ delete mode 100644 backups/database/xie080886_2025-12-23.sql.gz
+[2026-01-02 02:00:02]    Git commit created
+[2026-01-02 02:00:02] 5. Cleaning up old backups...
+[2026-01-02 02:00:02]    Old backups cleaned (keeping last 7 days)
+[2026-01-02 02:00:02] ==========================================
+[2026-01-02 02:00:02] Backup completed successfully!
+[2026-01-02 02:00:02] ==========================================
+   Critical files: 112K
+   Database: 3.0M
+[2026-01-02 02:00:02]    Total backup size: 33M
+[2026-01-02 02:00:02] ==========================================
+[2026-01-03 02:00:01] ==========================================
+[2026-01-03 02:00:01] Starting backup: vitufinance_backup_20260103_020001
+[2026-01-03 02:00:01] ==========================================
+[2026-01-03 02:00:01] 1. Backing up critical source files...
+[2026-01-03 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260103_020001.tar.gz
+[2026-01-03 02:00:01] 2. Backing up database...
+[2026-01-03 02:00:02]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260103_020001.sql.gz
+[2026-01-03 02:00:02] 3. Generating file integrity hashes...
+[2026-01-03 02:00:02]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260103_020001.sha256
+[2026-01-03 02:00:02] 4. Checking for git changes...
+[main 4ab293b] Auto-backup: 20260103_020001
+ 5 files changed, 29 insertions(+)
+ delete mode 100644 backups/critical/critical_20251225_020001.tar.gz
+ create mode 100644 backups/critical/critical_20260103_020001.tar.gz
+ create mode 100644 backups/critical/hashes_20260103_020001.sha256
+ create mode 100644 backups/daily/db_20260103_020001.sql.gz
+[2026-01-03 02:00:03]    Git commit created
+[2026-01-03 02:00:03] 5. Cleaning up old backups...
+[2026-01-03 02:00:03]    Old backups cleaned (keeping last 7 days)
+[2026-01-03 02:00:03] ==========================================
+[2026-01-03 02:00:03] Backup completed successfully!
+[2026-01-03 02:00:03] ==========================================
+   Critical files: 112K
+   Database: 3.3M
+[2026-01-03 02:00:03]    Total backup size: 33M
+[2026-01-03 02:00:03] ==========================================
+[2026-01-04 02:00:01] ==========================================
+[2026-01-04 02:00:01] Starting backup: vitufinance_backup_20260104_020001
+[2026-01-04 02:00:01] ==========================================
+[2026-01-04 02:00:01] 1. Backing up critical source files...
+[2026-01-04 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260104_020001.tar.gz
+[2026-01-04 02:00:01] 2. Backing up database...
+[2026-01-04 02:00:03]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260104_020001.sql.gz
+[2026-01-04 02:00:03] 3. Generating file integrity hashes...
+[2026-01-04 02:00:03]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260104_020001.sha256
+[2026-01-04 02:00:03] 4. Checking for git changes...
+[main 0ff574d] Auto-backup: 20260104_020001
+ 10 files changed, 56 insertions(+), 25 deletions(-)
+ delete mode 100644 backups/critical/critical_20251226_020001.tar.gz
+ create mode 100644 backups/critical/critical_20260104_020001.tar.gz
+ delete mode 100644 backups/critical/hashes_20251225_020001.sha256
+ rename backups/critical/{hashes_20251226_020001.sha256 => hashes_20260104_020001.sha256} (81%)
+ delete mode 100644 backups/daily/db_20251225_020001.sql.gz
+ delete mode 100644 backups/daily/db_20251226_020001.sql.gz
+ create mode 100644 backups/daily/db_20260104_020001.sql.gz
+[2026-01-04 02:00:03]    Git commit created
+[2026-01-04 02:00:03] 5. Cleaning up old backups...
+[2026-01-04 02:00:03]    Old backups cleaned (keeping last 7 days)
+[2026-01-04 02:00:03] ==========================================
+[2026-01-04 02:00:03] Backup completed successfully!
+[2026-01-04 02:00:03] ==========================================
+   Critical files: 112K
+   Database: 3.5M
+[2026-01-04 02:00:03]    Total backup size: 35M
+[2026-01-04 02:00:03] ==========================================
+[2026-01-04 03:00:01] [INFO] ========== Starting database backup ==========
+[2026-01-04 03:00:01] [INFO] Backup time: 2026-01-04_03-00-01
+[2026-01-04 03:00:01] [INFO] Project: /www/wwwroot/vitufinance.com
+[2026-01-04 03:00:01] [INFO] Database: xie080886 @ 127.0.0.1:3306
+[2026-01-04 03:00:01] [INFO] Creating database backup...
+[2026-01-04 03:00:03] [INFO] Backup created: xie080886_2026-01-04.sql (22M)
+[2026-01-04 03:00:03] [INFO] Compressing backup...
+[2026-01-04 03:00:06] [INFO] Backup compressed: xie080886_2026-01-04.sql.gz (3.4M)
+[2026-01-04 03:00:06] [INFO] Cleaning up old backups...
+[2026-01-04 03:00:06] [INFO] Total backups retained: 4
+[2026-01-04 03:00:06] [INFO] Pushing backup to Git repository...
+[2026-01-04 03:00:15] [INFO] Successfully pushed to 'main' branch
+[2026-01-04 03:00:15] [INFO] Git push completed successfully
+[2026-01-04 03:00:15] [INFO] =========================================
+[2026-01-04 03:00:15] [INFO] Backup Summary:
+[2026-01-04 03:00:15] [INFO]   File: xie080886_2026-01-04.sql.gz
+[2026-01-04 03:00:15] [INFO]   Size: 3.4M
+[2026-01-04 03:00:15] [INFO]   Location: /www/wwwroot/vitufinance.com/backups/database
+[2026-01-04 03:00:15] [INFO] ========== Backup completed successfully ==========
+[2026-01-04 03:00:15] [INFO] 
+[2026-01-05 02:00:01] ==========================================
+[2026-01-05 02:00:01] Starting backup: vitufinance_backup_20260105_020001
+[2026-01-05 02:00:01] ==========================================
+[2026-01-05 02:00:01] 1. Backing up critical source files...
+[2026-01-05 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260105_020001.tar.gz
+[2026-01-05 02:00:01] 2. Backing up database...
+[2026-01-05 02:00:03]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260105_020001.sql.gz
+[2026-01-05 02:00:03] 3. Generating file integrity hashes...
+[2026-01-05 02:00:03]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260105_020001.sha256
+[2026-01-05 02:00:03] 4. Checking for git changes...
+[main a33b985] Auto-backup: 20260105_020001
+ 7 files changed, 26 insertions(+), 2 deletions(-)
+ delete mode 100644 backups/critical/critical_20251227_020002.tar.gz
+ create mode 100644 backups/critical/critical_20260105_020001.tar.gz
+ rename backups/critical/{hashes_20251227_020002.sha256 => hashes_20260105_020001.sha256} (87%)
+ delete mode 100644 backups/daily/db_20251227_020002.sql.gz
+ create mode 100644 backups/daily/db_20260105_020001.sql.gz
+ delete mode 100644 backups/database/xie080886_2025-12-25.sql.gz
+[2026-01-05 02:00:03]    Git commit created
+[2026-01-05 02:00:03] 5. Cleaning up old backups...
+[2026-01-05 02:00:03]    Old backups cleaned (keeping last 7 days)
+[2026-01-05 02:00:03] ==========================================
+[2026-01-05 02:00:03] Backup completed successfully!
+[2026-01-05 02:00:03] ==========================================
+   Critical files: 112K
+   Database: 3.7M
+[2026-01-05 02:00:03]    Total backup size: 39M
+[2026-01-05 02:00:03] ==========================================
+[2026-01-06 02:00:02] ==========================================
+[2026-01-06 02:00:02] Starting backup: vitufinance_backup_20260106_020002
+[2026-01-06 02:00:02] ==========================================
+[2026-01-06 02:00:02] 1. Backing up critical source files...
+[2026-01-06 02:00:02]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260106_020002.tar.gz
+[2026-01-06 02:00:02] 2. Backing up database...
+[2026-01-06 02:00:03]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260106_020002.sql.gz
+[2026-01-06 02:00:03] 3. Generating file integrity hashes...
+[2026-01-06 02:00:03]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260106_020002.sha256
+[2026-01-06 02:00:03] 4. Checking for git changes...
+[main 56922d8] Auto-backup: 20260106_020002
+ 6 files changed, 20 insertions(+), 2 deletions(-)
+ delete mode 100644 backups/critical/critical_20251228_020001.tar.gz
+ create mode 100644 backups/critical/critical_20260106_020002.tar.gz
+ rename backups/critical/{hashes_20251228_020001.sha256 => hashes_20260106_020002.sha256} (87%)
+ delete mode 100644 backups/daily/db_20251228_020001.sql.gz
+ create mode 100644 backups/daily/db_20260106_020002.sql.gz
+[2026-01-06 02:00:03]    Git commit created
+[2026-01-06 02:00:03] 5. Cleaning up old backups...
+[2026-01-06 02:00:03]    Old backups cleaned (keeping last 7 days)
+[2026-01-06 02:00:03] ==========================================
+[2026-01-06 02:00:03] Backup completed successfully!
+[2026-01-06 02:00:03] ==========================================
+   Critical files: 112K
+   Database: 3.9M
+[2026-01-06 02:00:03]    Total backup size: 40M
+[2026-01-06 02:00:03] ==========================================
+[2026-01-07 02:00:01] ==========================================
+[2026-01-07 02:00:01] Starting backup: vitufinance_backup_20260107_020001
+[2026-01-07 02:00:01] ==========================================
+[2026-01-07 02:00:01] 1. Backing up critical source files...
+[2026-01-07 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260107_020001.tar.gz
+[2026-01-07 02:00:01] 2. Backing up database...
+[2026-01-07 02:00:03]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260107_020001.sql.gz
+[2026-01-07 02:00:03] 3. Generating file integrity hashes...
+[2026-01-07 02:00:03]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260107_020001.sha256
+[2026-01-07 02:00:03] 4. Checking for git changes...
+[main 6864061] Auto-backup: 20260107_020001
+ 6 files changed, 20 insertions(+), 2 deletions(-)
+ delete mode 100644 backups/critical/critical_20251229_020001.tar.gz
+ create mode 100644 backups/critical/critical_20260107_020001.tar.gz
+ rename backups/critical/{hashes_20251229_020001.sha256 => hashes_20260107_020001.sha256} (87%)
+ delete mode 100644 backups/daily/db_20251229_020001.sql.gz
+ create mode 100644 backups/daily/db_20260107_020001.sql.gz
+[2026-01-07 02:00:03]    Git commit created
+[2026-01-07 02:00:03] 5. Cleaning up old backups...
+[2026-01-07 02:00:03]    Old backups cleaned (keeping last 7 days)
+[2026-01-07 02:00:03] ==========================================
+[2026-01-07 02:00:03] Backup completed successfully!
+[2026-01-07 02:00:03] ==========================================
+   Critical files: 112K
+   Database: 4.1M
+[2026-01-07 02:00:03]    Total backup size: 42M
+[2026-01-07 02:00:03] ==========================================
+[2026-01-07 03:00:01] [INFO] ========== Starting database backup ==========
+[2026-01-07 03:00:01] [INFO] Backup time: 2026-01-07_03-00-01
+[2026-01-07 03:00:01] [INFO] Project: /www/wwwroot/vitufinance.com
+[2026-01-07 03:00:01] [INFO] Database: xie080886 @ 127.0.0.1:3306
+[2026-01-07 03:00:01] [INFO] Creating database backup...
+[2026-01-07 03:00:03] [INFO] Backup created: xie080886_2026-01-07.sql (26M)
+[2026-01-07 03:00:03] [INFO] Compressing backup...
+[2026-01-07 03:00:06] [INFO] Backup compressed: xie080886_2026-01-07.sql.gz (4.0M)
+[2026-01-07 03:00:06] [INFO] Cleaning up old backups...
+[2026-01-07 03:00:06] [INFO] Total backups retained: 4
+[2026-01-07 03:00:06] [INFO] Pushing backup to Git repository...
+[2026-01-07 03:00:21] [INFO] Successfully pushed to 'main' branch
+[2026-01-07 03:00:21] [INFO] Git push completed successfully
+[2026-01-07 03:00:21] [INFO] =========================================
+[2026-01-07 03:00:21] [INFO] Backup Summary:
+[2026-01-07 03:00:21] [INFO]   File: xie080886_2026-01-07.sql.gz
+[2026-01-07 03:00:21] [INFO]   Size: 4.0M
+[2026-01-07 03:00:21] [INFO]   Location: /www/wwwroot/vitufinance.com/backups/database
+[2026-01-07 03:00:21] [INFO] ========== Backup completed successfully ==========
+[2026-01-07 03:00:21] [INFO] 
+[2026-01-08 02:00:01] ==========================================
+[2026-01-08 02:00:01] Starting backup: vitufinance_backup_20260108_020001
+[2026-01-08 02:00:01] ==========================================
+[2026-01-08 02:00:01] 1. Backing up critical source files...
+[2026-01-08 02:00:02]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260108_020001.tar.gz
+[2026-01-08 02:00:02] 2. Backing up database...
+[2026-01-08 02:00:03]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260108_020001.sql.gz
+[2026-01-08 02:00:03] 3. Generating file integrity hashes...
+[2026-01-08 02:00:03]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260108_020001.sha256
+[2026-01-08 02:00:03] 4. Checking for git changes...
+[main cb99b9c] Auto-backup: 20260108_020001
+ 8 files changed, 125 insertions(+), 10 deletions(-)
+ rename backups/critical/{critical_20251230_020001.tar.gz => critical_20260108_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20251230_020001.sha256 => hashes_20260108_020001.sha256} (100%)
+ delete mode 100644 backups/daily/db_20251230_020001.sql.gz
+ create mode 100644 backups/daily/db_20260108_020001.sql.gz
+ delete mode 100644 backups/database/xie080886_2025-12-28.sql.gz
+[2026-01-08 02:00:04]    Git commit created
+[2026-01-08 02:00:04] 5. Cleaning up old backups...
+[2026-01-08 02:00:04]    Old backups cleaned (keeping last 7 days)
+[2026-01-08 02:00:04] ==========================================
+[2026-01-08 02:00:04] Backup completed successfully!
+[2026-01-08 02:00:04] ==========================================
+   Critical files: 112K
+   Database: 4.3M
+[2026-01-08 02:00:04]    Total backup size: 46M
+[2026-01-08 02:00:04] ==========================================
+[2026-01-09 02:00:01] ==========================================
+[2026-01-09 02:00:01] Starting backup: vitufinance_backup_20260109_020001
+[2026-01-09 02:00:01] ==========================================
+[2026-01-09 02:00:01] 1. Backing up critical source files...
+[2026-01-09 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260109_020001.tar.gz
+[2026-01-09 02:00:01] 2. Backing up database...
+[2026-01-09 02:00:02]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260109_020001.sql.gz
+[2026-01-09 02:00:02] 3. Generating file integrity hashes...
+[2026-01-09 02:00:02]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260109_020001.sha256
+[2026-01-09 02:00:02] 4. Checking for git changes...
+[main a4def51] Auto-backup: 20260109_020001
+ 5 files changed, 18 insertions(+)
+ rename backups/critical/{critical_20251231_020001.tar.gz => critical_20260109_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20251231_020001.sha256 => hashes_20260109_020001.sha256} (100%)
+ delete mode 100644 backups/daily/db_20251231_020001.sql.gz
+ create mode 100644 backups/daily/db_20260109_020001.sql.gz
+[2026-01-09 02:00:03]    Git commit created
+[2026-01-09 02:00:03] 5. Cleaning up old backups...
+[2026-01-09 02:00:03]    Old backups cleaned (keeping last 7 days)
+[2026-01-09 02:00:03] ==========================================
+[2026-01-09 02:00:03] Backup completed successfully!
+[2026-01-09 02:00:03] ==========================================
+   Critical files: 112K
+   Database: 4.5M
+[2026-01-09 02:00:03]    Total backup size: 48M
+[2026-01-09 02:00:03] ==========================================
+[2026-01-10 02:00:02] ==========================================
+[2026-01-10 02:00:02] Starting backup: vitufinance_backup_20260110_020002
+[2026-01-10 02:00:02] ==========================================
+[2026-01-10 02:00:02] 1. Backing up critical source files...
+[2026-01-10 02:00:02]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260110_020002.tar.gz
+[2026-01-10 02:00:02] 2. Backing up database...
+[2026-01-10 02:00:03]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260110_020002.sql.gz
+[2026-01-10 02:00:03] 3. Generating file integrity hashes...
+[2026-01-10 02:00:03]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260110_020002.sha256
+[2026-01-10 02:00:03] 4. Checking for git changes...
+[main c091075] Auto-backup: 20260110_020002
+ 5 files changed, 18 insertions(+)
+ rename backups/critical/{critical_20260101_020001.tar.gz => critical_20260110_020002.tar.gz} (100%)
+ rename backups/critical/{hashes_20260101_020001.sha256 => hashes_20260110_020002.sha256} (100%)
+ delete mode 100644 backups/daily/db_20260101_020001.sql.gz
+ create mode 100644 backups/daily/db_20260110_020002.sql.gz
+[2026-01-10 02:00:04]    Git commit created
+[2026-01-10 02:00:04] 5. Cleaning up old backups...
+[2026-01-10 02:00:04]    Old backups cleaned (keeping last 7 days)
+[2026-01-10 02:00:04] ==========================================
+[2026-01-10 02:00:04] Backup completed successfully!
+[2026-01-10 02:00:04] ==========================================
+   Critical files: 112K
+   Database: 4.8M
+[2026-01-10 02:00:04]    Total backup size: 50M
+[2026-01-10 02:00:04] ==========================================
+[2026-01-10 03:00:01] [INFO] ========== Starting database backup ==========
+[2026-01-10 03:00:01] [INFO] Backup time: 2026-01-10_03-00-01
+[2026-01-10 03:00:01] [INFO] Project: /www/wwwroot/vitufinance.com
+[2026-01-10 03:00:01] [INFO] Database: xie080886 @ 127.0.0.1:3306
+[2026-01-10 03:00:01] [INFO] Creating database backup...
+[2026-01-10 03:00:03] [INFO] Backup created: xie080886_2026-01-10.sql (30M)
+[2026-01-10 03:00:03] [INFO] Compressing backup...
+[2026-01-10 03:00:07] [INFO] Backup compressed: xie080886_2026-01-10.sql.gz (4.7M)
+[2026-01-10 03:00:07] [INFO] Cleaning up old backups...
+[2026-01-10 03:00:07] [INFO] Total backups retained: 3
+[2026-01-10 03:00:07] [INFO] Pushing backup to Git repository...
+[2026-01-10 03:00:20] [INFO] Successfully pushed to 'main' branch
+[2026-01-10 03:00:20] [INFO] Git push completed successfully
+[2026-01-10 03:00:20] [INFO] =========================================
+[2026-01-10 03:00:20] [INFO] Backup Summary:
+[2026-01-10 03:00:20] [INFO]   File: xie080886_2026-01-10.sql.gz
+[2026-01-10 03:00:20] [INFO]   Size: 4.7M
+[2026-01-10 03:00:20] [INFO]   Location: /www/wwwroot/vitufinance.com/backups/database
+[2026-01-10 03:00:20] [INFO] ========== Backup completed successfully ==========
+[2026-01-10 03:00:20] [INFO] 
+[2026-01-11 02:00:01] ==========================================
+[2026-01-11 02:00:01] Starting backup: vitufinance_backup_20260111_020001
+[2026-01-11 02:00:01] ==========================================
+[2026-01-11 02:00:01] 1. Backing up critical source files...
+[2026-01-11 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260111_020001.tar.gz
+[2026-01-11 02:00:01] 2. Backing up database...
+[2026-01-11 02:00:03]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260111_020001.sql.gz
+[2026-01-11 02:00:03] 3. Generating file integrity hashes...
+[2026-01-11 02:00:03]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260111_020001.sha256
+[2026-01-11 02:00:03] 4. Checking for git changes...
+[main 05b16d4] Auto-backup: 20260111_020001
+ 23 files changed, 1084 insertions(+), 65 deletions(-)
+ rename backups/critical/{critical_20260102_020001.tar.gz => critical_20260111_020001.tar.gz} (99%)
+ rename backups/critical/{hashes_20260102_020001.sha256 => hashes_20260111_020001.sha256} (100%)
+ delete mode 100644 backups/daily/db_20260102_020001.sql.gz
+ create mode 100644 backups/daily/db_20260111_020001.sql.gz
+ delete mode 100644 backups/database/xie080886_2025-12-31.sql.gz
+ delete mode 100644 backups/database/xie080886_2026-01-01.sql.gz
+ create mode 100644 frontend/src/locales/it.json
+[2026-01-11 02:00:04]    Git commit created
+[2026-01-11 02:00:04] 5. Cleaning up old backups...
+[2026-01-11 02:00:04]    Old backups cleaned (keeping last 7 days)
+[2026-01-11 02:00:04] ==========================================
+[2026-01-11 02:00:04] Backup completed successfully!
+[2026-01-11 02:00:04] ==========================================
+   Critical files: 112K
+   Database: 5.0M
+[2026-01-11 02:00:04]    Total backup size: 51M
+[2026-01-11 02:00:04] ==========================================
+[2026-01-12 02:00:01] ==========================================
+[2026-01-12 02:00:01] Starting backup: vitufinance_backup_20260112_020001
+[2026-01-12 02:00:01] ==========================================
+[2026-01-12 02:00:01] 1. Backing up critical source files...
+[2026-01-12 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260112_020001.tar.gz
+[2026-01-12 02:00:01] 2. Backing up database...
+[2026-01-12 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260112_020001.sql.gz
+[2026-01-12 02:00:04] 3. Generating file integrity hashes...
+[2026-01-12 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260112_020001.sha256
+[2026-01-12 02:00:04] 4. Checking for git changes...
+[main 5439c25] Auto-backup: 20260112_020001
+ 9 files changed, 153 insertions(+), 6 deletions(-)
+ delete mode 100644 backups/critical/critical_20260103_020001.tar.gz
+ create mode 100644 backups/critical/critical_20260112_020001.tar.gz
+ rename backups/critical/{hashes_20260103_020001.sha256 => hashes_20260112_020001.sha256} (87%)
+ delete mode 100644 backups/daily/db_20260103_020001.sql.gz
+ create mode 100644 backups/daily/db_20260112_020001.sql.gz
+[2026-01-12 02:00:04]    Git commit created
+[2026-01-12 02:00:04] 5. Cleaning up old backups...
+[2026-01-12 02:00:04]    Old backups cleaned (keeping last 7 days)
+[2026-01-12 02:00:04] ==========================================
+[2026-01-12 02:00:04] Backup completed successfully!
+[2026-01-12 02:00:04] ==========================================
+   Critical files: 112K
+   Database: 5.2M
+[2026-01-12 02:00:04]    Total backup size: 53M
+[2026-01-12 02:00:04] ==========================================
+[2026-01-13 02:00:01] ==========================================
+[2026-01-13 02:00:01] Starting backup: vitufinance_backup_20260113_020001
+[2026-01-13 02:00:01] ==========================================
+[2026-01-13 02:00:01] 1. Backing up critical source files...
+[2026-01-13 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260113_020001.tar.gz
+[2026-01-13 02:00:01] 2. Backing up database...
+[2026-01-13 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260113_020001.sql.gz
+[2026-01-13 02:00:04] 3. Generating file integrity hashes...
+[2026-01-13 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260113_020001.sha256
+[2026-01-13 02:00:04] 4. Checking for git changes...
+[main 560887a] Auto-backup: 20260113_020001
+ 12 files changed, 290 insertions(+), 20 deletions(-)
+ delete mode 100644 backups/critical/critical_20260104_020001.tar.gz
+ create mode 100644 backups/critical/critical_20260113_020001.tar.gz
+ rename backups/critical/{hashes_20260104_020001.sha256 => hashes_20260113_020001.sha256} (87%)
+ delete mode 100644 backups/daily/db_20260104_020001.sql.gz
+ create mode 100644 backups/daily/db_20260113_020001.sql.gz
+[2026-01-13 02:00:04]    Git commit created
+[2026-01-13 02:00:04] 5. Cleaning up old backups...
+[2026-01-13 02:00:04]    Old backups cleaned (keeping last 7 days)
+[2026-01-13 02:00:04] ==========================================
+[2026-01-13 02:00:04] Backup completed successfully!
+[2026-01-13 02:00:04] ==========================================
+   Critical files: 112K
+   Database: 5.4M
+[2026-01-13 02:00:04]    Total backup size: 54M
+[2026-01-13 02:00:04] ==========================================
+[2026-01-13 03:00:01] [INFO] ========== Starting database backup ==========
+[2026-01-13 03:00:01] [INFO] Backup time: 2026-01-13_03-00-01
+[2026-01-13 03:00:01] [INFO] Project: /www/wwwroot/vitufinance.com
+[2026-01-13 03:00:01] [INFO] Database: xie080886 @ 127.0.0.1:3306
+[2026-01-13 03:00:01] [INFO] Creating database backup...
+[2026-01-13 03:00:03] [INFO] Backup created: xie080886_2026-01-13.sql (34M)
+[2026-01-13 03:00:03] [INFO] Compressing backup...
+[2026-01-13 03:00:08] [INFO] Backup compressed: xie080886_2026-01-13.sql.gz (5.3M)
+[2026-01-13 03:00:08] [INFO] Cleaning up old backups...
+[2026-01-13 03:00:08] [INFO] Total backups retained: 3
+[2026-01-13 03:00:08] [INFO] Pushing backup to Git repository...
+[2026-01-13 03:00:25] [INFO] Successfully pushed to 'main' branch
+[2026-01-13 03:00:25] [INFO] Git push completed successfully
+[2026-01-13 03:00:25] [INFO] =========================================
+[2026-01-13 03:00:25] [INFO] Backup Summary:
+[2026-01-13 03:00:25] [INFO]   File: xie080886_2026-01-13.sql.gz
+[2026-01-13 03:00:25] [INFO]   Size: 5.3M
+[2026-01-13 03:00:25] [INFO]   Location: /www/wwwroot/vitufinance.com/backups/database
+[2026-01-13 03:00:25] [INFO] ========== Backup completed successfully ==========
+[2026-01-13 03:00:25] [INFO] 
+[2026-01-14 02:00:01] ==========================================
+[2026-01-14 02:00:01] Starting backup: vitufinance_backup_20260114_020001
+[2026-01-14 02:00:01] ==========================================
+[2026-01-14 02:00:01] 1. Backing up critical source files...
+[2026-01-14 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260114_020001.tar.gz
+[2026-01-14 02:00:01] 2. Backing up database...
+[2026-01-14 02:00:03]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260114_020001.sql.gz
+[2026-01-14 02:00:03] 3. Generating file integrity hashes...
+[2026-01-14 02:00:03]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260114_020001.sha256
+[2026-01-14 02:00:03] 4. Checking for git changes...
+[main 0e21682] Auto-backup: 20260114_020001
+ 7 files changed, 26 insertions(+), 2 deletions(-)
+ delete mode 100644 backups/critical/critical_20260105_020001.tar.gz
+ create mode 100644 backups/critical/critical_20260114_020001.tar.gz
+ rename backups/critical/{hashes_20260105_020001.sha256 => hashes_20260114_020001.sha256} (87%)
+ delete mode 100644 backups/daily/db_20260105_020001.sql.gz
+ create mode 100644 backups/daily/db_20260114_020001.sql.gz
+ delete mode 100644 backups/database/xie080886_2026-01-04.sql.gz
+[2026-01-14 02:00:04]    Git commit created
+[2026-01-14 02:00:04] 5. Cleaning up old backups...
+[2026-01-14 02:00:04]    Old backups cleaned (keeping last 7 days)
+[2026-01-14 02:00:04] ==========================================
+[2026-01-14 02:00:04] Backup completed successfully!
+[2026-01-14 02:00:04] ==========================================
+   Critical files: 112K
+   Database: 5.6M
+[2026-01-14 02:00:04]    Total backup size: 58M
+[2026-01-14 02:00:04] ==========================================
+[2026-01-15 02:00:01] ==========================================
+[2026-01-15 02:00:01] Starting backup: vitufinance_backup_20260115_020001
+[2026-01-15 02:00:01] ==========================================
+[2026-01-15 02:00:01] 1. Backing up critical source files...
+[2026-01-15 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260115_020001.tar.gz
+[2026-01-15 02:00:01] 2. Backing up database...
+[2026-01-15 02:00:03]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260115_020001.sql.gz
+[2026-01-15 02:00:03] 3. Generating file integrity hashes...
+[2026-01-15 02:00:03]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260115_020001.sha256
+[2026-01-15 02:00:03] 4. Checking for git changes...
+[main 3a1cff5] Auto-backup: 20260115_020001
+ 6 files changed, 20 insertions(+), 2 deletions(-)
+ delete mode 100644 backups/critical/critical_20260106_020002.tar.gz
+ create mode 100644 backups/critical/critical_20260115_020001.tar.gz
+ rename backups/critical/{hashes_20260106_020002.sha256 => hashes_20260115_020001.sha256} (87%)
+ delete mode 100644 backups/daily/db_20260106_020002.sql.gz
+ create mode 100644 backups/daily/db_20260115_020001.sql.gz
+[2026-01-15 02:00:04]    Git commit created
+[2026-01-15 02:00:04] 5. Cleaning up old backups...
+[2026-01-15 02:00:04]    Old backups cleaned (keeping last 7 days)
+[2026-01-15 02:00:04] ==========================================
+[2026-01-15 02:00:04] Backup completed successfully!
+[2026-01-15 02:00:04] ==========================================
+   Critical files: 112K
+   Database: 5.8M
+[2026-01-15 02:00:04]    Total backup size: 60M
+[2026-01-15 02:00:04] ==========================================
+[2026-01-16 02:00:01] ==========================================
+[2026-01-16 02:00:01] Starting backup: vitufinance_backup_20260116_020001
+[2026-01-16 02:00:01] ==========================================
+[2026-01-16 02:00:01] 1. Backing up critical source files...
+[2026-01-16 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260116_020001.tar.gz
+[2026-01-16 02:00:01] 2. Backing up database...
+[2026-01-16 02:00:03]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260116_020001.sql.gz
+[2026-01-16 02:00:03] 3. Generating file integrity hashes...
+[2026-01-16 02:00:03]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260116_020001.sha256
+[2026-01-16 02:00:03] 4. Checking for git changes...
+[main 5008140] Auto-backup: 20260116_020001
+ 4 files changed, 21 insertions(+)
+ create mode 100644 backups/critical/critical_20260116_020001.tar.gz
+ create mode 100644 backups/critical/hashes_20260116_020001.sha256
+ create mode 100644 backups/daily/db_20260116_020001.sql.gz
+[2026-01-16 02:00:03]    Git commit created
+[2026-01-16 02:00:03] 5. Cleaning up old backups...
+[2026-01-16 02:00:03]    Old backups cleaned (keeping last 7 days)
+[2026-01-16 02:00:03] ==========================================
+[2026-01-16 02:00:03] Backup completed successfully!
+[2026-01-16 02:00:03] ==========================================
+   Critical files: 112K
+   Database: 6.0M
+[2026-01-16 02:00:03]    Total backup size: 66M
+[2026-01-16 02:00:03] ==========================================
+[2026-01-16 03:00:01] [INFO] ========== Starting database backup ==========
+[2026-01-16 03:00:01] [INFO] Backup time: 2026-01-16_03-00-01
+[2026-01-16 03:00:01] [INFO] Project: /www/wwwroot/vitufinance.com
+[2026-01-16 03:00:01] [INFO] Database: xie080886 @ 127.0.0.1:3306
+[2026-01-16 03:00:01] [INFO] Creating database backup...
+[2026-01-16 03:00:02] [INFO] Backup created: xie080886_2026-01-16.sql (38M)
+[2026-01-16 03:00:02] [INFO] Compressing backup...
+[2026-01-16 03:00:07] [INFO] Backup compressed: xie080886_2026-01-16.sql.gz (5.9M)
+[2026-01-16 03:00:07] [INFO] Cleaning up old backups...
+[2026-01-16 03:00:07] [INFO] Total backups retained: 3
+[2026-01-16 03:00:07] [INFO] Pushing backup to Git repository...
+[2026-01-16 03:00:19] [INFO] Successfully pushed to 'main' branch
+[2026-01-16 03:00:19] [INFO] Git push completed successfully
+[2026-01-16 03:00:19] [INFO] =========================================
+[2026-01-16 03:00:19] [INFO] Backup Summary:
+[2026-01-16 03:00:19] [INFO]   File: xie080886_2026-01-16.sql.gz
+[2026-01-16 03:00:19] [INFO]   Size: 5.9M
+[2026-01-16 03:00:19] [INFO]   Location: /www/wwwroot/vitufinance.com/backups/database
+[2026-01-16 03:00:19] [INFO] ========== Backup completed successfully ==========
+[2026-01-16 03:00:19] [INFO] 
+[2026-01-17 02:00:01] ==========================================
+[2026-01-17 02:00:01] Starting backup: vitufinance_backup_20260117_020001
+[2026-01-17 02:00:01] ==========================================
+[2026-01-17 02:00:01] 1. Backing up critical source files...
+[2026-01-17 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260117_020001.tar.gz
+[2026-01-17 02:00:01] 2. Backing up database...
+[2026-01-17 02:00:03]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260117_020001.sql.gz
+[2026-01-17 02:00:03] 3. Generating file integrity hashes...
+[2026-01-17 02:00:03]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260117_020001.sha256
+[2026-01-17 02:00:03] 4. Checking for git changes...
+[main 968ec41] Auto-backup: 20260117_020001
+ 6 files changed, 35 insertions(+)
+ delete mode 100644 backups/critical/critical_20260108_020001.tar.gz
+ create mode 100644 backups/critical/critical_20260117_020001.tar.gz
+ create mode 100644 backups/critical/hashes_20260117_020001.sha256
+ create mode 100644 backups/daily/db_20260117_020001.sql.gz
+ delete mode 100644 backups/database/xie080886_2026-01-07.sql.gz
+[2026-01-17 02:00:04]    Git commit created
+[2026-01-17 02:00:04] 5. Cleaning up old backups...
+[2026-01-17 02:00:04]    Old backups cleaned (keeping last 7 days)
+[2026-01-17 02:00:04] ==========================================
+[2026-01-17 02:00:04] Backup completed successfully!
+[2026-01-17 02:00:04] ==========================================
+   Critical files: 112K
+   Database: 6.2M
+[2026-01-17 02:00:04]    Total backup size: 65M
+[2026-01-17 02:00:04] ==========================================
+[2026-01-18 02:00:01] ==========================================
+[2026-01-18 02:00:01] Starting backup: vitufinance_backup_20260118_020001
+[2026-01-18 02:00:01] ==========================================
+[2026-01-18 02:00:01] 1. Backing up critical source files...
+[2026-01-18 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260118_020001.tar.gz
+[2026-01-18 02:00:01] 2. Backing up database...
+[2026-01-18 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260118_020001.sql.gz
+[2026-01-18 02:00:04] 3. Generating file integrity hashes...
+[2026-01-18 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260118_020001.sha256
+[2026-01-18 02:00:04] 4. Checking for git changes...
+[main 8f67bbb] Auto-backup: 20260118_020001
+ 8 files changed, 20 insertions(+), 13 deletions(-)
+ delete mode 100644 backups/critical/critical_20260109_020001.tar.gz
+ create mode 100644 backups/critical/critical_20260118_020001.tar.gz
+ delete mode 100644 backups/critical/hashes_20260109_020001.sha256
+ rename backups/critical/{hashes_20260108_020001.sha256 => hashes_20260118_020001.sha256} (87%)
+ delete mode 100644 backups/daily/db_20260108_020001.sql.gz
+ delete mode 100644 backups/daily/db_20260109_020001.sql.gz
+ create mode 100644 backups/daily/db_20260118_020001.sql.gz
+[2026-01-18 02:00:04]    Git commit created
+[2026-01-18 02:00:04] 5. Cleaning up old backups...
+[2026-01-18 02:00:04]    Old backups cleaned (keeping last 7 days)
+[2026-01-18 02:00:04] ==========================================
+[2026-01-18 02:00:04] Backup completed successfully!
+[2026-01-18 02:00:04] ==========================================
+   Critical files: 112K
+   Database: 6.5M
+[2026-01-18 02:00:04]    Total backup size: 67M
+[2026-01-18 02:00:04] ==========================================
+[2026-01-19 02:00:01] ==========================================
+[2026-01-19 02:00:01] Starting backup: vitufinance_backup_20260119_020001
+[2026-01-19 02:00:01] ==========================================
+[2026-01-19 02:00:01] 1. Backing up critical source files...
+[2026-01-19 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260119_020001.tar.gz
+[2026-01-19 02:00:01] 2. Backing up database...
+[2026-01-19 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260119_020001.sql.gz
+[2026-01-19 02:00:04] 3. Generating file integrity hashes...
+[2026-01-19 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260119_020001.sha256
+[2026-01-19 02:00:04] 4. Checking for git changes...
+[main d153596] Auto-backup: 20260119_020001
+ 6 files changed, 20 insertions(+), 2 deletions(-)
+ delete mode 100644 backups/critical/critical_20260110_020002.tar.gz
+ create mode 100644 backups/critical/critical_20260119_020001.tar.gz
+ rename backups/critical/{hashes_20260110_020002.sha256 => hashes_20260119_020001.sha256} (87%)
+ delete mode 100644 backups/daily/db_20260110_020002.sql.gz
+ create mode 100644 backups/daily/db_20260119_020001.sql.gz
+[2026-01-19 02:00:04]    Git commit created
+[2026-01-19 02:00:04] 5. Cleaning up old backups...
+[2026-01-19 02:00:04]    Old backups cleaned (keeping last 7 days)
+[2026-01-19 02:00:04] ==========================================
+[2026-01-19 02:00:04] Backup completed successfully!
+[2026-01-19 02:00:04] ==========================================
+   Critical files: 112K
+   Database: 6.7M
+[2026-01-19 02:00:04]    Total backup size: 69M
+[2026-01-19 02:00:04] ==========================================
+[2026-01-19 03:00:01] [INFO] ========== Starting database backup ==========
+[2026-01-19 03:00:01] [INFO] Backup time: 2026-01-19_03-00-01
+[2026-01-19 03:00:01] [INFO] Project: /www/wwwroot/vitufinance.com
+[2026-01-19 03:00:01] [INFO] Database: xie080886 @ 127.0.0.1:3306
+[2026-01-19 03:00:01] [INFO] Creating database backup...
+[2026-01-19 03:00:02] [INFO] Backup created: xie080886_2026-01-19.sql (41M)
+[2026-01-19 03:00:02] [INFO] Compressing backup...
+[2026-01-19 03:00:08] [INFO] Backup compressed: xie080886_2026-01-19.sql.gz (6.5M)
+[2026-01-19 03:00:08] [INFO] Cleaning up old backups...
+[2026-01-19 03:00:08] [INFO] Total backups retained: 3
+[2026-01-19 03:00:08] [INFO] Pushing backup to Git repository...
+[2026-01-19 03:00:28] [INFO] Successfully pushed to 'main' branch
+[2026-01-19 03:00:28] [INFO] Git push completed successfully
+[2026-01-19 03:00:28] [INFO] =========================================
+[2026-01-19 03:00:28] [INFO] Backup Summary:
+[2026-01-19 03:00:28] [INFO]   File: xie080886_2026-01-19.sql.gz
+[2026-01-19 03:00:28] [INFO]   Size: 6.5M
+[2026-01-19 03:00:28] [INFO]   Location: /www/wwwroot/vitufinance.com/backups/database
+[2026-01-19 03:00:28] [INFO] ========== Backup completed successfully ==========
+[2026-01-19 03:00:28] [INFO] 
+[2026-01-20 02:00:01] ==========================================
+[2026-01-20 02:00:01] Starting backup: vitufinance_backup_20260120_020001
+[2026-01-20 02:00:01] ==========================================
+[2026-01-20 02:00:01] 1. Backing up critical source files...
+[2026-01-20 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260120_020001.tar.gz
+[2026-01-20 02:00:01] 2. Backing up database...
+[2026-01-20 02:00:03]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260120_020001.sql.gz
+[2026-01-20 02:00:03] 3. Generating file integrity hashes...
+[2026-01-20 02:00:03]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260120_020001.sha256
+[2026-01-20 02:00:03] 4. Checking for git changes...
+[main 1cf17f5] Auto-backup: 20260120_020001
+ 7 files changed, 26 insertions(+), 2 deletions(-)
+ delete mode 100644 backups/critical/critical_20260111_020001.tar.gz
+ create mode 100644 backups/critical/critical_20260120_020001.tar.gz
+ rename backups/critical/{hashes_20260111_020001.sha256 => hashes_20260120_020001.sha256} (87%)
+ delete mode 100644 backups/daily/db_20260111_020001.sql.gz
+ create mode 100644 backups/daily/db_20260120_020001.sql.gz
+ delete mode 100644 backups/database/xie080886_2026-01-10.sql.gz
+[2026-01-20 02:00:04]    Git commit created
+[2026-01-20 02:00:04] 5. Cleaning up old backups...
+[2026-01-20 02:00:04]    Old backups cleaned (keeping last 7 days)
+[2026-01-20 02:00:04] ==========================================
+[2026-01-20 02:00:04] Backup completed successfully!
+[2026-01-20 02:00:04] ==========================================
+   Critical files: 112K
+   Database: 6.9M
+[2026-01-20 02:00:04]    Total backup size: 73M
+[2026-01-20 02:00:04] ==========================================
+[2026-01-21 02:00:01] ==========================================
+[2026-01-21 02:00:01] Starting backup: vitufinance_backup_20260121_020001
+[2026-01-21 02:00:01] ==========================================
+[2026-01-21 02:00:01] 1. Backing up critical source files...
+[2026-01-21 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260121_020001.tar.gz
+[2026-01-21 02:00:01] 2. Backing up database...
+[2026-01-21 02:00:03]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260121_020001.sql.gz
+[2026-01-21 02:00:03] 3. Generating file integrity hashes...
+[2026-01-21 02:00:03]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260121_020001.sha256
+[2026-01-21 02:00:03] 4. Checking for git changes...
+[main 899a1f8] Auto-backup: 20260121_020001
+ 6 files changed, 19 insertions(+), 1 deletion(-)
+ delete mode 100644 backups/critical/critical_20260112_020001.tar.gz
+ create mode 100644 backups/critical/critical_20260121_020001.tar.gz
+ rename backups/critical/{hashes_20260112_020001.sha256 => hashes_20260121_020001.sha256} (93%)
+ delete mode 100644 backups/daily/db_20260112_020001.sql.gz
+ create mode 100644 backups/daily/db_20260121_020001.sql.gz
+[2026-01-21 02:00:04]    Git commit created
+[2026-01-21 02:00:04] 5. Cleaning up old backups...
+[2026-01-21 02:00:04]    Old backups cleaned (keeping last 7 days)
+[2026-01-21 02:00:04] ==========================================
+[2026-01-21 02:00:04] Backup completed successfully!
+[2026-01-21 02:00:04] ==========================================
+   Critical files: 112K
+   Database: 7.1M
+[2026-01-21 02:00:04]    Total backup size: 74M
+[2026-01-21 02:00:04] ==========================================
+[2026-01-22 02:00:01] ==========================================
+[2026-01-22 02:00:01] Starting backup: vitufinance_backup_20260122_020001
+[2026-01-22 02:00:01] ==========================================
+[2026-01-22 02:00:01] 1. Backing up critical source files...
+[2026-01-22 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260122_020001.tar.gz
+[2026-01-22 02:00:01] 2. Backing up database...
+[2026-01-22 02:00:03]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260122_020001.sql.gz
+[2026-01-22 02:00:03] 3. Generating file integrity hashes...
+[2026-01-22 02:00:03]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260122_020001.sha256
+[2026-01-22 02:00:03] 4. Checking for git changes...
+[main d9afc53] Auto-backup: 20260122_020001
+ 5 files changed, 18 insertions(+)
+ rename backups/critical/{critical_20260113_020001.tar.gz => critical_20260122_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260113_020001.sha256 => hashes_20260122_020001.sha256} (100%)
+ delete mode 100644 backups/daily/db_20260113_020001.sql.gz
+ create mode 100644 backups/daily/db_20260122_020001.sql.gz
+[2026-01-22 02:00:03]    Git commit created
+[2026-01-22 02:00:03] 5. Cleaning up old backups...
+[2026-01-22 02:00:03]    Old backups cleaned (keeping last 7 days)
+[2026-01-22 02:00:03] ==========================================
+[2026-01-22 02:00:03] Backup completed successfully!
+[2026-01-22 02:00:03] ==========================================
+   Critical files: 112K
+   Database: 7.3M
+[2026-01-22 02:00:03]    Total backup size: 76M
+[2026-01-22 02:00:03] ==========================================
+[2026-01-22 03:00:01] [INFO] ========== Starting database backup ==========
+[2026-01-22 03:00:01] [INFO] Backup time: 2026-01-22_03-00-01
+[2026-01-22 03:00:01] [INFO] Project: /www/wwwroot/vitufinance.com
+[2026-01-22 03:00:01] [INFO] Database: xie080886 @ 127.0.0.1:3306
+[2026-01-22 03:00:01] [INFO] Creating database backup...
+[2026-01-22 03:00:02] [INFO] Backup created: xie080886_2026-01-22.sql (45M)
+[2026-01-22 03:00:02] [INFO] Compressing backup...
+[2026-01-22 03:00:09] [INFO] Backup compressed: xie080886_2026-01-22.sql.gz (7.1M)
+[2026-01-22 03:00:09] [INFO] Cleaning up old backups...
+[2026-01-22 03:00:09] [INFO] Total backups retained: 3
+[2026-01-22 03:00:09] [INFO] Pushing backup to Git repository...
+[2026-01-22 03:00:30] [INFO] Successfully pushed to 'main' branch
+[2026-01-22 03:00:30] [INFO] Git push completed successfully
+[2026-01-22 03:00:30] [INFO] =========================================
+[2026-01-22 03:00:30] [INFO] Backup Summary:
+[2026-01-22 03:00:30] [INFO]   File: xie080886_2026-01-22.sql.gz
+[2026-01-22 03:00:30] [INFO]   Size: 7.1M
+[2026-01-22 03:00:30] [INFO]   Location: /www/wwwroot/vitufinance.com/backups/database
+[2026-01-22 03:00:30] [INFO] ========== Backup completed successfully ==========
+[2026-01-22 03:00:30] [INFO] 
+[2026-01-23 02:00:01] ==========================================
+[2026-01-23 02:00:01] Starting backup: vitufinance_backup_20260123_020001
+[2026-01-23 02:00:01] ==========================================
+[2026-01-23 02:00:01] 1. Backing up critical source files...
+[2026-01-23 02:00:02]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260123_020001.tar.gz
+[2026-01-23 02:00:02] 2. Backing up database...
+[2026-01-23 02:00:05]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260123_020001.sql.gz
+[2026-01-23 02:00:05] 3. Generating file integrity hashes...
+[2026-01-23 02:00:05]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260123_020001.sha256
+[2026-01-23 02:00:05] 4. Checking for git changes...
+[main 0b890cd] Auto-backup: 20260123_020001
+ 6 files changed, 24 insertions(+)
+ rename backups/critical/{critical_20260114_020001.tar.gz => critical_20260123_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260114_020001.sha256 => hashes_20260123_020001.sha256} (100%)
+ delete mode 100644 backups/daily/db_20260114_020001.sql.gz
+ create mode 100644 backups/daily/db_20260123_020001.sql.gz
+ delete mode 100644 backups/database/xie080886_2026-01-13.sql.gz
+[2026-01-23 02:00:05]    Git commit created
+[2026-01-23 02:00:05] 5. Cleaning up old backups...
+[2026-01-23 02:00:05]    Old backups cleaned (keeping last 7 days)
+[2026-01-23 02:00:05] ==========================================
+[2026-01-23 02:00:05] Backup completed successfully!
+[2026-01-23 02:00:05] ==========================================
+   Critical files: 112K
+   Database: 7.5M
+[2026-01-23 02:00:05]    Total backup size: 80M
+[2026-01-23 02:00:05] ==========================================
+[2026-01-24 02:00:01] ==========================================
+[2026-01-24 02:00:01] Starting backup: vitufinance_backup_20260124_020001
+[2026-01-24 02:00:01] ==========================================
+[2026-01-24 02:00:01] 1. Backing up critical source files...
+[2026-01-24 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260124_020001.tar.gz
+[2026-01-24 02:00:01] 2. Backing up database...
+[2026-01-24 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260124_020001.sql.gz
+[2026-01-24 02:00:04] 3. Generating file integrity hashes...
+[2026-01-24 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260124_020001.sha256
+[2026-01-24 02:00:04] 4. Checking for git changes...
+[main e81b10c] Auto-backup: 20260124_020001
+ 5 files changed, 18 insertions(+)
+ rename backups/critical/{critical_20260115_020001.tar.gz => critical_20260124_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260115_020001.sha256 => hashes_20260124_020001.sha256} (100%)
+ delete mode 100644 backups/daily/db_20260115_020001.sql.gz
+ create mode 100644 backups/daily/db_20260124_020001.sql.gz
+[2026-01-24 02:00:05]    Git commit created
+[2026-01-24 02:00:05] 5. Cleaning up old backups...
+[2026-01-24 02:00:05]    Old backups cleaned (keeping last 7 days)
+[2026-01-24 02:00:05] ==========================================
+[2026-01-24 02:00:05] Backup completed successfully!
+[2026-01-24 02:00:05] ==========================================
+   Critical files: 112K
+   Database: 7.7M
+[2026-01-24 02:00:05]    Total backup size: 82M
+[2026-01-24 02:00:05] ==========================================
+[2026-01-25 02:00:01] ==========================================
+[2026-01-25 02:00:01] Starting backup: vitufinance_backup_20260125_020001
+[2026-01-25 02:00:01] ==========================================
+[2026-01-25 02:00:01] 1. Backing up critical source files...
+[2026-01-25 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260125_020001.tar.gz
+[2026-01-25 02:00:01] 2. Backing up database...
+[2026-01-25 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260125_020001.sql.gz
+[2026-01-25 02:00:04] 3. Generating file integrity hashes...
+[2026-01-25 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260125_020001.sha256
+[2026-01-25 02:00:04] 4. Checking for git changes...
+[main e54ce04] Auto-backup: 20260125_020001
+ 5 files changed, 18 insertions(+)
+ rename backups/critical/{critical_20260116_020001.tar.gz => critical_20260125_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260116_020001.sha256 => hashes_20260125_020001.sha256} (100%)
+ delete mode 100644 backups/daily/db_20260116_020001.sql.gz
+ create mode 100644 backups/daily/db_20260125_020001.sql.gz
+[2026-01-25 02:00:05]    Git commit created
+[2026-01-25 02:00:05] 5. Cleaning up old backups...
+[2026-01-25 02:00:05]    Old backups cleaned (keeping last 7 days)
+[2026-01-25 02:00:05] ==========================================
+[2026-01-25 02:00:05] Backup completed successfully!
+[2026-01-25 02:00:05] ==========================================
+   Critical files: 112K
+   Database: 7.9M
+[2026-01-25 02:00:05]    Total backup size: 83M
+[2026-01-25 02:00:05] ==========================================
+[2026-01-25 03:00:01] [INFO] ========== Starting database backup ==========
+[2026-01-25 03:00:01] [INFO] Backup time: 2026-01-25_03-00-01
+[2026-01-25 03:00:01] [INFO] Project: /www/wwwroot/vitufinance.com
+[2026-01-25 03:00:01] [INFO] Database: xie080886 @ 127.0.0.1:3306
+[2026-01-25 03:00:01] [INFO] Creating database backup...
+[2026-01-25 03:00:02] [INFO] Backup created: xie080886_2026-01-25.sql (49M)
+[2026-01-25 03:00:02] [INFO] Compressing backup...
+[2026-01-25 03:00:09] [INFO] Backup compressed: xie080886_2026-01-25.sql.gz (7.8M)
+[2026-01-25 03:00:09] [INFO] Cleaning up old backups...
+[2026-01-25 03:00:09] [INFO] Total backups retained: 3
+[2026-01-25 03:00:09] [INFO] Pushing backup to Git repository...
+[2026-01-25 03:00:32] [INFO] Successfully pushed to 'main' branch
+[2026-01-25 03:00:32] [INFO] Git push completed successfully
+[2026-01-25 03:00:32] [INFO] =========================================
+[2026-01-25 03:00:32] [INFO] Backup Summary:
+[2026-01-25 03:00:32] [INFO]   File: xie080886_2026-01-25.sql.gz
+[2026-01-25 03:00:32] [INFO]   Size: 7.8M
+[2026-01-25 03:00:32] [INFO]   Location: /www/wwwroot/vitufinance.com/backups/database
+[2026-01-25 03:00:32] [INFO] ========== Backup completed successfully ==========
+[2026-01-25 03:00:32] [INFO] 
+[2026-01-26 02:00:01] ==========================================
+[2026-01-26 02:00:01] Starting backup: vitufinance_backup_20260126_020001
+[2026-01-26 02:00:01] ==========================================
+[2026-01-26 02:00:01] 1. Backing up critical source files...
+[2026-01-26 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260126_020001.tar.gz
+[2026-01-26 02:00:01] 2. Backing up database...
+[2026-01-26 02:00:05]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260126_020001.sql.gz
+[2026-01-26 02:00:05] 3. Generating file integrity hashes...
+[2026-01-26 02:00:05]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260126_020001.sha256
+[2026-01-26 02:00:05] 4. Checking for git changes...
+[main 308a103] Auto-backup: 20260126_020001
+ 6 files changed, 24 insertions(+)
+ rename backups/critical/{critical_20260117_020001.tar.gz => critical_20260126_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260117_020001.sha256 => hashes_20260126_020001.sha256} (100%)
+ delete mode 100644 backups/daily/db_20260117_020001.sql.gz
+ create mode 100644 backups/daily/db_20260126_020001.sql.gz
+ delete mode 100644 backups/database/xie080886_2026-01-16.sql.gz
+[2026-01-26 02:00:06]    Git commit created
+[2026-01-26 02:00:06] 5. Cleaning up old backups...
+[2026-01-26 02:00:06]    Old backups cleaned (keeping last 7 days)
+[2026-01-26 02:00:06] ==========================================
+[2026-01-26 02:00:06] Backup completed successfully!
+[2026-01-26 02:00:06] ==========================================
+   Critical files: 112K
+   Database: 8.1M
+[2026-01-26 02:00:06]    Total backup size: 87M
+[2026-01-26 02:00:06] ==========================================
+[2026-01-27 02:00:01] ==========================================
+[2026-01-27 02:00:01] Starting backup: vitufinance_backup_20260127_020001
+[2026-01-27 02:00:01] ==========================================
+[2026-01-27 02:00:01] 1. Backing up critical source files...
+[2026-01-27 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260127_020001.tar.gz
+[2026-01-27 02:00:01] 2. Backing up database...
+[2026-01-27 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260127_020001.sql.gz
+[2026-01-27 02:00:04] 3. Generating file integrity hashes...
+[2026-01-27 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260127_020001.sha256
+[2026-01-27 02:00:04] 4. Checking for git changes...
+[main 830efb3] Auto-backup: 20260127_020001
+ 5 files changed, 18 insertions(+)
+ rename backups/critical/{critical_20260118_020001.tar.gz => critical_20260127_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260118_020001.sha256 => hashes_20260127_020001.sha256} (100%)
+ delete mode 100644 backups/daily/db_20260118_020001.sql.gz
+ create mode 100644 backups/daily/db_20260127_020001.sql.gz
+[2026-01-27 02:00:05]    Git commit created
+[2026-01-27 02:00:05] 5. Cleaning up old backups...
+[2026-01-27 02:00:05]    Old backups cleaned (keeping last 7 days)
+[2026-01-27 02:00:05] ==========================================
+[2026-01-27 02:00:05] Backup completed successfully!
+[2026-01-27 02:00:05] ==========================================
+   Critical files: 112K
+   Database: 8.3M
+[2026-01-27 02:00:05]    Total backup size: 89M
+[2026-01-27 02:00:05] ==========================================
+[2026-01-28 02:00:01] ==========================================
+[2026-01-28 02:00:01] Starting backup: vitufinance_backup_20260128_020001
+[2026-01-28 02:00:01] ==========================================
+[2026-01-28 02:00:01] 1. Backing up critical source files...
+[2026-01-28 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260128_020001.tar.gz
+[2026-01-28 02:00:01] 2. Backing up database...
+[2026-01-28 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260128_020001.sql.gz
+[2026-01-28 02:00:04] 3. Generating file integrity hashes...
+[2026-01-28 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260128_020001.sha256
+[2026-01-28 02:00:04] 4. Checking for git changes...
+[main a40032b] Auto-backup: 20260128_020001
+ 5 files changed, 18 insertions(+)
+ rename backups/critical/{critical_20260119_020001.tar.gz => critical_20260128_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260119_020001.sha256 => hashes_20260128_020001.sha256} (100%)
+ delete mode 100644 backups/daily/db_20260119_020001.sql.gz
+ create mode 100644 backups/daily/db_20260128_020001.sql.gz
+[2026-01-28 02:00:05]    Git commit created
+[2026-01-28 02:00:05] 5. Cleaning up old backups...
+[2026-01-28 02:00:05]    Old backups cleaned (keeping last 7 days)
+[2026-01-28 02:00:05] ==========================================
+[2026-01-28 02:00:05] Backup completed successfully!
+[2026-01-28 02:00:05] ==========================================
+   Critical files: 112K
+   Database: 8.5M
+[2026-01-28 02:00:05]    Total backup size: 91M
+[2026-01-28 02:00:05] ==========================================
+[2026-01-28 03:00:01] [INFO] ========== Starting database backup ==========
+[2026-01-28 03:00:01] [INFO] Backup time: 2026-01-28_03-00-01
+[2026-01-28 03:00:01] [INFO] Project: /www/wwwroot/vitufinance.com
+[2026-01-28 03:00:01] [INFO] Database: xie080886 @ 127.0.0.1:3306
+[2026-01-28 03:00:01] [INFO] Creating database backup...
+[2026-01-28 03:00:03] [INFO] Backup created: xie080886_2026-01-28.sql (53M)
+[2026-01-28 03:00:03] [INFO] Compressing backup...
+[2026-01-28 03:00:10] [INFO] Backup compressed: xie080886_2026-01-28.sql.gz (8.4M)
+[2026-01-28 03:00:10] [INFO] Cleaning up old backups...
+[2026-01-28 03:00:10] [INFO] Total backups retained: 3
+[2026-01-28 03:00:10] [INFO] Pushing backup to Git repository...
+[2026-01-28 03:00:34] [INFO] Successfully pushed to 'main' branch
+[2026-01-28 03:00:34] [INFO] Git push completed successfully
+[2026-01-28 03:00:34] [INFO] =========================================
+[2026-01-28 03:00:34] [INFO] Backup Summary:
+[2026-01-28 03:00:34] [INFO]   File: xie080886_2026-01-28.sql.gz
+[2026-01-28 03:00:34] [INFO]   Size: 8.4M
+[2026-01-28 03:00:34] [INFO]   Location: /www/wwwroot/vitufinance.com/backups/database
+[2026-01-28 03:00:34] [INFO] ========== Backup completed successfully ==========
+[2026-01-28 03:00:34] [INFO] 
+[2026-01-29 02:00:01] ==========================================
+[2026-01-29 02:00:01] Starting backup: vitufinance_backup_20260129_020001
+[2026-01-29 02:00:01] ==========================================
+[2026-01-29 02:00:01] 1. Backing up critical source files...
+[2026-01-29 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260129_020001.tar.gz
+[2026-01-29 02:00:01] 2. Backing up database...
+[2026-01-29 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260129_020001.sql.gz
+[2026-01-29 02:00:04] 3. Generating file integrity hashes...
+[2026-01-29 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260129_020001.sha256
+[2026-01-29 02:00:04] 4. Checking for git changes...
+[main abc323d] Auto-backup: 20260129_020001
+ 6 files changed, 24 insertions(+)
+ rename backups/critical/{critical_20260120_020001.tar.gz => critical_20260129_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260120_020001.sha256 => hashes_20260129_020001.sha256} (100%)
+ delete mode 100644 backups/daily/db_20260120_020001.sql.gz
+ create mode 100644 backups/daily/db_20260129_020001.sql.gz
+ delete mode 100644 backups/database/xie080886_2026-01-19.sql.gz
+[2026-01-29 02:00:04]    Git commit created
+[2026-01-29 02:00:04] 5. Cleaning up old backups...
+[2026-01-29 02:00:04]    Old backups cleaned (keeping last 7 days)
+[2026-01-29 02:00:04] ==========================================
+[2026-01-29 02:00:04] Backup completed successfully!
+[2026-01-29 02:00:04] ==========================================
+   Critical files: 112K
+   Database: 8.8M
+[2026-01-29 02:00:04]    Total backup size: 94M
+[2026-01-29 02:00:04] ==========================================
+[2026-01-30 02:00:01] ==========================================
+[2026-01-30 02:00:01] Starting backup: vitufinance_backup_20260130_020001
+[2026-01-30 02:00:01] ==========================================
+[2026-01-30 02:00:01] 1. Backing up critical source files...
+[2026-01-30 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260130_020001.tar.gz
+[2026-01-30 02:00:01] 2. Backing up database...
+[2026-01-30 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260130_020001.sql.gz
+[2026-01-30 02:00:04] 3. Generating file integrity hashes...
+[2026-01-30 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260130_020001.sha256
+[2026-01-30 02:00:04] 4. Checking for git changes...
+[main 83c18c1] Auto-backup: 20260130_020001
+ 5 files changed, 18 insertions(+)
+ rename backups/critical/{critical_20260121_020001.tar.gz => critical_20260130_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260121_020001.sha256 => hashes_20260130_020001.sha256} (100%)
+ delete mode 100644 backups/daily/db_20260121_020001.sql.gz
+ create mode 100644 backups/daily/db_20260130_020001.sql.gz
+[2026-01-30 02:00:04]    Git commit created
+[2026-01-30 02:00:04] 5. Cleaning up old backups...
+[2026-01-30 02:00:04]    Old backups cleaned (keeping last 7 days)
+[2026-01-30 02:00:04] ==========================================
+[2026-01-30 02:00:04] Backup completed successfully!
+[2026-01-30 02:00:04] ==========================================
+   Critical files: 112K
+   Database: 9.0M
+[2026-01-30 02:00:04]    Total backup size: 96M
+[2026-01-30 02:00:04] ==========================================
+[2026-01-31 02:00:01] ==========================================
+[2026-01-31 02:00:01] Starting backup: vitufinance_backup_20260131_020001
+[2026-01-31 02:00:01] ==========================================
+[2026-01-31 02:00:01] 1. Backing up critical source files...
+[2026-01-31 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260131_020001.tar.gz
+[2026-01-31 02:00:01] 2. Backing up database...
+[2026-01-31 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260131_020001.sql.gz
+[2026-01-31 02:00:04] 3. Generating file integrity hashes...
+[2026-01-31 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260131_020001.sha256
+[2026-01-31 02:00:04] 4. Checking for git changes...
+[main f445b98] Auto-backup: 20260131_020001
+ 5 files changed, 18 insertions(+)
+ rename backups/critical/{critical_20260122_020001.tar.gz => critical_20260131_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260122_020001.sha256 => hashes_20260131_020001.sha256} (100%)
+ delete mode 100644 backups/daily/db_20260122_020001.sql.gz
+ create mode 100644 backups/daily/db_20260131_020001.sql.gz
+[2026-01-31 02:00:04]    Git commit created
+[2026-01-31 02:00:04] 5. Cleaning up old backups...
+[2026-01-31 02:00:04]    Old backups cleaned (keeping last 7 days)
+[2026-01-31 02:00:04] ==========================================
+[2026-01-31 02:00:04] Backup completed successfully!
+[2026-01-31 02:00:04] ==========================================
+   Critical files: 112K
+   Database: 9.2M
+[2026-01-31 02:00:04]    Total backup size: 105M
+[2026-01-31 02:00:04] ==========================================
+[2026-01-31 03:00:01] [INFO] ========== Starting database backup ==========
+[2026-01-31 03:00:01] [INFO] Backup time: 2026-01-31_03-00-01
+[2026-01-31 03:00:01] [INFO] Project: /www/wwwroot/vitufinance.com
+[2026-01-31 03:00:01] [INFO] Database: xie080886 @ 127.0.0.1:3306
+[2026-01-31 03:00:01] [INFO] Creating database backup...
+[2026-01-31 03:00:02] [INFO] Backup created: xie080886_2026-01-31.sql (57M)
+[2026-01-31 03:00:02] [INFO] Compressing backup...
+[2026-01-31 03:00:10] [INFO] Backup compressed: xie080886_2026-01-31.sql.gz (9.0M)
+[2026-01-31 03:00:10] [INFO] Cleaning up old backups...
+[2026-01-31 03:00:10] [INFO] Total backups retained: 3
+[2026-01-31 03:00:10] [INFO] Pushing backup to Git repository...
+[2026-01-31 03:00:35] [INFO] Successfully pushed to 'main' branch
+[2026-01-31 03:00:35] [INFO] Git push completed successfully
+[2026-01-31 03:00:35] [INFO] =========================================
+[2026-01-31 03:00:35] [INFO] Backup Summary:
+[2026-01-31 03:00:35] [INFO]   File: xie080886_2026-01-31.sql.gz
+[2026-01-31 03:00:35] [INFO]   Size: 9.0M
+[2026-01-31 03:00:35] [INFO]   Location: /www/wwwroot/vitufinance.com/backups/database
+[2026-01-31 03:00:35] [INFO] ========== Backup completed successfully ==========
+[2026-01-31 03:00:35] [INFO] 
+[2026-02-01 02:00:01] ==========================================
+[2026-02-01 02:00:01] Starting backup: vitufinance_backup_20260201_020001
+[2026-02-01 02:00:01] ==========================================
+[2026-02-01 02:00:01] 1. Backing up critical source files...
+[2026-02-01 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260201_020001.tar.gz
+[2026-02-01 02:00:01] 2. Backing up database...
+[2026-02-01 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260201_020001.sql.gz
+[2026-02-01 02:00:04] 3. Generating file integrity hashes...
+[2026-02-01 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260201_020001.sha256
+[2026-02-01 02:00:04] 4. Checking for git changes...
+[main 02ef58d] Auto-backup: 20260201_020001
+ 5 files changed, 35 insertions(+)
+ rename backups/critical/{critical_20260123_020001.tar.gz => critical_20260201_020001.tar.gz} (100%)
+ create mode 100644 backups/critical/hashes_20260201_020001.sha256
+ create mode 100644 backups/daily/db_20260201_020001.sql.gz
+ delete mode 100644 backups/database/xie080886_2026-01-22.sql.gz
+[2026-02-01 02:00:04]    Git commit created
+[2026-02-01 02:00:04] 5. Cleaning up old backups...
+[2026-02-01 02:00:04]    Old backups cleaned (keeping last 7 days)
+[2026-02-01 02:00:04] ==========================================
+[2026-02-01 02:00:04] Backup completed successfully!
+[2026-02-01 02:00:04] ==========================================
+   Critical files: 112K
+   Database: 9.4M
+[2026-02-01 02:00:04]    Total backup size: 101M
+[2026-02-01 02:00:04] ==========================================
+[2026-02-01 03:00:01] [INFO] ========== Starting database backup ==========
+[2026-02-01 03:00:01] [INFO] Backup time: 2026-02-01_03-00-01
+[2026-02-01 03:00:01] [INFO] Project: /www/wwwroot/vitufinance.com
+[2026-02-01 03:00:01] [INFO] Database: xie080886 @ 127.0.0.1:3306
+[2026-02-01 03:00:01] [INFO] Creating database backup...
+[2026-02-01 03:00:03] [INFO] Backup created: xie080886_2026-02-01.sql (58M)
+[2026-02-01 03:00:03] [INFO] Compressing backup...
+[2026-02-01 03:00:11] [INFO] Backup compressed: xie080886_2026-02-01.sql.gz (9.2M)
+[2026-02-01 03:00:11] [INFO] Cleaning up old backups...
+[2026-02-01 03:00:11] [INFO] Total backups retained: 4
+[2026-02-01 03:00:11] [INFO] Pushing backup to Git repository...
+[2026-02-01 03:00:26] [INFO] Successfully pushed to 'main' branch
+[2026-02-01 03:00:26] [INFO] Git push completed successfully
+[2026-02-01 03:00:26] [INFO] =========================================
+[2026-02-01 03:00:26] [INFO] Backup Summary:
+[2026-02-01 03:00:26] [INFO]   File: xie080886_2026-02-01.sql.gz
+[2026-02-01 03:00:26] [INFO]   Size: 9.2M
+[2026-02-01 03:00:26] [INFO]   Location: /www/wwwroot/vitufinance.com/backups/database
+[2026-02-01 03:00:26] [INFO] ========== Backup completed successfully ==========
+[2026-02-01 03:00:26] [INFO] 
+[2026-02-02 02:00:01] ==========================================
+[2026-02-02 02:00:01] Starting backup: vitufinance_backup_20260202_020001
+[2026-02-02 02:00:01] ==========================================
+[2026-02-02 02:00:01] 1. Backing up critical source files...
+[2026-02-02 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260202_020001.tar.gz
+[2026-02-02 02:00:01] 2. Backing up database...
+[2026-02-02 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260202_020001.sql.gz
+[2026-02-02 02:00:04] 3. Generating file integrity hashes...
+[2026-02-02 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260202_020001.sha256
+[2026-02-02 02:00:04] 4. Checking for git changes...
+[main 7a68d4a] Auto-backup: 20260202_020001
+ 7 files changed, 24 insertions(+), 11 deletions(-)
+ rename backups/critical/{critical_20260124_020001.tar.gz => critical_20260202_020001.tar.gz} (100%)
+ delete mode 100644 backups/critical/hashes_20260124_020001.sha256
+ rename backups/critical/{hashes_20260123_020001.sha256 => hashes_20260202_020001.sha256} (100%)
+ delete mode 100644 backups/daily/db_20260123_020001.sql.gz
+ delete mode 100644 backups/daily/db_20260124_020001.sql.gz
+ create mode 100644 backups/daily/db_20260202_020001.sql.gz
+[2026-02-02 02:00:05]    Git commit created
+[2026-02-02 02:00:05] 5. Cleaning up old backups...
+[2026-02-02 02:00:05]    Old backups cleaned (keeping last 7 days)
+[2026-02-02 02:00:05] ==========================================
+[2026-02-02 02:00:05] Backup completed successfully!
+[2026-02-02 02:00:05] ==========================================
+   Critical files: 112K
+   Database: 9.6M
+[2026-02-02 02:00:05]    Total backup size: 112M
+[2026-02-02 02:00:05] ==========================================
+[2026-02-03 02:00:01] ==========================================
+[2026-02-03 02:00:01] Starting backup: vitufinance_backup_20260203_020001
+[2026-02-03 02:00:01] ==========================================
+[2026-02-03 02:00:01] 1. Backing up critical source files...
+[2026-02-03 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260203_020001.tar.gz
+[2026-02-03 02:00:01] 2. Backing up database...
+[2026-02-03 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260203_020001.sql.gz
+[2026-02-03 02:00:04] 3. Generating file integrity hashes...
+[2026-02-03 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260203_020001.sha256
+[2026-02-03 02:00:04] 4. Checking for git changes...
+[main 8afa624] Auto-backup: 20260203_020001
+ 5 files changed, 18 insertions(+)
+ rename backups/critical/{critical_20260125_020001.tar.gz => critical_20260203_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260125_020001.sha256 => hashes_20260203_020001.sha256} (100%)
+ delete mode 100644 backups/daily/db_20260125_020001.sql.gz
+ create mode 100644 backups/daily/db_20260203_020001.sql.gz
+[2026-02-03 02:00:05]    Git commit created
+[2026-02-03 02:00:05] 5. Cleaning up old backups...
+[2026-02-03 02:00:05]    Old backups cleaned (keeping last 7 days)
+[2026-02-03 02:00:05] ==========================================
+[2026-02-03 02:00:05] Backup completed successfully!
+[2026-02-03 02:00:05] ==========================================
+   Critical files: 112K
+   Database: 9.8M
+[2026-02-03 02:00:05]    Total backup size: 122M
+[2026-02-03 02:00:05] ==========================================
+[2026-02-04 02:00:01] ==========================================
+[2026-02-04 02:00:01] Starting backup: vitufinance_backup_20260204_020001
+[2026-02-04 02:00:01] ==========================================
+[2026-02-04 02:00:01] 1. Backing up critical source files...
+[2026-02-04 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260204_020001.tar.gz
+[2026-02-04 02:00:01] 2. Backing up database...
+[2026-02-04 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260204_020001.sql.gz
+[2026-02-04 02:00:04] 3. Generating file integrity hashes...
+[2026-02-04 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260204_020001.sha256
+[2026-02-04 02:00:04] 4. Checking for git changes...
+[main d77d8a5] Auto-backup: 20260204_020001
+ 4 files changed, 29 insertions(+)
+ rename backups/critical/{critical_20260126_020001.tar.gz => critical_20260204_020001.tar.gz} (100%)
+ create mode 100644 backups/critical/hashes_20260204_020001.sha256
+ create mode 100644 backups/daily/db_20260204_020001.sql.gz
+[2026-02-04 02:00:04]    Git commit created
+[2026-02-04 02:00:04] 5. Cleaning up old backups...
+[2026-02-04 02:00:04]    Old backups cleaned (keeping last 7 days)
+[2026-02-04 02:00:04] ==========================================
+[2026-02-04 02:00:04] Backup completed successfully!
+[2026-02-04 02:00:04] ==========================================
+   Critical files: 112K
+   Database: 10M
+[2026-02-04 02:00:04]    Total backup size: 116M
+[2026-02-04 02:00:04] ==========================================
+[2026-02-04 03:00:01] [INFO] ========== Starting database backup ==========
+[2026-02-04 03:00:01] [INFO] Backup time: 2026-02-04_03-00-01
+[2026-02-04 03:00:01] [INFO] Project: /www/wwwroot/vitufinance.com
+[2026-02-04 03:00:02] [INFO] Database: xie080886 @ 127.0.0.1:3306
+[2026-02-04 03:00:02] [INFO] Creating database backup...
+[2026-02-04 03:00:03] [INFO] Backup created: xie080886_2026-02-04.sql (62M)
+[2026-02-04 03:00:03] [INFO] Compressing backup...
+[2026-02-04 03:00:11] [INFO] Backup compressed: xie080886_2026-02-04.sql.gz (9.8M)
+[2026-02-04 03:00:12] [INFO] Cleaning up old backups...
+[2026-02-04 03:00:12] [INFO] Total backups retained: 4
+[2026-02-04 03:00:12] [INFO] Pushing backup to Git repository...
+[2026-02-04 03:00:38] [INFO] Successfully pushed to 'main' branch
+[2026-02-04 03:00:38] [INFO] Git push completed successfully
+[2026-02-04 03:00:38] [INFO] =========================================
+[2026-02-04 03:00:38] [INFO] Backup Summary:
+[2026-02-04 03:00:38] [INFO]   File: xie080886_2026-02-04.sql.gz
+[2026-02-04 03:00:38] [INFO]   Size: 9.8M
+[2026-02-04 03:00:38] [INFO]   Location: /www/wwwroot/vitufinance.com/backups/database
+[2026-02-04 03:00:38] [INFO] ========== Backup completed successfully ==========
+[2026-02-04 03:00:38] [INFO] 
+[2026-02-05 02:00:01] ==========================================
+[2026-02-05 02:00:01] Starting backup: vitufinance_backup_20260205_020001
+[2026-02-05 02:00:01] ==========================================
+[2026-02-05 02:00:01] 1. Backing up critical source files...
+[2026-02-05 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260205_020001.tar.gz
+[2026-02-05 02:00:01] 2. Backing up database...
+[2026-02-05 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260205_020001.sql.gz
+[2026-02-05 02:00:04] 3. Generating file integrity hashes...
+[2026-02-05 02:00:05]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260205_020001.sha256
+[2026-02-05 02:00:05] 4. Checking for git changes...
+[main 4c6f04e] Auto-backup: 20260205_020001
+ 8 files changed, 24 insertions(+), 11 deletions(-)
+ rename backups/critical/{critical_20260127_020001.tar.gz => critical_20260205_020001.tar.gz} (100%)
+ delete mode 100644 backups/critical/hashes_20260127_020001.sha256
+ rename backups/critical/{hashes_20260126_020001.sha256 => hashes_20260205_020001.sha256} (100%)
+ delete mode 100644 backups/daily/db_20260126_020001.sql.gz
+ delete mode 100644 backups/daily/db_20260127_020001.sql.gz
+ create mode 100644 backups/daily/db_20260205_020001.sql.gz
+ delete mode 100644 backups/database/xie080886_2026-01-25.sql.gz
+[2026-02-05 02:00:05]    Git commit created
+[2026-02-05 02:00:05] 5. Cleaning up old backups...
+[2026-02-05 02:00:05]    Old backups cleaned (keeping last 7 days)
+[2026-02-05 02:00:05] ==========================================
+[2026-02-05 02:00:05] Backup completed successfully!
+[2026-02-05 02:00:05] ==========================================
+   Critical files: 112K
+   Database: 11M
+[2026-02-05 02:00:05]    Total backup size: 120M
+[2026-02-05 02:00:05] ==========================================
+[2026-02-06 02:00:01] ==========================================
+[2026-02-06 02:00:01] Starting backup: vitufinance_backup_20260206_020001
+[2026-02-06 02:00:01] ==========================================
+[2026-02-06 02:00:01] 1. Backing up critical source files...
+[2026-02-06 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260206_020001.tar.gz
+[2026-02-06 02:00:01] 2. Backing up database...
+[2026-02-06 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260206_020001.sql.gz
+[2026-02-06 02:00:04] 3. Generating file integrity hashes...
+[2026-02-06 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260206_020001.sha256
+[2026-02-06 02:00:04] 4. Checking for git changes...
+[main 1d575b7] Auto-backup: 20260206_020001
+ 4 files changed, 18 insertions(+)
+ rename backups/critical/{critical_20260128_020001.tar.gz => critical_20260206_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260128_020001.sha256 => hashes_20260206_020001.sha256} (100%)
+ rename backups/daily/{db_20260128_020001.sql.gz => db_20260206_020001.sql.gz} (50%)
+[2026-02-06 02:00:05]    Git commit created
+[2026-02-06 02:00:05] 5. Cleaning up old backups...
+[2026-02-06 02:00:05]    Old backups cleaned (keeping last 7 days)
+[2026-02-06 02:00:05] ==========================================
+[2026-02-06 02:00:05] Backup completed successfully!
+[2026-02-06 02:00:05] ==========================================
+   Critical files: 112K
+   Database: 11M
+[2026-02-06 02:00:05]    Total backup size: 121M
+[2026-02-06 02:00:05] ==========================================
+[2026-02-07 02:00:01] ==========================================
+[2026-02-07 02:00:01] Starting backup: vitufinance_backup_20260207_020001
+[2026-02-07 02:00:01] ==========================================
+[2026-02-07 02:00:01] 1. Backing up critical source files...
+[2026-02-07 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260207_020001.tar.gz
+[2026-02-07 02:00:01] 2. Backing up database...
+[2026-02-07 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260207_020001.sql.gz
+[2026-02-07 02:00:04] 3. Generating file integrity hashes...
+[2026-02-07 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260207_020001.sha256
+[2026-02-07 02:00:04] 4. Checking for git changes...
+[main 58ba582] Auto-backup: 20260207_020001
+ 4 files changed, 18 insertions(+)
+ rename backups/critical/{critical_20260129_020001.tar.gz => critical_20260207_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260129_020001.sha256 => hashes_20260207_020001.sha256} (100%)
+ rename backups/daily/{db_20260129_020001.sql.gz => db_20260207_020001.sql.gz} (53%)
+[2026-02-07 02:00:05]    Git commit created
+[2026-02-07 02:00:05] 5. Cleaning up old backups...
+[2026-02-07 02:00:05]    Old backups cleaned (keeping last 7 days)
+[2026-02-07 02:00:05] ==========================================
+[2026-02-07 02:00:05] Backup completed successfully!
+[2026-02-07 02:00:05] ==========================================
+   Critical files: 112K
+   Database: 11M
+[2026-02-07 02:00:05]    Total backup size: 123M
+[2026-02-07 02:00:05] ==========================================
+[2026-02-07 03:00:01] [INFO] ========== Starting database backup ==========
+[2026-02-07 03:00:01] [INFO] Backup time: 2026-02-07_03-00-01
+[2026-02-07 03:00:01] [INFO] Project: /www/wwwroot/vitufinance.com
+[2026-02-07 03:00:01] [INFO] Database: xie080886 @ 127.0.0.1:3306
+[2026-02-07 03:00:01] [INFO] Creating database backup...
+[2026-02-07 03:00:02] [INFO] Backup created: xie080886_2026-02-07.sql (65M)
+[2026-02-07 03:00:02] [INFO] Compressing backup...
+[2026-02-07 03:00:11] [INFO] Backup compressed: xie080886_2026-02-07.sql.gz (11M)
+[2026-02-07 03:00:11] [INFO] Cleaning up old backups...
+[2026-02-07 03:00:11] [INFO] Total backups retained: 4
+[2026-02-07 03:00:11] [INFO] Pushing backup to Git repository...
+[2026-02-07 03:00:40] [INFO] Successfully pushed to 'main' branch
+[2026-02-07 03:00:40] [INFO] Git push completed successfully
+[2026-02-07 03:00:40] [INFO] =========================================
+[2026-02-07 03:00:40] [INFO] Backup Summary:
+[2026-02-07 03:00:40] [INFO]   File: xie080886_2026-02-07.sql.gz
+[2026-02-07 03:00:40] [INFO]   Size: 11M
+[2026-02-07 03:00:40] [INFO]   Location: /www/wwwroot/vitufinance.com/backups/database
+[2026-02-07 03:00:40] [INFO] ========== Backup completed successfully ==========
+[2026-02-07 03:00:40] [INFO] 
+[2026-02-08 02:00:01] ==========================================
+[2026-02-08 02:00:01] Starting backup: vitufinance_backup_20260208_020001
+[2026-02-08 02:00:01] ==========================================
+[2026-02-08 02:00:01] 1. Backing up critical source files...
+[2026-02-08 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260208_020001.tar.gz
+[2026-02-08 02:00:01] 2. Backing up database...
+[2026-02-08 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260208_020001.sql.gz
+[2026-02-08 02:00:04] 3. Generating file integrity hashes...
+[2026-02-08 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260208_020001.sha256
+[2026-02-08 02:00:04] 4. Checking for git changes...
+[main bb189dd] Auto-backup: 20260208_020001
+ 6 files changed, 263 insertions(+)
+ create mode 100644 RPC_AND_NODE_SERVICES.md
+ rename backups/critical/{critical_20260130_020001.tar.gz => critical_20260208_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260130_020001.sha256 => hashes_20260208_020001.sha256} (100%)
+ rename backups/daily/{db_20260130_020001.sql.gz => db_20260208_020001.sql.gz} (51%)
+ delete mode 100644 backups/database/xie080886_2026-01-28.sql.gz
+[2026-02-08 02:00:05]    Git commit created
+[2026-02-08 02:00:05] 5. Cleaning up old backups...
+[2026-02-08 02:00:05]    Old backups cleaned (keeping last 7 days)
+[2026-02-08 02:00:05] ==========================================
+[2026-02-08 02:00:05] Backup completed successfully!
+[2026-02-08 02:00:05] ==========================================
+   Critical files: 112K
+   Database: 11M
+[2026-02-08 02:00:05]    Total backup size: 127M
+[2026-02-08 02:00:05] ==========================================
+[2026-02-09 02:00:01] ==========================================
+[2026-02-09 02:00:01] Starting backup: vitufinance_backup_20260209_020001
+[2026-02-09 02:00:01] ==========================================
+[2026-02-09 02:00:01] 1. Backing up critical source files...
+[2026-02-09 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260209_020001.tar.gz
+[2026-02-09 02:00:01] 2. Backing up database...
+[2026-02-09 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260209_020001.sql.gz
+[2026-02-09 02:00:04] 3. Generating file integrity hashes...
+[2026-02-09 02:00:05]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260209_020001.sha256
+[2026-02-09 02:00:05] 4. Checking for git changes...
+[main f4a70c1] Auto-backup: 20260209_020001
+ 4 files changed, 18 insertions(+)
+ rename backups/critical/{critical_20260131_020001.tar.gz => critical_20260209_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260131_020001.sha256 => hashes_20260209_020001.sha256} (100%)
+ rename backups/daily/{db_20260131_020001.sql.gz => db_20260209_020001.sql.gz} (52%)
+[2026-02-09 02:00:05]    Git commit created
+[2026-02-09 02:00:05] 5. Cleaning up old backups...
+[2026-02-09 02:00:05]    Old backups cleaned (keeping last 7 days)
+[2026-02-09 02:00:05] ==========================================
+[2026-02-09 02:00:05] Backup completed successfully!
+[2026-02-09 02:00:05] ==========================================
+   Critical files: 112K
+   Database: 12M
+[2026-02-09 02:00:05]    Total backup size: 129M
+[2026-02-09 02:00:05] ==========================================
+[2026-02-10 02:00:01] ==========================================
+[2026-02-10 02:00:01] Starting backup: vitufinance_backup_20260210_020001
+[2026-02-10 02:00:01] ==========================================
+[2026-02-10 02:00:01] 1. Backing up critical source files...
+[2026-02-10 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260210_020001.tar.gz
+[2026-02-10 02:00:01] 2. Backing up database...
+[2026-02-10 02:00:05]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260210_020001.sql.gz
+[2026-02-10 02:00:05] 3. Generating file integrity hashes...
+[2026-02-10 02:00:05]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260210_020001.sha256
+[2026-02-10 02:00:05] 4. Checking for git changes...
+[main e464338] Auto-backup: 20260210_020001
+ 4 files changed, 18 insertions(+)
+ rename backups/critical/{critical_20260201_020001.tar.gz => critical_20260210_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260201_020001.sha256 => hashes_20260210_020001.sha256} (100%)
+ rename backups/daily/{db_20260201_020001.sql.gz => db_20260210_020001.sql.gz} (51%)
+[2026-02-10 02:00:05]    Git commit created
+[2026-02-10 02:00:05] 5. Cleaning up old backups...
+[2026-02-10 02:00:05]    Old backups cleaned (keeping last 7 days)
+[2026-02-10 02:00:05] ==========================================
+[2026-02-10 02:00:05] Backup completed successfully!
+[2026-02-10 02:00:05] ==========================================
+   Critical files: 112K
+   Database: 12M
+[2026-02-10 02:00:05]    Total backup size: 130M
+[2026-02-10 02:00:05] ==========================================
+[2026-02-10 03:00:01] [INFO] ========== Starting database backup ==========
+[2026-02-10 03:00:01] [INFO] Backup time: 2026-02-10_03-00-01
+[2026-02-10 03:00:01] [INFO] Project: /www/wwwroot/vitufinance.com
+[2026-02-10 03:00:01] [INFO] Database: xie080886 @ 127.0.0.1:3306
+[2026-02-10 03:00:01] [INFO] Creating database backup...
+[2026-02-10 03:00:03] [INFO] Backup created: xie080886_2026-02-10.sql (69M)
+[2026-02-10 03:00:03] [INFO] Compressing backup...
+[2026-02-10 03:00:12] [INFO] Backup compressed: xie080886_2026-02-10.sql.gz (11M)
+[2026-02-10 03:00:12] [INFO] Cleaning up old backups...
+[2026-02-10 03:00:12] [INFO] Total backups retained: 3
+[2026-02-10 03:00:12] [INFO] Pushing backup to Git repository...
+[2026-02-10 03:00:43] [INFO] Successfully pushed to 'main' branch
+[2026-02-10 03:00:43] [INFO] Git push completed successfully
+[2026-02-10 03:00:43] [INFO] =========================================
+[2026-02-10 03:00:43] [INFO] Backup Summary:
+[2026-02-10 03:00:43] [INFO]   File: xie080886_2026-02-10.sql.gz
+[2026-02-10 03:00:43] [INFO]   Size: 11M
+[2026-02-10 03:00:43] [INFO]   Location: /www/wwwroot/vitufinance.com/backups/database
+[2026-02-10 03:00:43] [INFO] ========== Backup completed successfully ==========
+[2026-02-10 03:00:43] [INFO] 
+[2026-02-11 02:00:01] ==========================================
+[2026-02-11 02:00:01] Starting backup: vitufinance_backup_20260211_020001
+[2026-02-11 02:00:01] ==========================================
+[2026-02-11 02:00:01] 1. Backing up critical source files...
+[2026-02-11 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260211_020001.tar.gz
+[2026-02-11 02:00:01] 2. Backing up database...
+[2026-02-11 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260211_020001.sql.gz
+[2026-02-11 02:00:04] 3. Generating file integrity hashes...
+[2026-02-11 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260211_020001.sha256
+[2026-02-11 02:00:04] 4. Checking for git changes...
+[main 13e5ed7] Auto-backup: 20260211_020001
+ 6 files changed, 24 insertions(+)
+ rename backups/critical/{critical_20260202_020001.tar.gz => critical_20260211_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260202_020001.sha256 => hashes_20260211_020001.sha256} (100%)
+ rename backups/daily/{db_20260202_020001.sql.gz => db_20260211_020001.sql.gz} (53%)
+ delete mode 100644 backups/database/xie080886_2026-01-31.sql.gz
+ delete mode 100644 backups/database/xie080886_2026-02-01.sql.gz
+[2026-02-11 02:00:05]    Git commit created
+[2026-02-11 02:00:05] 5. Cleaning up old backups...
+[2026-02-11 02:00:05]    Old backups cleaned (keeping last 7 days)
+[2026-02-11 02:00:05] ==========================================
+[2026-02-11 02:00:05] Backup completed successfully!
+[2026-02-11 02:00:05] ==========================================
+   Critical files: 112K
+   Database: 12M
+[2026-02-11 02:00:05]    Total backup size: 125M
+[2026-02-11 02:00:05] ==========================================
+[2026-02-12 02:00:01] ==========================================
+[2026-02-12 02:00:01] Starting backup: vitufinance_backup_20260212_020001
+[2026-02-12 02:00:01] ==========================================
+[2026-02-12 02:00:01] 1. Backing up critical source files...
+[2026-02-12 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260212_020001.tar.gz
+[2026-02-12 02:00:01] 2. Backing up database...
+[2026-02-12 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260212_020001.sql.gz
+[2026-02-12 02:00:04] 3. Generating file integrity hashes...
+[2026-02-12 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260212_020001.sha256
+[2026-02-12 02:00:04] 4. Checking for git changes...
+[main a1b0182] Auto-backup: 20260212_020001
+ 4 files changed, 18 insertions(+)
+ rename backups/critical/{critical_20260203_020001.tar.gz => critical_20260212_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260203_020001.sha256 => hashes_20260212_020001.sha256} (100%)
+ rename backups/daily/{db_20260203_020001.sql.gz => db_20260212_020001.sql.gz} (54%)
+[2026-02-12 02:00:05]    Git commit created
+[2026-02-12 02:00:05] 5. Cleaning up old backups...
+[2026-02-12 02:00:05]    Old backups cleaned (keeping last 7 days)
+[2026-02-12 02:00:05] ==========================================
+[2026-02-12 02:00:05] Backup completed successfully!
+[2026-02-12 02:00:05] ==========================================
+   Critical files: 112K
+   Database: 12M
+[2026-02-12 02:00:05]    Total backup size: 127M
+[2026-02-12 02:00:05] ==========================================
+[2026-02-13 02:00:01] ==========================================
+[2026-02-13 02:00:01] Starting backup: vitufinance_backup_20260213_020001
+[2026-02-13 02:00:01] ==========================================
+[2026-02-13 02:00:01] 1. Backing up critical source files...
+[2026-02-13 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260213_020001.tar.gz
+[2026-02-13 02:00:01] 2. Backing up database...
+[2026-02-13 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260213_020001.sql.gz
+[2026-02-13 02:00:04] 3. Generating file integrity hashes...
+[2026-02-13 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260213_020001.sha256
+[2026-02-13 02:00:04] 4. Checking for git changes...
+[main 230a2a1] Auto-backup: 20260213_020001
+ 4 files changed, 18 insertions(+)
+ rename backups/critical/{critical_20260204_020001.tar.gz => critical_20260213_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260204_020001.sha256 => hashes_20260213_020001.sha256} (100%)
+ rename backups/daily/{db_20260204_020001.sql.gz => db_20260213_020001.sql.gz} (53%)
+[2026-02-13 02:00:05]    Git commit created
+[2026-02-13 02:00:05] 5. Cleaning up old backups...
+[2026-02-13 02:00:05]    Old backups cleaned (keeping last 7 days)
+[2026-02-13 02:00:05] ==========================================
+[2026-02-13 02:00:05] Backup completed successfully!
+[2026-02-13 02:00:05] ==========================================
+   Critical files: 112K
+   Database: 12M
+[2026-02-13 02:00:05]    Total backup size: 129M
+[2026-02-13 02:00:05] ==========================================
+[2026-02-13 03:00:01] [INFO] ========== Starting database backup ==========
+[2026-02-13 03:00:01] [INFO] Backup time: 2026-02-13_03-00-01
+[2026-02-13 03:00:01] [INFO] Project: /www/wwwroot/vitufinance.com
+[2026-02-13 03:00:01] [INFO] Database: xie080886 @ 127.0.0.1:3306
+[2026-02-13 03:00:01] [INFO] Creating database backup...
+[2026-02-13 03:00:03] [INFO] Backup created: xie080886_2026-02-13.sql (73M)
+[2026-02-13 03:00:03] [INFO] Compressing backup...
+[2026-02-13 03:00:13] [INFO] Backup compressed: xie080886_2026-02-13.sql.gz (12M)
+[2026-02-13 03:00:13] [INFO] Cleaning up old backups...
+[2026-02-13 03:00:13] [INFO] Total backups retained: 3
+[2026-02-13 03:00:13] [INFO] Pushing backup to Git repository...
+[2026-02-13 03:00:44] [INFO] Successfully pushed to 'main' branch
+[2026-02-13 03:00:44] [INFO] Git push completed successfully
+[2026-02-13 03:00:44] [INFO] =========================================
+[2026-02-13 03:00:44] [INFO] Backup Summary:
+[2026-02-13 03:00:44] [INFO]   File: xie080886_2026-02-13.sql.gz
+[2026-02-13 03:00:44] [INFO]   Size: 12M
+[2026-02-13 03:00:44] [INFO]   Location: /www/wwwroot/vitufinance.com/backups/database
+[2026-02-13 03:00:44] [INFO] ========== Backup completed successfully ==========
+[2026-02-13 03:00:44] [INFO] 
+[2026-02-14 02:00:01] ==========================================
+[2026-02-14 02:00:01] Starting backup: vitufinance_backup_20260214_020001
+[2026-02-14 02:00:01] ==========================================
+[2026-02-14 02:00:01] 1. Backing up critical source files...
+[2026-02-14 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260214_020001.tar.gz
+[2026-02-14 02:00:01] 2. Backing up database...
+[2026-02-14 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260214_020001.sql.gz
+[2026-02-14 02:00:04] 3. Generating file integrity hashes...
+[2026-02-14 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260214_020001.sha256
+[2026-02-14 02:00:04] 4. Checking for git changes...
+[main 44b3300] Auto-backup: 20260214_020001
+ 5 files changed, 24 insertions(+)
+ rename backups/critical/{critical_20260205_020001.tar.gz => critical_20260214_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260205_020001.sha256 => hashes_20260214_020001.sha256} (100%)
+ rename backups/daily/{db_20260205_020001.sql.gz => db_20260214_020001.sql.gz} (53%)
+ delete mode 100644 backups/database/xie080886_2026-02-04.sql.gz
+[2026-02-14 02:00:05]    Git commit created
+[2026-02-14 02:00:05] 5. Cleaning up old backups...
+[2026-02-14 02:00:05]    Old backups cleaned (keeping last 7 days)
+[2026-02-14 02:00:05] ==========================================
+[2026-02-14 02:00:05] Backup completed successfully!
+[2026-02-14 02:00:05] ==========================================
+   Critical files: 112K
+   Database: 13M
+[2026-02-14 02:00:05]    Total backup size: 132M
+[2026-02-14 02:00:05] ==========================================
+[2026-02-15 02:00:01] ==========================================
+[2026-02-15 02:00:01] Starting backup: vitufinance_backup_20260215_020001
+[2026-02-15 02:00:01] ==========================================
+[2026-02-15 02:00:01] 1. Backing up critical source files...
+[2026-02-15 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260215_020001.tar.gz
+[2026-02-15 02:00:01] 2. Backing up database...
+[2026-02-15 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260215_020001.sql.gz
+[2026-02-15 02:00:04] 3. Generating file integrity hashes...
+[2026-02-15 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260215_020001.sha256
+[2026-02-15 02:00:04] 4. Checking for git changes...
+[main b5bcd77] Auto-backup: 20260215_020001
+ 4 files changed, 18 insertions(+)
+ rename backups/critical/{critical_20260206_020001.tar.gz => critical_20260215_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260206_020001.sha256 => hashes_20260215_020001.sha256} (100%)
+ rename backups/daily/{db_20260206_020001.sql.gz => db_20260215_020001.sql.gz} (54%)
+[2026-02-15 02:00:05]    Git commit created
+[2026-02-15 02:00:05] 5. Cleaning up old backups...
+[2026-02-15 02:00:05]    Old backups cleaned (keeping last 7 days)
+[2026-02-15 02:00:05] ==========================================
+[2026-02-15 02:00:05] Backup completed successfully!
+[2026-02-15 02:00:05] ==========================================
+   Critical files: 112K
+   Database: 13M
+[2026-02-15 02:00:05]    Total backup size: 134M
+[2026-02-15 02:00:05] ==========================================
+[2026-02-16 02:00:01] ==========================================
+[2026-02-16 02:00:01] Starting backup: vitufinance_backup_20260216_020001
+[2026-02-16 02:00:01] ==========================================
+[2026-02-16 02:00:01] 1. Backing up critical source files...
+[2026-02-16 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260216_020001.tar.gz
+[2026-02-16 02:00:01] 2. Backing up database...
+[2026-02-16 02:00:05]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260216_020001.sql.gz
+[2026-02-16 02:00:05] 3. Generating file integrity hashes...
+[2026-02-16 02:00:05]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260216_020001.sha256
+[2026-02-16 02:00:05] 4. Checking for git changes...
+[main 94c67f5] Auto-backup: 20260216_020001
+ 5 files changed, 19 insertions(+), 1 deletion(-)
+ rename backups/critical/{critical_20260207_020001.tar.gz => critical_20260216_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260207_020001.sha256 => hashes_20260216_020001.sha256} (100%)
+ rename backups/daily/{db_20260207_020001.sql.gz => db_20260216_020001.sql.gz} (55%)
+[2026-02-16 02:00:06]    Git commit created
+[2026-02-16 02:00:06] 5. Cleaning up old backups...
+[2026-02-16 02:00:06]    Old backups cleaned (keeping last 7 days)
+[2026-02-16 02:00:06] ==========================================
+[2026-02-16 02:00:06] Backup completed successfully!
+[2026-02-16 02:00:06] ==========================================
+   Critical files: 112K
+   Database: 13M
+[2026-02-16 02:00:06]    Total backup size: 136M
+[2026-02-16 02:00:06] ==========================================
+[2026-02-16 03:00:01] [INFO] ========== Starting database backup ==========
+[2026-02-16 03:00:01] [INFO] Backup time: 2026-02-16_03-00-01
+[2026-02-16 03:00:01] [INFO] Project: /www/wwwroot/vitufinance.com
+[2026-02-16 03:00:01] [INFO] Database: xie080886 @ 127.0.0.1:3306
+[2026-02-16 03:00:01] [INFO] Creating database backup...
+[2026-02-16 03:00:03] [INFO] Backup created: xie080886_2026-02-16.sql (77M)
+[2026-02-16 03:00:03] [INFO] Compressing backup...
+[2026-02-16 03:00:14] [INFO] Backup compressed: xie080886_2026-02-16.sql.gz (13M)
+[2026-02-16 03:00:14] [INFO] Cleaning up old backups...
+[2026-02-16 03:00:14] [INFO] Total backups retained: 3
+[2026-02-16 03:00:14] [INFO] Pushing backup to Git repository...
+[2026-02-16 03:00:46] [INFO] Successfully pushed to 'main' branch
+[2026-02-16 03:00:46] [INFO] Git push completed successfully
+[2026-02-16 03:00:46] [INFO] =========================================
+[2026-02-16 03:00:46] [INFO] Backup Summary:
+[2026-02-16 03:00:46] [INFO]   File: xie080886_2026-02-16.sql.gz
+[2026-02-16 03:00:46] [INFO]   Size: 13M
+[2026-02-16 03:00:46] [INFO]   Location: /www/wwwroot/vitufinance.com/backups/database
+[2026-02-16 03:00:46] [INFO] ========== Backup completed successfully ==========
+[2026-02-16 03:00:46] [INFO] 
+[2026-02-17 02:00:01] ==========================================
+[2026-02-17 02:00:01] Starting backup: vitufinance_backup_20260217_020001
+[2026-02-17 02:00:01] ==========================================
+[2026-02-17 02:00:01] 1. Backing up critical source files...
+[2026-02-17 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260217_020001.tar.gz
+[2026-02-17 02:00:01] 2. Backing up database...
+[2026-02-17 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260217_020001.sql.gz
+[2026-02-17 02:00:04] 3. Generating file integrity hashes...
+[2026-02-17 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260217_020001.sha256
+[2026-02-17 02:00:04] 4. Checking for git changes...
+[main 8858522] Auto-backup: 20260217_020001
+ 5 files changed, 24 insertions(+)
+ rename backups/critical/{critical_20260208_020001.tar.gz => critical_20260217_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260208_020001.sha256 => hashes_20260217_020001.sha256} (100%)
+ rename backups/daily/{db_20260208_020001.sql.gz => db_20260217_020001.sql.gz} (55%)
+ delete mode 100644 backups/database/xie080886_2026-02-07.sql.gz
+[2026-02-17 02:00:05]    Git commit created
+[2026-02-17 02:00:05] 5. Cleaning up old backups...
+[2026-02-17 02:00:05]    Old backups cleaned (keeping last 7 days)
+[2026-02-17 02:00:05] ==========================================
+[2026-02-17 02:00:05] Backup completed successfully!
+[2026-02-17 02:00:05] ==========================================
+   Critical files: 112K
+   Database: 13M
+[2026-02-17 02:00:05]    Total backup size: 139M
+[2026-02-17 02:00:05] ==========================================
+[2026-02-18 02:00:01] ==========================================
+[2026-02-18 02:00:01] Starting backup: vitufinance_backup_20260218_020001
+[2026-02-18 02:00:01] ==========================================
+[2026-02-18 02:00:01] 1. Backing up critical source files...
+[2026-02-18 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260218_020001.tar.gz
+[2026-02-18 02:00:01] 2. Backing up database...
+[2026-02-18 02:00:05]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260218_020001.sql.gz
+[2026-02-18 02:00:05] 3. Generating file integrity hashes...
+[2026-02-18 02:00:05]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260218_020001.sha256
+[2026-02-18 02:00:05] 4. Checking for git changes...
+[main a2ee0ff] Auto-backup: 20260218_020001
+ 4 files changed, 21 insertions(+)
+ create mode 100644 backups/critical/critical_20260218_020001.tar.gz
+ create mode 100644 backups/critical/hashes_20260218_020001.sha256
+ create mode 100644 backups/daily/db_20260218_020001.sql.gz
+[2026-02-18 02:00:05]    Git commit created
+[2026-02-18 02:00:05] 5. Cleaning up old backups...
+[2026-02-18 02:00:05]    Old backups cleaned (keeping last 7 days)
+[2026-02-18 02:00:05] ==========================================
+[2026-02-18 02:00:05] Backup completed successfully!
+[2026-02-18 02:00:05] ==========================================
+   Critical files: 112K
+   Database: 13M
+[2026-02-18 02:00:05]    Total backup size: 141M
+[2026-02-18 02:00:05] ==========================================
+[2026-02-19 02:00:01] ==========================================
+[2026-02-19 02:00:01] Starting backup: vitufinance_backup_20260219_020001
+[2026-02-19 02:00:01] ==========================================
+[2026-02-19 02:00:01] 1. Backing up critical source files...
+[2026-02-19 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260219_020001.tar.gz
+[2026-02-19 02:00:01] 2. Backing up database...
+[2026-02-19 02:00:05]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260219_020001.sql.gz
+[2026-02-19 02:00:05] 3. Generating file integrity hashes...
+[2026-02-19 02:00:05]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260219_020001.sha256
+[2026-02-19 02:00:05] 4. Checking for git changes...
+[main 2ef542f] Auto-backup: 20260219_020001
+ 4 files changed, 18 insertions(+)
+ rename backups/critical/{critical_20260210_020001.tar.gz => critical_20260219_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260210_020001.sha256 => hashes_20260219_020001.sha256} (100%)
+ rename backups/daily/{db_20260210_020001.sql.gz => db_20260219_020001.sql.gz} (55%)
+[2026-02-19 02:00:06]    Git commit created
+[2026-02-19 02:00:06] 5. Cleaning up old backups...
+[2026-02-19 02:00:06]    Old backups cleaned (keeping last 7 days)
+[2026-02-19 02:00:06] ==========================================
+[2026-02-19 02:00:06] Backup completed successfully!
+[2026-02-19 02:00:06] ==========================================
+   Critical files: 112K
+   Database: 14M
+[2026-02-19 02:00:06]    Total backup size: 143M
+[2026-02-19 02:00:06] ==========================================
+[2026-02-19 03:00:01] [INFO] ========== Starting database backup ==========
+[2026-02-19 03:00:01] [INFO] Backup time: 2026-02-19_03-00-01
+[2026-02-19 03:00:01] [INFO] Project: /www/wwwroot/vitufinance.com
+[2026-02-19 03:00:01] [INFO] Database: xie080886 @ 127.0.0.1:3306
+[2026-02-19 03:00:01] [INFO] Creating database backup...
+[2026-02-19 03:00:04] [INFO] Backup created: xie080886_2026-02-19.sql (80M)
+[2026-02-19 03:00:04] [INFO] Compressing backup...
+[2026-02-19 03:00:15] [INFO] Backup compressed: xie080886_2026-02-19.sql.gz (13M)
+[2026-02-19 03:00:15] [INFO] Cleaning up old backups...
+[2026-02-19 03:00:15] [INFO] Total backups retained: 3
+[2026-02-19 03:00:15] [INFO] Pushing backup to Git repository...
+[2026-02-19 03:00:41] [INFO] Successfully pushed to 'main' branch
+[2026-02-19 03:00:41] [INFO] Git push completed successfully
+[2026-02-19 03:00:41] [INFO] =========================================
+[2026-02-19 03:00:41] [INFO] Backup Summary:
+[2026-02-19 03:00:41] [INFO]   File: xie080886_2026-02-19.sql.gz
+[2026-02-19 03:00:41] [INFO]   Size: 13M
+[2026-02-19 03:00:41] [INFO]   Location: /www/wwwroot/vitufinance.com/backups/database
+[2026-02-19 03:00:41] [INFO] ========== Backup completed successfully ==========
+[2026-02-19 03:00:41] [INFO] 
+[2026-02-20 02:00:01] ==========================================
+[2026-02-20 02:00:01] Starting backup: vitufinance_backup_20260220_020001
+[2026-02-20 02:00:01] ==========================================
+[2026-02-20 02:00:01] 1. Backing up critical source files...
+[2026-02-20 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260220_020001.tar.gz
+[2026-02-20 02:00:01] 2. Backing up database...
+[2026-02-20 02:00:05]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260220_020001.sql.gz
+[2026-02-20 02:00:05] 3. Generating file integrity hashes...
+[2026-02-20 02:00:05]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260220_020001.sha256
+[2026-02-20 02:00:05] 4. Checking for git changes...
+[main 4fbcc3b] Auto-backup: 20260220_020001
+ 5 files changed, 24 insertions(+)
+ rename backups/critical/{critical_20260211_020001.tar.gz => critical_20260220_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260211_020001.sha256 => hashes_20260220_020001.sha256} (100%)
+ rename backups/daily/{db_20260211_020001.sql.gz => db_20260220_020001.sql.gz} (56%)
+ delete mode 100644 backups/database/xie080886_2026-02-10.sql.gz
+[2026-02-20 02:00:05]    Git commit created
+[2026-02-20 02:00:05] 5. Cleaning up old backups...
+[2026-02-20 02:00:05]    Old backups cleaned (keeping last 7 days)
+[2026-02-20 02:00:05] ==========================================
+[2026-02-20 02:00:05] Backup completed successfully!
+[2026-02-20 02:00:05] ==========================================
+   Critical files: 112K
+   Database: 14M
+[2026-02-20 02:00:05]    Total backup size: 147M
+[2026-02-20 02:00:05] ==========================================
+[2026-02-21 02:00:01] ==========================================
+[2026-02-21 02:00:01] Starting backup: vitufinance_backup_20260221_020001
+[2026-02-21 02:00:01] ==========================================
+[2026-02-21 02:00:01] 1. Backing up critical source files...
+[2026-02-21 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260221_020001.tar.gz
+[2026-02-21 02:00:01] 2. Backing up database...
+[2026-02-21 02:00:04]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260221_020001.sql.gz
+[2026-02-21 02:00:04] 3. Generating file integrity hashes...
+[2026-02-21 02:00:04]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260221_020001.sha256
+[2026-02-21 02:00:04] 4. Checking for git changes...
+[main 9cfd1b0] Auto-backup: 20260221_020001
+ 4 files changed, 18 insertions(+)
+ rename backups/critical/{critical_20260212_020001.tar.gz => critical_20260221_020001.tar.gz} (100%)
+ rename backups/critical/{hashes_20260212_020001.sha256 => hashes_20260221_020001.sha256} (100%)
+ rename backups/daily/{db_20260212_020001.sql.gz => db_20260221_020001.sql.gz} (56%)
+[2026-02-21 02:00:05]    Git commit created
+[2026-02-21 02:00:05] 5. Cleaning up old backups...
+[2026-02-21 02:00:05]    Old backups cleaned (keeping last 7 days)
+[2026-02-21 02:00:05] ==========================================
+[2026-02-21 02:00:05] Backup completed successfully!
+[2026-02-21 02:00:05] ==========================================
+   Critical files: 112K
+   Database: 14M
+[2026-02-21 02:00:05]    Total backup size: 148M
+[2026-02-21 02:00:05] ==========================================
+[2026-02-22 02:00:01] ==========================================
+[2026-02-22 02:00:01] Starting backup: vitufinance_backup_20260222_020001
+[2026-02-22 02:00:01] ==========================================
+[2026-02-22 02:00:01] 1. Backing up critical source files...
+[2026-02-22 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260222_020001.tar.gz
+[2026-02-22 02:00:01] 2. Backing up database...
+[2026-02-22 02:00:05]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260222_020001.sql.gz
+[2026-02-22 02:00:05] 3. Generating file integrity hashes...
+[2026-02-22 02:00:05]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260222_020001.sha256
+[2026-02-22 02:00:05] 4. Checking for git changes...
+[main 475b41c] Auto-backup: 20260222_020001
+ 15 files changed, 1722 insertions(+), 51 deletions(-)
+ create mode 100644 backend/scripts/check_wallet_balance.js
+ rename backups/critical/{critical_20260213_020001.tar.gz => critical_20260222_020001.tar.gz} (66%)
+ rename backups/critical/{hashes_20260213_020001.sha256 => hashes_20260222_020001.sha256} (93%)
+ rename backups/daily/{db_20260213_020001.sql.gz => db_20260222_020001.sql.gz} (57%)
+ create mode 100644 docs/COMPLETE_CHANGES_LOG_20260222.md
+ create mode 100644 docs/FINAL_CONFIG_UPDATE_20260222.md
+ create mode 100644 docs/SYSTEM_AUTOMATION_REPORT.md
+ create mode 100644 docs/WALLET_ADDRESS_UPDATE_20260222.md
+[2026-02-22 02:00:06]    Git commit created
+[2026-02-22 02:00:06] 5. Cleaning up old backups...
+[2026-02-22 02:00:06]    Old backups cleaned (keeping last 7 days)
+[2026-02-22 02:00:06] ==========================================
+[2026-02-22 02:00:06] Backup completed successfully!
+[2026-02-22 02:00:06] ==========================================
+   Critical files: 112K
+   Database: 14M
+[2026-02-22 02:00:06]    Total backup size: 150M
+[2026-02-22 02:00:06] ==========================================
+[2026-02-22 03:00:01] [INFO] ========== Starting database backup ==========
+[2026-02-22 03:00:01] [INFO] Backup time: 2026-02-22_03-00-01
+[2026-02-22 03:00:01] [INFO] Project: /www/wwwroot/vitufinance.com
+[2026-02-22 03:00:01] [INFO] Database: xie080886 @ 127.0.0.1:3306
+[2026-02-22 03:00:01] [INFO] Creating database backup...
+[2026-02-22 03:00:03] [INFO] Backup created: xie080886_2026-02-22.sql (84M)
+[2026-02-22 03:00:03] [INFO] Compressing backup...
+[2026-02-22 03:00:14] [INFO] Backup compressed: xie080886_2026-02-22.sql.gz (14M)
+[2026-02-22 03:00:14] [INFO] Cleaning up old backups...
+[2026-02-22 03:00:14] [INFO] Total backups retained: 3
+[2026-02-22 03:00:14] [INFO] Pushing backup to Git repository...
+[2026-02-22 03:00:50] [INFO] Successfully pushed to 'main' branch
+[2026-02-22 03:00:50] [INFO] Git push completed successfully
+[2026-02-22 03:00:50] [INFO] =========================================
+[2026-02-22 03:00:50] [INFO] Backup Summary:
+[2026-02-22 03:00:50] [INFO]   File: xie080886_2026-02-22.sql.gz
+[2026-02-22 03:00:50] [INFO]   Size: 14M
+[2026-02-22 03:00:50] [INFO]   Location: /www/wwwroot/vitufinance.com/backups/database
+[2026-02-22 03:00:50] [INFO] ========== Backup completed successfully ==========
+[2026-02-22 03:00:50] [INFO] 
+[2026-02-23 02:00:01] ==========================================
+[2026-02-23 02:00:01] Starting backup: vitufinance_backup_20260223_020001
+[2026-02-23 02:00:01] ==========================================
+[2026-02-23 02:00:01] 1. Backing up critical source files...
+[2026-02-23 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260223_020001.tar.gz
+[2026-02-23 02:00:01] 2. Backing up database...
+[2026-02-23 02:00:05]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260223_020001.sql.gz
+[2026-02-23 02:00:05] 3. Generating file integrity hashes...
+[2026-02-23 02:00:05]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260223_020001.sha256
+[2026-02-23 02:00:05] 4. Checking for git changes...
+[main 6b58fe9] Auto-backup: 20260223_020001
+ 5 files changed, 25 insertions(+), 1 deletion(-)
+ rename backups/critical/{critical_20260214_020001.tar.gz => critical_20260223_020001.tar.gz} (66%)
+ rename backups/critical/{hashes_20260214_020001.sha256 => hashes_20260223_020001.sha256} (93%)
+ rename backups/daily/{db_20260214_020001.sql.gz => db_20260223_020001.sql.gz} (57%)
+ delete mode 100644 backups/database/xie080886_2026-02-13.sql.gz
+[2026-02-23 02:00:06]    Git commit created
+[2026-02-23 02:00:06] 5. Cleaning up old backups...
+[2026-02-23 02:00:06]    Old backups cleaned (keeping last 7 days)
+[2026-02-23 02:00:06] ==========================================
+[2026-02-23 02:00:06] Backup completed successfully!
+[2026-02-23 02:00:06] ==========================================
+   Critical files: 112K
+   Database: 14M
+[2026-02-23 02:00:06]    Total backup size: 154M
+[2026-02-23 02:00:06] ==========================================
+[2026-02-24 02:00:01] ==========================================
+[2026-02-24 02:00:01] Starting backup: vitufinance_backup_20260224_020001
+[2026-02-24 02:00:01] ==========================================
+[2026-02-24 02:00:01] 1. Backing up critical source files...
+[2026-02-24 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260224_020001.tar.gz
+[2026-02-24 02:00:01] 2. Backing up database...
+[2026-02-24 02:00:05]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260224_020001.sql.gz
+[2026-02-24 02:00:05] 3. Generating file integrity hashes...
+[2026-02-24 02:00:05]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260224_020001.sha256
+[2026-02-24 02:00:05] 4. Checking for git changes...
+[main 17d21b9] Auto-backup: 20260224_020001
+ 15 files changed, 850 insertions(+), 1078 deletions(-)
+ create mode 100644 .claude/settings.json
+ delete mode 100644 backups/critical/critical_20260215_020001.tar.gz
+ create mode 100644 backups/critical/critical_20260224_020001.tar.gz
+ rename backups/critical/{hashes_20260215_020001.sha256 => hashes_20260224_020001.sha256} (87%)
+ rename backups/daily/{db_20260215_020001.sql.gz => db_20260224_020001.sql.gz} (57%)
+ create mode 100644 claude.md
+ delete mode 100644 docs/COMPLETE_CHANGES_LOG_20260222.md
+ delete mode 100644 docs/WALLET_ADDRESS_UPDATE_20260222.md
+[2026-02-24 02:00:06]    Git commit created
+[2026-02-24 02:00:06] 5. Cleaning up old backups...
+[2026-02-24 02:00:06]    Old backups cleaned (keeping last 7 days)
+[2026-02-24 02:00:06] ==========================================
+[2026-02-24 02:00:06] Backup completed successfully!
+[2026-02-24 02:00:06] ==========================================
+   Critical files: 112K
+   Database: 15M
+[2026-02-24 02:00:06]    Total backup size: 156M
+[2026-02-24 02:00:06] ==========================================
+[2026-02-25 02:00:01] ==========================================
+[2026-02-25 02:00:01] Starting backup: vitufinance_backup_20260225_020001
+[2026-02-25 02:00:01] ==========================================
+[2026-02-25 02:00:01] 1. Backing up critical source files...
+[2026-02-25 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260225_020001.tar.gz
+[2026-02-25 02:00:01] 2. Backing up database...
+[2026-02-25 02:00:05]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260225_020001.sql.gz
+[2026-02-25 02:00:05] 3. Generating file integrity hashes...
+[2026-02-25 02:00:05]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260225_020001.sha256
+[2026-02-25 02:00:05] 4. Checking for git changes...
+[main 79062f4] Auto-backup: 20260225_020001
+ 9 files changed, 273 insertions(+), 12 deletions(-)
+ create mode 100644 backend/migrations/add_announcement_translations.sql
+ create mode 100644 backend/migrations/update_announcement_translations.sql
+ delete mode 100644 backups/critical/critical_20260216_020001.tar.gz
+ create mode 100644 backups/critical/critical_20260225_020001.tar.gz
+ rename backups/critical/{hashes_20260216_020001.sha256 => hashes_20260225_020001.sha256} (87%)
+ rename backups/daily/{db_20260216_020001.sql.gz => db_20260225_020001.sql.gz} (57%)
+[2026-02-25 02:00:06]    Git commit created
+[2026-02-25 02:00:06] 5. Cleaning up old backups...
+[2026-02-25 02:00:06]    Old backups cleaned (keeping last 7 days)
+[2026-02-25 02:00:06] ==========================================
+[2026-02-25 02:00:06] Backup completed successfully!
+[2026-02-25 02:00:06] ==========================================
+   Critical files: 112K
+   Database: 15M
+[2026-02-25 02:00:06]    Total backup size: 157M
+[2026-02-25 02:00:06] ==========================================
+[2026-02-25 03:00:01] [INFO] ========== Starting database backup ==========
+[2026-02-25 03:00:01] [INFO] Backup time: 2026-02-25_03-00-01
+[2026-02-25 03:00:01] [INFO] Project: /www/wwwroot/vitufinance.com
+[2026-02-25 03:00:01] [INFO] Database: xie080886 @ 127.0.0.1:3306
+[2026-02-25 03:00:01] [INFO] Creating database backup...
+[2026-02-25 03:00:03] [INFO] Backup created: xie080886_2026-02-25.sql (89M)
+[2026-02-25 03:00:03] [INFO] Compressing backup...
+[2026-02-25 03:00:15] [INFO] Backup compressed: xie080886_2026-02-25.sql.gz (15M)
+[2026-02-25 03:00:15] [INFO] Cleaning up old backups...
+[2026-02-25 03:00:15] [INFO] Total backups retained: 3
+[2026-02-25 03:00:15] [INFO] Pushing backup to Git repository...
+[2026-02-25 03:00:52] [INFO] Successfully pushed to 'main' branch
+[2026-02-25 03:00:52] [INFO] Git push completed successfully
+[2026-02-25 03:00:52] [INFO] =========================================
+[2026-02-25 03:00:52] [INFO] Backup Summary:
+[2026-02-25 03:00:52] [INFO]   File: xie080886_2026-02-25.sql.gz
+[2026-02-25 03:00:52] [INFO]   Size: 15M
+[2026-02-25 03:00:52] [INFO]   Location: /www/wwwroot/vitufinance.com/backups/database
+[2026-02-25 03:00:52] [INFO] ========== Backup completed successfully ==========
+[2026-02-25 03:00:52] [INFO] 
+[2026-02-26 02:00:01] ==========================================
+[2026-02-26 02:00:01] Starting backup: vitufinance_backup_20260226_020001
+[2026-02-26 02:00:01] ==========================================
+[2026-02-26 02:00:01] 1. Backing up critical source files...
+[2026-02-26 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260226_020001.tar.gz
+[2026-02-26 02:00:01] 2. Backing up database...
+[2026-02-26 02:00:05]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260226_020001.sql.gz
+[2026-02-26 02:00:05] 3. Generating file integrity hashes...
+[2026-02-26 02:00:05]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260226_020001.sha256
+[2026-02-26 02:00:05] 4. Checking for git changes...
+[main a82f996] Auto-backup: 20260226_020001
+ 7 files changed, 112 insertions(+), 2 deletions(-)
+ create mode 100644 backend/migrations/add_uk_zu_translations.sql
+ delete mode 100644 backups/critical/critical_20260217_020001.tar.gz
+ create mode 100644 backups/critical/critical_20260226_020001.tar.gz
+ rename backups/critical/{hashes_20260217_020001.sha256 => hashes_20260226_020001.sha256} (87%)
+ rename backups/daily/{db_20260217_020001.sql.gz => db_20260226_020001.sql.gz} (57%)
+ delete mode 100644 backups/database/xie080886_2026-02-16.sql.gz
+[2026-02-26 02:00:06]    Git commit created
+[2026-02-26 02:00:06] 5. Cleaning up old backups...
+[2026-02-26 02:00:06]    Old backups cleaned (keeping last 7 days)
+[2026-02-26 02:00:06] ==========================================
+[2026-02-26 02:00:06] Backup completed successfully!
+[2026-02-26 02:00:06] ==========================================
+   Critical files: 112K
+   Database: 15M
+[2026-02-26 02:00:06]    Total backup size: 161M
+[2026-02-26 02:00:06] ==========================================
+[2026-02-27 02:00:01] ==========================================
+[2026-02-27 02:00:01] Starting backup: vitufinance_backup_20260227_020001
+[2026-02-27 02:00:01] ==========================================
+[2026-02-27 02:00:01] 1. Backing up critical source files...
+[2026-02-27 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260227_020001.tar.gz
+[2026-02-27 02:00:01] 2. Backing up database...
+[2026-02-27 02:00:05]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260227_020001.sql.gz
+[2026-02-27 02:00:05] 3. Generating file integrity hashes...
+[2026-02-27 02:00:05]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260227_020001.sha256
+[2026-02-27 02:00:05] 4. Checking for git changes...
+[main 5065e75] Auto-backup: 20260227_020001
+ 5 files changed, 20 insertions(+), 2 deletions(-)
+ delete mode 100644 backups/critical/critical_20260218_020001.tar.gz
+ create mode 100644 backups/critical/critical_20260227_020001.tar.gz
+ rename backups/critical/{hashes_20260218_020001.sha256 => hashes_20260227_020001.sha256} (87%)
+ rename backups/daily/{db_20260218_020001.sql.gz => db_20260227_020001.sql.gz} (58%)
+[2026-02-27 02:00:06]    Git commit created
+[2026-02-27 02:00:06] 5. Cleaning up old backups...
+[2026-02-27 02:00:06]    Old backups cleaned (keeping last 7 days)
+[2026-02-27 02:00:06] ==========================================
+[2026-02-27 02:00:06] Backup completed successfully!
+[2026-02-27 02:00:06] ==========================================
+   Critical files: 112K
+   Database: 15M
+[2026-02-27 02:00:06]    Total backup size: 163M
+[2026-02-27 02:00:06] ==========================================
+[2026-02-28 02:00:01] ==========================================
+[2026-02-28 02:00:01] Starting backup: vitufinance_backup_20260228_020001
+[2026-02-28 02:00:01] ==========================================
+[2026-02-28 02:00:01] 1. Backing up critical source files...
+[2026-02-28 02:00:01]    Critical files backed up: /www/wwwroot/vitufinance.com/backups/critical/critical_20260228_020001.tar.gz
+[2026-02-28 02:00:01] 2. Backing up database...
+[2026-02-28 02:00:05]    Database backed up: /www/wwwroot/vitufinance.com/backups/daily/db_20260228_020001.sql.gz
+[2026-02-28 02:00:05] 3. Generating file integrity hashes...
+[2026-02-28 02:00:05]    Hashes saved: /www/wwwroot/vitufinance.com/backups/critical/hashes_20260228_020001.sha256
+[2026-02-28 02:00:05] 4. Checking for git changes...
+[main f0a9830] Auto-backup: 20260228_020001
+ 5 files changed, 20 insertions(+), 2 deletions(-)
+ delete mode 100644 backups/critical/critical_20260219_020001.tar.gz
+ create mode 100644 backups/critical/critical_20260228_020001.tar.gz
+ rename backups/critical/{hashes_20260219_020001.sha256 => hashes_20260228_020001.sha256} (87%)
+ rename backups/daily/{db_20260219_020001.sql.gz => db_20260228_020001.sql.gz} (58%)
+[2026-02-28 02:00:06]    Git commit created
+[2026-02-28 02:00:06] 5. Cleaning up old backups...
+[2026-02-28 02:00:06]    Old backups cleaned (keeping last 7 days)
+[2026-02-28 02:00:06] ==========================================
+[2026-02-28 02:00:06] Backup completed successfully!
+[2026-02-28 02:00:06] ==========================================
+   Critical files: 112K
+   Database: 16M
+[2026-02-28 02:00:06]    Total backup size: 165M
+[2026-02-28 02:00:06] ==========================================

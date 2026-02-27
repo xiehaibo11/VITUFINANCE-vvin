@@ -1,0 +1,1 @@
+import{r as e,x as n,V as i}from"./vue-vendor-CCmsYA1Y.js";function r(r=768){const o=e(!1);function s(){o.value=window.innerWidth<r}return n(()=>{s(),window.addEventListener("resize",s)}),i(()=>{window.removeEventListener("resize",s)}),{isMobile:o}}export{r as u};

@@ -1,0 +1,32 @@
+Using locale 'C.UTF-8'.
+
+
+Sat Dec 20 00:58:27 2025
+Command line: PhotoRec /log /d /root/photorec_recovery /cmd /dev/vda1 options,keep_corrupted_file,enable,fileopt,everything,disable,fileopt,zip,enable,search
+
+PhotoRec 7.1, Data Recovery Utility, July 2019
+Christophe GRENIER <grenier@cgsecurity.org>
+https://www.cgsecurity.org
+OS: Linux, kernel 6.8.0-90-generic (#91-Ubuntu SMP PREEMPT_DYNAMIC Tue Nov 18 14:14:30 UTC 2025) x86_64
+Compiler: GCC 13.2
+ext2fs lib: 1.47.0, ntfs lib: libntfs-3g, ewf lib: none, libjpeg: libjpeg-turbo-2.1.5, curses lib: ncurses 6.4
+Hard disk list
+Disk /dev/vda1 - 64 GB / 59 GiB - CHS 124604 16 63 (RO), sector size=512
+
+Partition table type (auto): None
+Disk /dev/vda1 - 64 GB / 59 GiB (RO)
+Partition table type: None
+Filesystem created: Fri May 13 10:10:10 2022
+Last mount time:    Fri Dec 19 21:16:07 2025
+     Unknown                  0   0  1 124604  14 45  125601759 [Whole disk]
+   P ext4                     0   0  1 124604  14 45  125601759 [cloudimg-rootfs]
+     ext4 blocksize=4096 Large_file Sparse_SB Recover, 64 GB / 59 GiB
+New options :
+ Paranoid : Yes
+ Brute force : No
+ Keep corrupted files : Yes
+ ext2/ext3 mode : No
+ Expert mode : No
+ Low memory : No
+Syntax error in command line: enable,fileopt,everything,disable,fileopt,zip,enable,search
+PhotoRec exited normally.
