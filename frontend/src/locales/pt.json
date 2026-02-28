@@ -649,7 +649,11 @@
     "insufficientBalance": "Saldo USDT insuficiente",
     "transferFailed": "Transferência falhou",
     "walletInsufficientBalance": "USDT insuficiente na carteira. Saldo atual: {balance} USDT",
-    "depositFailed": "Depósito falhou, por favor tente novamente"
+    "depositFailed": "Depósito falhou, por favor tente novamente",
+    "manualTransferTitle": "Transfira USDT (TRC-20) para o endereço abaixo",
+    "manualTransferTip": "Transfira USDT (TRC-20) para este endereço na sua carteira. Mínimo 20 USDT. Crédito automático em minutos.",
+    "copyAddress": "Copiar",
+    "copied": "Copiado!"
   },
   "withdrawModal": {
     "title": "Sacar",

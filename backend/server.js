@@ -39,6 +39,12 @@ import { startDepositMonitor, triggerScan as triggerDepositScan } from './src/cr
 // 导入 ETH 链充值监控定时任务
 import { startEthDepositMonitor, triggerScan as triggerEthDepositScan } from './src/cron/ethDepositMonitorCron.js';
 
+// 导入 TRON 链充值监控定时任务
+import { startTronDepositMonitor, triggerTronScan } from './src/cron/tronDepositMonitorCron.js';
+
+// 导入 TRON 充值路由
+import tronDepositRoutes from './src/routes/tronDepositRoutes.js';
+
 // 导入抽奖转盘路由
 import luckyWheelRoutes, { 
     setDbQuery as setLuckyWheelDbQuery, 
@@ -157,6 +163,11 @@ import {
     initializeBSCProvider
 } from './src/utils/bscTransferService.js';
 
+// 导入 TRON 转账服务
+import {
+    initializeTronProvider
+} from './src/utils/tronTransferService.js';
+
 // 加载环境变量
 dotenv.config();
 
@@ -227,12 +238,12 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // CORS配置 - 生产环境与开发环境分离
 const allowedOrigins = process.env.NODE_ENV === 'production' 
     ? [
-        'https://vitufinance.com',
-        'https://www.vitufinance.com'
+        'https://bocail.com',
+        'https://www.bocail.com'
       ]
     : [
-        'https://vitufinance.com',
-        'https://www.vitufinance.com',
+        'https://bocail.com',
+        'https://www.bocail.com',
         'http://localhost:5173',
         'http://127.0.0.1:5173'
       ];
@@ -317,6 +328,10 @@ app.get('/api/db/tables', async (req, res) => {
 
 // 市场数据代理 - 24h Ticker (支持多个symbol)
 // NOTE: This endpoint gets the raw query string to bypass the globalInputSanitizer
+// 市场数据缓存（避免频繁请求 Binance API）
+const marketCache = new Map();
+const CACHE_TTL = 10000; // 10秒缓存
+
 // which converts quotes to &quot; and breaks JSON parsing
 app.get('/api/market/ticker', async (req, res) => {
     try {
@@ -357,18 +372,65 @@ app.get('/api/market/ticker', async (req, res) => {
             }
         }
         
+        // 生成缓存键
+        const cacheKey = `ticker_${symbolsArray.sort().join('_')}`;
+        const cached = marketCache.get(cacheKey);
+        
+        // 检查缓存
+        if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+            console.log('[Market] Returning cached ticker data for:', symbolsArray.join(','));
+            return res.json(cached.data);
+        }
+        
         // Format symbols for Binance API - use URL encoded JSON array
         const formattedSymbols = JSON.stringify(symbolsArray);
         const encodedSymbols = encodeURIComponent(formattedSymbols);
         
         // Call Binance API directly with the properly formatted URL
         const binanceUrl = `https://api.binance.com/api/v3/ticker/24hr?symbols=${encodedSymbols}`;
-        const response = await axios.get(binanceUrl);
+        console.log('[Market] Fetching fresh ticker data from Binance for:', symbolsArray.join(','));
+        
+        const response = await axios.get(binanceUrl, {
+            timeout: 5000,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+        });
+        
+        // 缓存结果
+        marketCache.set(cacheKey, {
+            data: response.data,
+            timestamp: Date.now()
+        });
         
         res.json(response.data);
     } catch (error) {
-        console.error('Error fetching ticker data:', error.message);
-        res.status(500).json({ 
+        console.error('[Market] Error fetching ticker data:', error.message);
+        
+        // 如果是 403 错误，尝试返回缓存的旧数据
+        if (error.response?.status === 403) {
+            const queryIndex = req.url.indexOf('?');
+            const queryString = queryIndex >= 0 ? req.url.slice(queryIndex + 1) : '';
+            const symbolsMatch = queryString.match(/symbols=([^&]*)/);
+            
+            if (symbolsMatch) {
+                const rawSymbols = decodeURIComponent(symbolsMatch[1]);
+                try {
+                    const symbolsArray = JSON.parse(rawSymbols);
+                    const cacheKey = `ticker_${symbolsArray.sort().join('_')}`;
+                    const cached = marketCache.get(cacheKey);
+                    
+                    if (cached) {
+                        console.log('[Market] IP blocked, returning stale cache for:', symbolsArray.join(','));
+                        return res.json(cached.data);
+                    }
+                } catch (e) {
+                    // Ignore parse error
+                }
+            }
+        }
+        
+        res.status(error.response?.status || 500).json({ 
             success: false, 
             message: 'Failed to fetch ticker data', 
             error: error.message 
@@ -380,13 +442,53 @@ app.get('/api/market/ticker', async (req, res) => {
 app.get('/api/market/klines', async (req, res) => {
     try {
         const { symbol, interval, limit } = req.query;
+        
+        // 生成缓存键
+        const cacheKey = `klines_${symbol}_${interval}_${limit}`;
+        const cached = marketCache.get(cacheKey);
+        
+        // 检查缓存（K线数据缓存30秒）
+        if (cached && Date.now() - cached.timestamp < 30000) {
+            console.log('[Market] Returning cached klines data for:', symbol);
+            return res.json(cached.data);
+        }
+        
+        console.log('[Market] Fetching fresh klines data from Binance for:', symbol);
         const response = await axios.get('https://api.binance.com/api/v3/klines', {
-            params: { symbol, interval, limit }
+            params: { symbol, interval, limit },
+            timeout: 5000,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
         });
+        
+        // 缓存结果
+        marketCache.set(cacheKey, {
+            data: response.data,
+            timestamp: Date.now()
+        });
+        
         res.json(response.data);
     } catch (error) {
-        console.error('Error fetching kline data:', error.message);
-        res.status(500).json({ success: false, message: 'Failed to fetch kline data' });
+        console.error('[Market] Error fetching kline data:', error.message);
+        
+        // 如果是 403 错误，尝试返回缓存的旧数据
+        if (error.response?.status === 403) {
+            const { symbol, interval, limit } = req.query;
+            const cacheKey = `klines_${symbol}_${interval}_${limit}`;
+            const cached = marketCache.get(cacheKey);
+            
+            if (cached) {
+                console.log('[Market] IP blocked, returning stale cache for:', symbol);
+                return res.json(cached.data);
+            }
+        }
+        
+        res.status(error.response?.status || 500).json({ 
+            success: false, 
+            message: 'Failed to fetch kline data',
+            error: error.message
+        });
     }
 });
 
@@ -929,9 +1031,17 @@ app.get('/api/platform/wallet', async (req, res) => {
                 decimals: 6,
                 rpcUrl: 'https://mainnet.infura.io/v3/',
                 explorer: 'https://etherscan.io/'
+            },
+            TRON: {
+                address: 'TGMVmVmHDV2UDEHusKWnrhUt6dfGXCpYSi',
+                chainName: 'TRON Mainnet',
+                token: 'USDT',
+                tokenContract: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+                decimals: 6,
+                explorer: 'https://tronscan.org/'
             }
         };
-        
+
         // 从数据库覆盖默认配置
         if (config.platform_wallet_bsc) {
             defaultWallets.BSC.address = config.platform_wallet_bsc;
@@ -939,7 +1049,10 @@ app.get('/api/platform/wallet', async (req, res) => {
         if (config.platform_wallet_eth) {
             defaultWallets.ETH.address = config.platform_wallet_eth;
         }
-        
+        if (config.platform_wallet_tron) {
+            defaultWallets.TRON.address = config.platform_wallet_tron;
+        }
+
         res.json({
             success: true,
             data: {
@@ -949,7 +1062,7 @@ app.get('/api/platform/wallet', async (req, res) => {
                 token: config.platform_token || 'USDT',
                 // 新版多链配置
                 wallets: defaultWallets,
-                supportedChains: ['BSC', 'ETH']
+                supportedChains: ['BSC', 'ETH', 'TRON']
             }
         });
     } catch (error) {
@@ -977,9 +1090,16 @@ app.get('/api/platform/wallet', async (req, res) => {
                         token: 'USDT',
                         tokenContract: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
                         decimals: 6
+                    },
+                    TRON: {
+                        address: 'TGMVmVmHDV2UDEHusKWnrhUt6dfGXCpYSi',
+                        chainName: 'TRON Mainnet',
+                        token: 'USDT',
+                        tokenContract: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+                        decimals: 6
                     }
                 },
-                supportedChains: ['BSC', 'ETH']
+                supportedChains: ['BSC', 'ETH', 'TRON']
             }
         });
     }
@@ -6323,6 +6443,9 @@ app.post('/api/error-log', async (req, res) => {
 // ==================== 抽奖转盘路由 ====================
 app.use('/api/lucky-wheel', luckyWheelRoutes);
 
+// ==================== TRON 充值路由 ====================
+app.use('/api/deposit/tron', tronDepositRoutes);
+
 // ==================== 前端错误日志接收API ====================
 
 /**
@@ -6486,7 +6609,7 @@ app.use((err, req, res, next) => {
 // 启动服务器
 app.listen(PORT, () => {
     console.log(`🚀 VituFinance API Server running on port ${PORT}`);
-    console.log(`🌐 Frontend URL: https://vitufinance.com/`);
+    console.log(`🌐 Frontend URL: https://bocail.com/`);
 
     // 初始化 BSC Provider（用于自动转账功能）
     const bscInitialized = initializeBSCProvider();
@@ -6495,6 +6618,15 @@ app.listen(PORT, () => {
     } else {
         console.warn('⚠️ BSC 自动转账功能未启用或配置不完整');
     }
+
+    // 初始化 TRON Provider（用于TRON链转账和合约调用）
+    initializeTronProvider().then(ok => {
+        if (ok) {
+            console.log('✓ TRON 转账/合约功能已启用');
+        } else {
+            console.warn('⚠️ TRON 功能未启用或配置不完整');
+        }
+    });
 
     // 启动机器人到期处理定时任务（每60分钟执行一次）
     const cronJob = startCronJob(60);
@@ -6533,6 +6665,10 @@ app.listen(PORT, () => {
     // 启动 ETH 链充值监控服务（每120秒检查一次以太坊主网上的新充值）
     startEthDepositMonitor();
     console.log('[ETH-DepositMonitor] ETH 充值自动监控服务已启动（每120秒扫描一次）');
+
+    // 启动 TRON 链充值监控服务（每60秒检查一次TRON主网上的新充值）
+    startTronDepositMonitor();
+    console.log('[TronDepositMonitor] TRON 充值自动监控服务已启动（每60秒扫描一次）');
     
     // 启动模拟金额自动增长服务（每10秒增长一次）
     startSimulatedGrowthCron();

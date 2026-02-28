@@ -288,8 +288,8 @@ SELECT * FROM system_settings WHERE setting_key LIKE 'platform_wallet_%';
 
 如有疑问或需要进一步调整，请参考：
 - 系统日志: `pm2 logs vitu-backend`
-- 错误日志: `/www/wwwlogs/vitufinance.com.error.log`
-- 代码文档: `/www/wwwroot/vitufinance.com/CLAUDE.md`
+- 错误日志: `/www/wwwlogs/bocail.com.error.log`
+- 代码文档: `/www/wwwroot/bocail.com/CLAUDE.md`
 
 ---
 

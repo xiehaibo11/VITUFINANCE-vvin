@@ -1,0 +1,10 @@
+{
+  "network": "tron-mainnet",
+  "contractAddress": "TP9z9rU1gzvGz1GmvvYmFQjGNzZajPaiEM",
+  "contractAddressHex": "4190a37c492cfb06ad22cc00815f4dae7fee77c6db",
+  "deployer": "TGMVmVmHDV2UDEHusKWnrhUt6dfGXCpYSi",
+  "platformWallet": "TGMVmVmHDV2UDEHusKWnrhUt6dfGXCpYSi",
+  "txHash": "46eed47ade1348ef2a1559e9326e5b49ae2f171bc69909d456cc97d31b1fbd5f",
+  "timestamp": "2026-02-28T15:45:26.681Z",
+  "status": "SUCCESS"
+}

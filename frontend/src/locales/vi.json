@@ -649,7 +649,11 @@
     "insufficientBalance": "Số dư USDT không đủ",
     "transferFailed": "Chuyển khoản thất bại",
     "walletInsufficientBalance": "USDT không đủ trong ví. Số dư hiện tại: {balance} USDT",
-    "depositFailed": "Gửi tiền thất bại, vui lòng thử lại"
+    "depositFailed": "Gửi tiền thất bại, vui lòng thử lại",
+    "manualTransferTitle": "Chuyển USDT (TRC-20) đến địa chỉ bên dưới",
+    "manualTransferTip": "Chuyển USDT (TRC-20) đến địa chỉ này trong ví của bạn. Tối thiểu 20 USDT. Tự động ghi nhận trong vài phút.",
+    "copyAddress": "Sao chép",
+    "copied": "Đã sao chép!"
   },
   "withdrawModal": {
     "title": "Rút",

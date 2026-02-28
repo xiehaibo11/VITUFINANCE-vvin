@@ -20,8 +20,12 @@ import { query as dbQuery } from '../../db.js';
 const ETH_RPC_URLS = [
   'https://eth.llamarpc.com',
   'https://ethereum-rpc.publicnode.com',
-  'https://rpc.ankr.com/eth',
-  'https://eth-mainnet.public.blastapi.io'
+  'https://eth-mainnet.public.blastapi.io',
+  'https://eth.drpc.org',
+  'https://rpc.mevblocker.io',
+  'https://eth.merkle.io',
+  'https://1rpc.io/eth',
+  'https://eth-mainnet.nodereal.io/v1/1659dfb40aa24bbb8153a677b98064d7'
 ];
 
 // Current RPC node index

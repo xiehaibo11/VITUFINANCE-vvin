@@ -139,7 +139,7 @@ const props = defineProps({
 const emit = defineEmits(['update:visible', 'claim'])
 
 // API 基础地址
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://vitufinance.com'
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://bocail.com'
 
 // 状态变量
 const streak = ref(0)           // 连续签到天数
@@ -374,12 +374,30 @@ const closePopup = () => {
 
 // 获取钱包地址
 const getWalletAddress = () => {
-  // 从 localStorage 获取钱包地址
-  const wallet = localStorage.getItem('walletAddress') || localStorage.getItem('wallet_address')
+  // 优先从 localStorage 获取钱包地址
+  let wallet = localStorage.getItem('walletAddress') || localStorage.getItem('wallet_address')
+  
+  // 如果 localStorage 没有，尝试从 wallet store 获取
+  if (!wallet) {
+    try {
+      const { useWalletStore } = require('@/stores/wallet')
+      const walletStore = useWalletStore()
+      if (walletStore.isConnected && walletStore.walletAddress) {
+        wallet = walletStore.walletAddress
+        console.log('[DailyReward] Got wallet from store:', wallet)
+      }
+    } catch (e) {
+      console.warn('[DailyReward] Failed to get wallet from store:', e)
+    }
+  }
+  
   if (wallet) {
     walletAddress.value = wallet.toLowerCase()
+    console.log('[DailyReward] Wallet address:', wallet.toLowerCase())
     return wallet.toLowerCase()
   }
+  
+  console.warn('[DailyReward] No wallet address found')
   return null
 }
 
@@ -481,64 +499,79 @@ const handleClaim = async () => {
   }
 
   isProcessing.value = true
-  const wallet = getWalletAddress()
   
-  if (wallet) {
+  try {
+    const wallet = getWalletAddress()
+    
+    if (!wallet) {
+      console.error('[DailyReward] No wallet address found')
+      alert('Wallet address not found. Please reconnect your wallet.')
+      return
+    }
+    
+    console.log('[DailyReward] Claiming reward for wallet:', wallet)
+    
     // 调用后端 API 签到
-    try {
-      const response = await axios.post(`${API_BASE}/api/checkin/claim`, {
-        wallet
+    const response = await axios.post(`${API_BASE}/api/checkin/claim`, {
+      wallet
+    })
+    
+    console.log('[DailyReward] API response:', response.data)
+    
+    if (response.data.success) {
+      const data = response.data.data
+      
+      // 先触发金币飘动动画（在状态更新之前，获取当前卡片位置）
+      triggerCoinAnimation(currentDay.value)
+      
+      claimedToday.value = true
+      currentDay.value = data.dayNumber
+      streak.value = data.dayNumber
+      
+      // 触发事件通知父组件
+      emit('claim', { 
+        reward: data.reward, 
+        streak: data.dayNumber, 
+        date: getTodayKey(),
+        newWldBalance: data.newWldBalance
       })
       
-      if (response.data.success) {
-        const data = response.data.data
-        
-        // 先触发金币飘动动画（在状态更新之前，获取当前卡片位置）
-        triggerCoinAnimation(currentDay.value)
-        
-        claimedToday.value = true
-        currentDay.value = data.dayNumber
-        streak.value = data.dayNumber
-        
-        // 触发事件通知父组件
-        emit('claim', { 
-          reward: data.reward, 
-          streak: data.dayNumber, 
-          date: getTodayKey(),
-          newWldBalance: data.newWldBalance
-        })
-        
-        // 保存本地状态作为备份
-        saveLocalState(getTodayKey(), data.dayNumber)
-      }
-    } catch (error) {
-      console.error('签到失败:', error)
-      if (error.response?.data?.message === 'Already claimed today') {
+      // 保存本地状态作为备份
+      saveLocalState(getTodayKey(), data.dayNumber)
+      
+      console.log('[DailyReward] Claim successful!')
+    } else {
+      console.error('[DailyReward] API returned success=false:', response.data)
+      alert(response.data.message || t('dailyReward.claimFailed'))
+    }
+  } catch (error) {
+    console.error('[DailyReward] Claim error:', error)
+    
+    // 详细的错误日志
+    if (error.response) {
+      console.error('[DailyReward] Error response:', {
+        status: error.response.status,
+        data: error.response.data,
+        headers: error.response.headers
+      })
+      
+      if (error.response.data?.message === 'Already claimed today') {
         claimedToday.value = true
         alert(t('dailyReward.alreadyClaimedToday'))
       } else {
-        alert(t('dailyReward.claimFailed'))
+        const errorMsg = error.response.data?.message || error.response.data?.error || t('dailyReward.claimFailed')
+        alert(errorMsg)
       }
+    } else if (error.request) {
+      console.error('[DailyReward] No response received:', error.request)
+      alert('Network error. Please check your connection and try again.')
+    } else {
+      console.error('[DailyReward] Error:', error.message)
+      alert(t('dailyReward.claimFailed'))
     }
-  } else {
-    // 没有钱包地址，使用本地存储模式
-    const today = getTodayKey()
-    
-    // 先触发金币飘动动画
-    triggerCoinAnimation(currentDay.value)
-    
-    // 增加总签到次数
-    streak.value = streak.value + 1
-    // 计算当前签到天数（1-10 循环）
-    const dayNumber = ((streak.value - 1) % 10) + 1
-    currentDay.value = dayNumber
-    claimedToday.value = true
-    saveLocalState(today, dayNumber)
-
-    emit('claim', { reward: 2, streak: streak.value, date: today })
+  } finally {
+    isProcessing.value = false
   }
-  
-  isProcessing.value = false
 }
 
 // 监听弹窗显示状态

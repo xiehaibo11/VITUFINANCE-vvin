@@ -196,7 +196,7 @@ const myPledges = ref([])
 const expiredPledges = ref([])
 
 // API 基础地址
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://vitufinance.com'
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://bocail.com'
 
 // 当前显示的质押产品
 const currentPledge = computed(() => {

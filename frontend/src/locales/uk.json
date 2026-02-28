@@ -649,7 +649,11 @@
     "insufficientBalance": "Недостатньо USDT балансу",
     "transferFailed": "Переказ не вдався",
     "walletInsufficientBalance": "Недостатньо USDT в гаманці. Поточний баланс: {balance} USDT",
-    "depositFailed": "Внесення не вдалося, спробуйте ще раз"
+    "depositFailed": "Внесення не вдалося, спробуйте ще раз",
+    "manualTransferTitle": "Переведіть USDT (TRC-20) на адресу нижче",
+    "manualTransferTip": "Переведіть USDT (TRC-20) на цю адресу у вашому гаманці. Мінімум 20 USDT. Автоматичне зарахування протягом хвилин.",
+    "copyAddress": "Копіювати",
+    "copied": "Скопійовано!"
   },
   "withdrawModal": {
     "title": "Вивести",

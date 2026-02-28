@@ -25,10 +25,27 @@ let initializationTimeout = null
  * @returns {boolean} 是否在 DApp 浏览器中
  */
 export const isDAppBrowser = () => {
-  // 检测是否存在 ethereum 对象（EIP-1193 标准）
-  if (typeof window !== 'undefined' && window.ethereum) {
+  if (typeof window === 'undefined') {
+    return false
+  }
+  
+  // 优先检查 User Agent（更快，不需要等待注入）
+  const ua = navigator.userAgent.toLowerCase()
+  const isMobileWallet = ua.includes('tokenpocket') || 
+                        ua.includes('imtoken') || 
+                        ua.includes('trust') ||
+                        ua.includes('metamask') ||
+                        ua.includes('tronlink')
+  
+  if (isMobileWallet) {
     return true
   }
+  
+  // 检测是否存在 ethereum 对象（EIP-1193 标准）或 tronWeb 对象
+  if (window.ethereum || window.tronWeb) {
+    return true
+  }
+  
   return false
 }
 
@@ -37,8 +54,45 @@ export const isDAppBrowser = () => {
  * @returns {string} 钱包类型名称
  */
 export const detectWalletType = () => {
-  if (typeof window === 'undefined' || !window.ethereum) {
-    console.log('[Wallet] detectWalletType: No ethereum object found')
+  if (typeof window === 'undefined') {
+    console.log('[Wallet] detectWalletType: Window object not found')
+    return 'Unknown'
+  }
+
+  // 优先通过 User Agent 检测（更快，不需要等待注入）
+  const ua = navigator.userAgent.toLowerCase()
+  
+  if (ua.includes('imtoken')) {
+    console.log('[Wallet] ✅ Detected: imToken (via UA)')
+    return 'imToken'
+  }
+  
+  if (ua.includes('tokenpocket')) {
+    console.log('[Wallet] ✅ Detected: TokenPocket (via UA)')
+    return 'TokenPocket'
+  }
+  
+  if (ua.includes('tronlink')) {
+    console.log('[Wallet] ✅ Detected: TronLink (via UA)')
+    return 'TronLink'
+  }
+
+  // 检测 TRON 钱包（通过注入对象）
+  if (window.tronWeb) {
+    console.log('[Wallet] ✅ Detected: TRON Wallet Environment')
+    
+    if (window.tronLink) {
+      console.log('[Wallet] ✅ Detected: TronLink')
+      return 'TronLink'
+    }
+    
+    console.log('[Wallet] ✅ Detected: TRON Wallet')
+    return 'TRON Wallet'
+  }
+
+  // 检测 ETH/BSC 钱包
+  if (!window.ethereum) {
+    console.log('[Wallet] detectWalletType: No ethereum or tronWeb object found')
     return 'Unknown'
   }
 
@@ -103,6 +157,15 @@ export const detectWalletType = () => {
 }
 
 /**
+ * 检测是否为 imToken 钱包
+ */
+const isImTokenWallet = () => {
+  if (typeof window === 'undefined') return false
+  if (window.ethereum?.isImToken) return true
+  return navigator.userAgent.toLowerCase().includes('imtoken')
+}
+
+/**
  * 连接钱包
  * @returns {Promise<{success: boolean, address?: string, error?: string}>}
  */
@@ -113,25 +176,79 @@ export const connectWallet = async () => {
   if (!isDAppBrowser()) {
     return {
       success: false,
-      error: 'Please open in wallet browser (TokenPocket, MetaMask, etc.)'
+      error: 'Please open in wallet browser (TokenPocket, MetaMask, imToken, etc.)'
     }
   }
 
   try {
     walletStore.setConnecting(true)
 
-    const ethereum = window.ethereum
     const walletType = detectWalletType()
-
     console.log('[Wallet] Detected wallet type:', walletType)
 
+    // 检测是否是 TRON 钱包浏览器
+    const ua = navigator.userAgent.toLowerCase()
+    const isTronWalletBrowser = ua.includes('imtoken') || 
+                                ua.includes('tokenpocket') || 
+                                ua.includes('tronlink')
+
+    // 如果是 TRON 钱包浏览器，等待 tronWeb 注入
+    if (isTronWalletBrowser || window.tronWeb) {
+      console.log('[Wallet] Detected TRON wallet, waiting for tronWeb...')
+      
+      // 等待 tronWeb 注入（最多 5 秒）
+      const waitForTronWeb = async (timeout = 5000) => {
+        const startTime = Date.now()
+        while (Date.now() - startTime < timeout) {
+          if (window.tronWeb) {
+            console.log('[Wallet] tronWeb ready after', Date.now() - startTime, 'ms')
+            return true
+          }
+          await new Promise(resolve => setTimeout(resolve, 100))
+        }
+        return false
+      }
+      
+      const tronWebReady = await waitForTronWeb()
+      
+      if (tronWebReady) {
+        console.log('[Wallet] Using TRON connection logic')
+
+        // 导入 TRON 钱包工具
+        const { connectTronWallet } = await import('@/utils/tronWallet')
+        const result = await connectTronWallet()
+
+        if (result.success) {
+          return {
+            success: true,
+            address: result.address,
+            walletType: result.walletType || walletType
+          }
+        } else {
+          walletStore.setError(result.error || 'TRON wallet connection failed')
+          return result
+        }
+      } else {
+        const errorMsg = 'TRON wallet detected but tronWeb not available. Please refresh the page.'
+        walletStore.setError(errorMsg)
+        return {
+          success: false,
+          error: errorMsg
+        }
+      }
+    }
+
+    // ETH/BSC 钱包连接逻辑
+    const ethereum = window.ethereum
+
+    console.log('[Wallet] Using ETH/BSC connection logic')
+
     // 请求用户授权连接钱包
-    // 使用 eth_requestAccounts 方法请求连接
     const accounts = await ethereum.request({
       method: 'eth_requestAccounts'
     })
 
-    if (accounts && accounts.length > 0) {
+    if (accounts && accounts.length > 0 && accounts[0]) {
       const address = accounts[0]
       walletStore.setWallet(address, walletType)
 
@@ -141,6 +258,16 @@ export const connectWallet = async () => {
         walletType: walletType
       }
     } else {
+      // 账户为空 - 可能是 imToken 在 TRON 网络下
+      if (isImTokenWallet()) {
+        const errorMsg = 'imToken TRON network detected. Please switch to BSC or ETH network in imToken settings, or use TokenPocket/TronLink for TRON deposits.'
+        walletStore.setError(errorMsg)
+        return {
+          success: false,
+          error: errorMsg
+        }
+      }
+
       walletStore.setError('No accounts found')
       return {
         success: false,
@@ -167,6 +294,8 @@ export const connectWallet = async () => {
       success: false,
       error: errorMessage
     }
+  } finally {
+    walletStore.setConnecting(false)
   }
 }
 
@@ -221,10 +350,19 @@ export const autoConnectWallet = async () => {
   // 如果在 DApp 浏览器中，检查是否已授权
   if (isDAppBrowser()) {
     try {
+      // 如果是 TRON 钱包
+      if (window.tronWeb) {
+        console.log('[Wallet] Auto-connecting TRON wallet...')
+        const { autoConnectTronWallet } = await import('@/utils/tronWallet')
+        const connected = await autoConnectTronWallet()
+        return connected
+      }
+
+      // ETH/BSC 钱包
       const currentAccount = await getCurrentAccount()
       const walletType = detectWalletType()
 
-      if (currentAccount) {
+      if (currentAccount && currentAccount !== 'null') {
         // 如果有已授权的账户，更新状态
         walletStore.setWallet(currentAccount, walletType)
         console.log('[Wallet] Auto-connected:', currentAccount)
@@ -257,7 +395,7 @@ export const setupAccountChangeListener = () => {
   ethereum.on('accountsChanged', (accounts) => {
     console.log('[Wallet] Accounts changed:', accounts, 'isInitializing:', isInitializing)
 
-    if (accounts && accounts.length > 0) {
+    if (accounts && accounts.length > 0 && accounts[0]) {
       const walletType = detectWalletType()
       const nextAccount = accounts[0]
       const prevAccount = (walletStore.walletAddress || '').toLowerCase()
@@ -378,6 +516,50 @@ export const initWallet = async () => {
     clearTimeout(initializationTimeout)
   }
 
+  // 检测是否是 TRON 钱包浏览器（通过 UA）
+  const ua = navigator.userAgent.toLowerCase()
+  const isTronWalletBrowser = ua.includes('imtoken') || 
+                              ua.includes('tokenpocket') || 
+                              ua.includes('tronlink')
+
+  // 如果是 TRON 钱包浏览器，等待 tronWeb 注入
+  if (isTronWalletBrowser || window.tronWeb) {
+    console.log('[Wallet] Detected TRON wallet browser, waiting for tronWeb...')
+    
+    // 等待 tronWeb 注入（最多 5 秒）
+    const waitForTronWeb = async (timeout = 5000) => {
+      const startTime = Date.now()
+      while (Date.now() - startTime < timeout) {
+        if (window.tronWeb) {
+          console.log('[Wallet] tronWeb detected after', Date.now() - startTime, 'ms')
+          return true
+        }
+        await new Promise(resolve => setTimeout(resolve, 100))
+      }
+      console.warn('[Wallet] tronWeb not detected after', timeout, 'ms')
+      return false
+    }
+    
+    const tronWebReady = await waitForTronWeb()
+    
+    if (tronWebReady) {
+      console.log('[Wallet] Initializing TRON wallet...')
+      const { initTronWallet } = await import('@/utils/tronWallet')
+      const connected = await initTronWallet()
+      
+      // Clear initialization flag after delay
+      initializationTimeout = setTimeout(() => {
+        isInitializing = false
+        console.log('[Wallet] Initialization protection disabled')
+      }, 3000)
+      
+      return connected
+    } else {
+      console.warn('[Wallet] TRON wallet browser detected but tronWeb not available')
+    }
+  }
+
+  // ETH/BSC 钱包初始化
   // 设置监听器
   setupAccountChangeListener()
 

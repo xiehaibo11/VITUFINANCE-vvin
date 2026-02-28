@@ -130,7 +130,7 @@ const fetchLevelCounts = async () => {
   error.value = null
   
   try {
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://vitufinance.com'
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://bocail.com'
     const response = await fetch(
       `${API_BASE}/api/invite/team-stats?wallet_address=${walletStore.walletAddress}`
     )

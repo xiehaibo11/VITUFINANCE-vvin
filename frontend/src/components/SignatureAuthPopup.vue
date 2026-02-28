@@ -56,7 +56,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible', 'confirm'])
 const { t } = useI18n()
-const DOMAIN = 'vitufinance.com'
+const DOMAIN = 'bocail.com'
 
 const handleClose = () => {
   emit('update:visible', false)

@@ -649,7 +649,11 @@
     "insufficientBalance": "Yetersiz USDT bakiyesi",
     "transferFailed": "Transfer başarısız",
     "walletInsufficientBalance": "Cüzdanda yetersiz USDT. Mevcut bakiye: {balance} USDT",
-    "depositFailed": "Yatırma başarısız, lütfen tekrar deneyin"
+    "depositFailed": "Yatırma başarısız, lütfen tekrar deneyin",
+    "manualTransferTitle": "USDT (TRC-20) aşağıdaki adrese transfer edin",
+    "manualTransferTip": "Cüzdanınızda USDT (TRC-20) bu adrese transfer edin. Minimum 20 USDT. Dakikalar içinde otomatik olarak yansıtılır.",
+    "copyAddress": "Kopyala",
+    "copied": "Kopyalandı!"
   },
   "withdrawModal": {
     "title": "Çek",

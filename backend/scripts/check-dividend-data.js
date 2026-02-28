@@ -230,7 +230,7 @@ async function main() {
     if (totalStats[0].total_members === 0) {
       log(colors.red, '⚠️  警告：team_rewards表中无数据，请检查分红定时任务是否正常运行！');
       console.log('\n建议执行：');
-      console.log('  cd /www/wwwroot/vitufinance.com');
+      console.log('  cd /www/wwwroot/bocail.com');
       console.log('  node backend/src/cron/teamDividendCron.js\n');
     } else {
       log(colors.green, `✓ 数据库中有 ${totalStats[0].total_members} 名经纪人的分红记录`);

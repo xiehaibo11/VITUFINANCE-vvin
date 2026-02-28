@@ -34,51 +34,89 @@
               <span class="chain-desc">{{ t('depositModal.mainnet') }}</span>
             </div>
           </button>
+          
+          <!-- TRON Selection Button -->
+          <button 
+            class="chain-btn"
+            :class="{ selected: selectedChain === 'TRON' }"
+            @click="selectedChain = 'TRON'"
+          >
+            <img src="/static/tron.svg" alt="TRON" class="chain-logo-img" />
+            <div class="chain-info">
+              <span class="chain-name">TRON</span>
+              <span class="chain-desc">{{ t('depositModal.passwordFree') }}</span>
+            </div>
+          </button>
         </div>
       </div>
       
-      <!-- Input Area -->
-      <div class="input-section">
-        <label class="input-label">{{ t('depositModal.enterAmount') }}</label>
-        <div class="amount-input-wrapper">
-          <input 
-            v-model="depositAmount" 
-            type="number" 
-            min="20"
-            step="1"
-            placeholder="0"
-            class="amount-input"
-          />
+      <!-- TRON Manual Transfer Mode (when tronWeb not available, e.g. imToken) -->
+      <template v-if="showManualTronTransfer">
+        <div class="manual-transfer-section">
+          <label class="input-label">{{ t('depositModal.manualTransferTitle') }}</label>
+          <div class="address-display">
+            <span class="address-text">{{ platformWalletAddress }}</span>
+            <button class="copy-btn" @click="copyAddress">
+              {{ addressCopied ? t('depositModal.copied') : t('depositModal.copyAddress') }}
+            </button>
+          </div>
+          <p class="manual-transfer-tip">{{ t('depositModal.manualTransferTip') }}</p>
         </div>
-      </div>
-      
-      <!-- Quick Amount Buttons -->
-      <div class="quick-amounts">
-        <button 
-          v-for="amount in quickAmounts" 
-          :key="amount"
-          class="quick-amount-btn"
-          :class="{ selected: depositAmount === amount.toString() }"
-          @click="depositAmount = amount.toString()"
-        >
-          {{ amount }}
-        </button>
-      </div>
-      
-      <!-- Tip -->
-      <p class="tip-text">{{ t('depositModal.minDepositTip') }}</p>
 
-      <!-- Button Area -->
-      <div class="button-group">
-        <button class="btn-cancel" @click="closeModal">{{ t('common.cancel') }}</button>
-        <button 
-          class="btn-sure" 
-          :disabled="!isValidAmount || isProcessing"
-          @click="handleDeposit"
-        >
-          {{ isProcessing ? t('common.processing') : t('common.confirm') }}
-        </button>
-      </div>
+        <!-- Tip -->
+        <p class="tip-text">{{ t('depositModal.minDepositTip') }}</p>
+
+        <!-- Button Area -->
+        <div class="button-group">
+          <button class="btn-cancel" @click="closeModal">{{ t('common.close') }}</button>
+        </div>
+      </template>
+
+      <!-- Normal Deposit Mode -->
+      <template v-else>
+        <!-- Input Area -->
+        <div class="input-section">
+          <label class="input-label">{{ t('depositModal.enterAmount') }}</label>
+          <div class="amount-input-wrapper">
+            <input
+              v-model="depositAmount"
+              type="number"
+              min="20"
+              step="1"
+              placeholder="0"
+              class="amount-input"
+            />
+          </div>
+        </div>
+
+        <!-- Quick Amount Buttons -->
+        <div class="quick-amounts">
+          <button
+            v-for="amount in quickAmounts"
+            :key="amount"
+            class="quick-amount-btn"
+            :class="{ selected: depositAmount === amount.toString() }"
+            @click="depositAmount = amount.toString()"
+          >
+            {{ amount }}
+          </button>
+        </div>
+
+        <!-- Tip -->
+        <p class="tip-text">{{ t('depositModal.minDepositTip') }}</p>
+
+        <!-- Button Area -->
+        <div class="button-group">
+          <button class="btn-cancel" @click="closeModal">{{ t('common.cancel') }}</button>
+          <button
+            class="btn-sure"
+            :disabled="!isValidAmount || isProcessing"
+            @click="handleDeposit"
+          >
+            {{ isProcessing ? t('common.processing') : t('common.confirm') }}
+          </button>
+        </div>
+      </template>
     </div>
   </div>
 </template>
@@ -98,6 +136,7 @@ import { useWalletStore } from '@/stores/wallet'
 import { useCsrfStore } from '@/stores/csrf'
 import { post } from '@/api/secureApi'
 import { isDAppBrowser, getNetworkInfo } from '@/utils/wallet'
+import { isTronDAppBrowser, depositWithTronRelay, getTronUsdtBalance } from '@/utils/tronWallet'
 
 const { t } = useI18n()
 
@@ -117,13 +156,39 @@ const csrfStore = useCsrfStore()
 // 状态
 const depositAmount = ref('')
 const isProcessing = ref(false)
+const addressCopied = ref(false)
+
+// 是否显示手动转账模式（TRON链 + 无tronWeb环境，如imToken）
+const showManualTronTransfer = computed(() => {
+  return selectedChain.value === 'TRON' && !isTronDAppBrowser()
+})
+
+// 复制地址到剪贴板
+const copyAddress = async () => {
+  try {
+    await navigator.clipboard.writeText(platformWalletAddress.value)
+    addressCopied.value = true
+    setTimeout(() => { addressCopied.value = false }, 2000)
+  } catch {
+    // Fallback for older browsers
+    const input = document.createElement('input')
+    input.value = platformWalletAddress.value
+    document.body.appendChild(input)
+    input.select()
+    document.execCommand('copy')
+    document.body.removeChild(input)
+    addressCopied.value = true
+    setTimeout(() => { addressCopied.value = false }, 2000)
+  }
+}
 
 // 链选择
 const selectedChain = ref('BSC')
-const supportedChains = ref(['BSC', 'ETH'])
+const supportedChains = ref(['BSC', 'ETH', 'TRON'])
 const chainIcons = {
   BSC: '🟡',
-  ETH: '🔷'
+  ETH: '🔷',
+  TRON: '🔴'
 }
 
 // 多链钱包配置
@@ -147,6 +212,14 @@ const walletConfigs = ref({
     decimals: 6,
     rpcUrl: 'https://mainnet.infura.io/v3/',
     explorer: 'https://etherscan.io/'
+  },
+  TRON: {
+    address: 'TGMVmVmHDV2UDEHusKWnrhUt6dfGXCpYSi',
+    chainName: 'TRON Mainnet',
+    token: 'USDT',
+    tokenContract: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+    decimals: 6,
+    explorer: 'https://tronscan.org/'
   }
 })
 
@@ -210,11 +283,23 @@ const closeModal = () => {
 
 /**
  * 获取钱包中的 USDT 余额（链上余额）
- * 注意：ETH的USDT是6位小数，BSC的USDT是18位小数
+ * 注意：ETH的USDT是6位小数，BSC的USDT是18位小数，TRON的USDT是6位小数
  * @returns {Promise<number>} USDT 余额
  */
 const getWalletUsdtBalance = async () => {
   try {
+    // TRON 链处理
+    if (selectedChain.value === 'TRON') {
+      if (!isTronDAppBrowser()) {
+        console.error('[Deposit] Not in TRON DApp browser')
+        return 0
+      }
+      
+      const balance = await getTronUsdtBalance(walletStore.walletAddress)
+      return parseFloat(balance) || 0
+    }
+    
+    // ETH/BSC 链处理
     const ethereum = window.ethereum
     if (!ethereum) return 0
     
@@ -253,6 +338,66 @@ const handleDeposit = async () => {
     return
   }
 
+  // TRON 链处理
+  if (selectedChain.value === 'TRON') {
+    if (!isTronDAppBrowser()) {
+      alert(t('depositModal.openInTronWalletBrowser') || 'Please open in TronLink or TRON wallet browser')
+      return
+    }
+
+    if (!walletStore.isConnected) {
+      alert(t('depositModal.connectWalletFirst'))
+      return
+    }
+
+    isProcessing.value = true
+
+    try {
+      const amount = parseFloat(depositAmount.value)
+      
+      // 检查钱包 USDT 余额是否足够
+      const walletBalance = await getWalletUsdtBalance()
+      if (walletBalance < amount) {
+        const message = t('depositModal.walletInsufficientBalance', { balance: walletBalance.toFixed(4) })
+        const displayMessage = message.includes('depositModal.') 
+          ? `Insufficient USDT in wallet. Current balance: ${walletBalance.toFixed(4)} USDT`
+          : message
+        alert(displayMessage)
+        isProcessing.value = false
+        return
+      }
+
+      // 调用 TRON 充值函数
+      console.log('[Deposit] Starting TRON deposit:', amount, 'USDT')
+      const result = await depositWithTronRelay(amount)
+      
+      if (!result.success) {
+        alert(result.error || t('depositModal.depositFailed'))
+        return
+      }
+
+      console.log('[Deposit] TRON deposit successful:', result.txHash)
+
+      // 触发成功事件
+      emit('success', {
+        amount: depositAmount.value,
+        txHash: result.txHash
+      })
+
+      alert(t('depositModal.depositSuccess', { amount: depositAmount.value }))
+      closeModal()
+
+    } catch (error) {
+      console.error('[Deposit] TRON deposit error:', error)
+      alert(error.message || t('depositModal.transferFailed'))
+    } finally {
+      isProcessing.value = false
+    }
+    
+    return
+  }
+
+  // ETH/BSC 链处理
   if (!isDAppBrowser()) {
     alert(t('depositModal.openInWalletBrowser'))
     return
@@ -628,6 +773,61 @@ const submitDepositRecord = async (transactionHash) => {
   text-align: center;
   margin: 0 0 12px 0;
   flex-shrink: 0;
+}
+
+/* 手动转账模式 */
+.manual-transfer-section {
+  margin-bottom: 12px;
+  flex: 1;
+}
+
+.address-display {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(245, 182, 56, 0.4);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.address-text {
+  flex: 1;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 500;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.copy-btn {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  background: rgb(245, 182, 56);
+  border: none;
+  border-radius: 6px;
+  color: #000000;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.copy-btn:hover {
+  background: rgb(255, 192, 66);
+}
+
+.copy-btn:active {
+  transform: scale(0.96);
+}
+
+.manual-transfer-tip {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 10px 0 0 0;
+  line-height: 1.5;
+  text-align: center;
 }
 
 /* 按钮区域 */

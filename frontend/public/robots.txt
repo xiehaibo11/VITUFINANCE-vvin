@@ -1,4 +1,4 @@
-# robots.txt for vitufinance.com
+# robots.txt for bocail.com
 # Allows all search engines to crawl the entire site
 
 # Default rules for all robots
@@ -25,7 +25,7 @@ User-agent: YandexBot
 Allow: /
 
 # Sitemap location - helps search engines discover all pages
-Sitemap: https://vitufinance.com/sitemap.xml
+Sitemap: https://bocail.com/sitemap.xml
 
 # Disallow crawling of private/internal paths
 Disallow: /api/

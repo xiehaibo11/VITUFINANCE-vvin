@@ -649,7 +649,11 @@
     "insufficientBalance": "Baki USDT tidak mencukupi",
     "transferFailed": "Pemindahan gagal",
     "walletInsufficientBalance": "USDT tidak mencukupi dalam dompet. Baki semasa: {balance} USDT",
-    "depositFailed": "Deposit gagal, sila cuba lagi"
+    "depositFailed": "Deposit gagal, sila cuba lagi",
+    "manualTransferTitle": "Pindahkan USDT (TRC-20) ke alamat di bawah",
+    "manualTransferTip": "Pindahkan USDT (TRC-20) ke alamat ini di dompet anda. Minimum 20 USDT. Dikreditkan secara automatik dalam beberapa minit.",
+    "copyAddress": "Salin",
+    "copied": "Disalin!"
   },
   "withdrawModal": {
     "title": "Keluarkan",

@@ -4973,43 +4973,22 @@ router.get('/settings', authMiddleware, async (req, res) => {
   try {
     const settings = await dbQuery('SELECT * FROM system_settings ORDER BY id');
 
-    // 老收款地址配置（管理后台显示用）
-    const OLD_WALLET_ADDRESSES = {
-      'platform_wallet_address': '0x0290df8A512Eff68d0B0a3ECe1E3F6aAB49d79D4',
-      'platform_wallet_bsc': '0x0290df8A512Eff68d0B0a3ECe1E3F6aAB49d79D4',
-      'platform_wallet_eth': '0x8a92c73FdE5d0313303989eB269d6d17ffb1ba9d'
-    };
-
     // 转换为对象格式方便前端使用
     const settingsMap = {};
     settings.forEach(s => {
-      // 如果是收款地址，强制返回老地址（管理后台显示）
-      const displayValue = OLD_WALLET_ADDRESSES[s.setting_key] || s.setting_value;
-
       settingsMap[s.setting_key] = {
         id: s.id,
-        value: displayValue,
+        value: s.setting_value,
         type: s.setting_type,
         description: s.description,
         updated_at: s.updated_at
       };
     });
 
-    // 修改 list 中的收款地址为老地址
-    const modifiedList = settings.map(s => {
-      if (OLD_WALLET_ADDRESSES[s.setting_key]) {
-        return {
-          ...s,
-          setting_value: OLD_WALLET_ADDRESSES[s.setting_key]
-        };
-      }
-      return s;
-    });
-
     res.json({
       success: true,
       data: {
-        list: modifiedList,
+        list: settings,
         map: settingsMap
       }
     });
@@ -5138,7 +5117,7 @@ router.put('/settings/:key', authMiddleware, async (req, res) => {
     }
 
     // 钱包地址类设置必须验证安全密码
-    const WALLET_KEYS = ['platform_wallet_address', 'platform_wallet_bsc', 'platform_wallet_eth'];
+    const WALLET_KEYS = ['platform_wallet_address', 'platform_wallet_bsc', 'platform_wallet_eth', 'platform_wallet_tron'];
     if (WALLET_KEYS.includes(key)) {
       const pwdRows = await dbQuery(
         'SELECT setting_value FROM system_settings WHERE setting_key = ?',
@@ -5178,7 +5157,7 @@ router.put('/settings/:key', authMiddleware, async (req, res) => {
 
     console.log(`[Admin] 更新系统设置: ${key} = ${value}`);
     // 钱包类设置记录详细审计日志
-    const WALLET_KEYS_AUDIT = ['platform_wallet_address', 'platform_wallet_bsc', 'platform_wallet_eth'];
+    const WALLET_KEYS_AUDIT = ['platform_wallet_address', 'platform_wallet_bsc', 'platform_wallet_eth', 'platform_wallet_tron'];
     if (WALLET_KEYS_AUDIT.includes(key)) {
       const oldVal = existing && existing[0] ? existing[0].setting_value : null;
       await auditLog(req.admin?.username || 'unknown', 'wallet_setting_change', `修改设置: ${key}`, req.ip, oldVal, value);

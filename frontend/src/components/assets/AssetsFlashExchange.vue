@@ -318,7 +318,7 @@ const handleConfirmExchange = async () => {
   isExchanging.value = true
   
   try {
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://vitufinance.com'
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://bocail.com'
     const response = await fetch(`${API_BASE}/api/exchange`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

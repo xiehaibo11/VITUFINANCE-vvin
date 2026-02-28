@@ -649,7 +649,11 @@
     "insufficientBalance": "رصيد USDT غير كافٍ",
     "transferFailed": "فشل التحويل",
     "walletInsufficientBalance": "رصيد USDT غير كافٍ في المحفظة. الرصيد الحالي: {balance} USDT",
-    "depositFailed": "فشل الإيداع، يرجى المحاولة مرة أخرى"
+    "depositFailed": "فشل الإيداع، يرجى المحاولة مرة أخرى",
+    "manualTransferTitle": "قم بتحويل USDT (TRC-20) إلى العنوان أدناه",
+    "manualTransferTip": "قم بتحويل USDT (TRC-20) إلى هذا العنوان في محفظتك. الحد الأدنى 20 USDT. يتم الإضافة تلقائياً خلال دقائق.",
+    "copyAddress": "نسخ",
+    "copied": "تم النسخ!"
   },
   "withdrawModal": {
     "title": "سحب",

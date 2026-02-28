@@ -100,6 +100,21 @@
           </el-input>
           <div class="form-tip">ETH链 USDT 合约: 0xdAC17F958D2ee523a2206206994597C13D831ec7 (6位精度)</div>
         </el-form-item>
+
+        <!-- TRON 收款地址 -->
+        <el-divider content-position="left">
+          <span class="chain-divider">🔴 TRON</span>
+        </el-divider>
+        <el-form-item label="TRON 收款地址">
+          <el-input
+            v-model="platformSettings.wallet_address_tron"
+            placeholder="请输入TRON链USDT收款地址 (T开头)"
+            clearable
+          >
+            <template #prepend>TRON</template>
+          </el-input>
+          <div class="form-tip">TRON链 USDT 合约: TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t (6位精度)</div>
+        </el-form-item>
         
         <!-- 默认网络选择 -->
         <el-divider content-position="left">
@@ -143,6 +158,7 @@
           <ul class="security-tips">
             <li><strong>BSC链</strong>：Gas费低，确认快，推荐大多数用户使用</li>
             <li><strong>ETH链</strong>：主流公链，但Gas费较高，适合大额充值</li>
+            <li><strong>TRON链</strong>：免密转账，Gas费极低，支持TRC-20 USDT</li>
             <li>修改后立即生效，用户充值时可选择任一网络</li>
             <li>请务必仔细核对地址，错误的地址可能导致资产丢失</li>
             <li><strong style="color: var(--admin-danger)">重要：</strong>设置安全密码后，修改收款地址需要验证安全密码</li>
@@ -503,6 +519,7 @@ const platformSettings = reactive({
   wallet_address: '',           // 兼容旧版
   wallet_address_bsc: '',       // BSC链收款地址
   wallet_address_eth: '',       // ETH链收款地址
+  wallet_address_tron: '',      // TRON链收款地址
   network: 'BSC',
   token: 'USDT'
 })
@@ -769,6 +786,7 @@ const fetchSettings = async () => {
       // 多链地址
       platformSettings.wallet_address_bsc = map.platform_wallet_bsc?.value || map.platform_wallet_address?.value || ''
       platformSettings.wallet_address_eth = map.platform_wallet_eth?.value || ''
+      platformSettings.wallet_address_tron = map.platform_wallet_tron?.value || ''
       platformSettings.network = map.platform_network?.value || 'BSC'
       platformSettings.token = map.platform_token?.value || 'USDT'
     }
@@ -885,21 +903,27 @@ const changeSecurityPassword = async () => {
  */
 const handleSaveSettings = async () => {
   // Validate at least one address is provided
-  if (!platformSettings.wallet_address_bsc && !platformSettings.wallet_address_eth) {
+  if (!platformSettings.wallet_address_bsc && !platformSettings.wallet_address_eth && !platformSettings.wallet_address_tron) {
     ElMessage.warning('请至少输入一个收款地址')
     return
   }
-  
+
   // Validate address format
   const addressRegex = /^0x[a-fA-F0-9]{40}$/
-  
+  const tronAddressRegex = /^T[a-zA-Z0-9]{33}$/
+
   if (platformSettings.wallet_address_bsc && !addressRegex.test(platformSettings.wallet_address_bsc)) {
     ElMessage.error('BSC收款地址格式无效（0x开头，40位十六进制）')
     return
   }
-  
+
   if (platformSettings.wallet_address_eth && !addressRegex.test(platformSettings.wallet_address_eth)) {
     ElMessage.error('ETH收款地址格式无效（0x开头，40位十六进制）')
+    return
+  }
+
+  if (platformSettings.wallet_address_tron && !tronAddressRegex.test(platformSettings.wallet_address_tron)) {
+    ElMessage.error('TRON收款地址格式无效（T开头，34位字符）')
     return
   }
   
@@ -939,6 +963,7 @@ const saveWalletSettings = async (securityPassword) => {
         // Multi-chain addresses
         platform_wallet_bsc: platformSettings.wallet_address_bsc,
         platform_wallet_eth: platformSettings.wallet_address_eth,
+        platform_wallet_tron: platformSettings.wallet_address_tron,
         platform_network: platformSettings.network,
         platform_token: platformSettings.token
       }

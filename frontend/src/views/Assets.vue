@@ -1360,7 +1360,7 @@ const fetchExchangeRecords = async () => {
   }
   
   try {
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://vitufinance.com'
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://bocail.com'
     const response = await fetch(`${API_BASE}/api/exchange/history?wallet_address=${wallet.toLowerCase()}&limit=20`)
     const data = await response.json()
     
@@ -1380,7 +1380,7 @@ const fetchExchangeRecords = async () => {
 // 获取 WLD 当前价格
 const fetchWldPrice = async () => {
   try {
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://vitufinance.com'
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://bocail.com'
     const response = await fetch(`${API_BASE}/api/market/ticker?symbols=["WLDUSDT"]`)
     const data = await response.json()
     
@@ -1407,7 +1407,7 @@ const fetchDepositRecords = async () => {
   }
   
   try {
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://vitufinance.com'
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://bocail.com'
     const response = await fetch(`${API_BASE}/api/deposit/history?wallet_address=${wallet.toLowerCase()}&limit=20`)
     const data = await response.json()
     
@@ -1434,7 +1434,7 @@ const fetchWithdrawRecords = async () => {
   }
   
   try {
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://vitufinance.com'
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://bocail.com'
     const response = await fetch(`${API_BASE}/api/withdraw/history?wallet_address=${wallet.toLowerCase()}&limit=20`)
     const data = await response.json()
     
@@ -1461,7 +1461,7 @@ const fetchQuantifyRecords = async () => {
   }
   
   try {
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://vitufinance.com'
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://bocail.com'
     const response = await fetch(`${API_BASE}/api/robot/quantify-history?wallet_address=${wallet.toLowerCase()}&limit=20`)
     const data = await response.json()
     
@@ -1488,7 +1488,7 @@ const fetchReferralRecords = async () => {
   }
   
   try {
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://vitufinance.com'
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://bocail.com'
     const response = await fetch(`${API_BASE}/api/referral-rewards/history?wallet_address=${wallet.toLowerCase()}&limit=20`)
     const data = await response.json()
     
@@ -1515,7 +1515,7 @@ const fetchTeamRewards = async () => {
   }
   
   try {
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://vitufinance.com'
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://bocail.com'
     const response = await fetch(`${API_BASE}/api/team-rewards/history?wallet_address=${wallet.toLowerCase()}&limit=20`)
     const data = await response.json()
     
@@ -1542,7 +1542,7 @@ const fetchCheckinRecords = async () => {
   }
   
   try {
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://vitufinance.com'
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://bocail.com'
     const response = await fetch(`${API_BASE}/api/checkin/records?wallet=${wallet.toLowerCase()}`)
     const data = await response.json()
     
@@ -1727,7 +1727,7 @@ watch(() => walletStore.isConnected, async (connected) => {
  */
 const fetchExchangeWldPrice = async () => {
   try {
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://vitufinance.com'
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://bocail.com'
     const response = await fetch(`${API_BASE}/api/market/ticker?symbols=["WLDUSDT"]`)
     const data = await response.json()
     
@@ -1766,7 +1766,7 @@ const fetchUserLevel = async () => {
   }
   
   try {
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://vitufinance.com'
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://bocail.com'
     const response = await fetch(`${API_BASE}/api/user/level?wallet=${walletStore.walletAddress}`)
     const data = await response.json()
     
@@ -2226,7 +2226,7 @@ const handleConfirmExchange = async () => {
   
   try {
     // 调用兑换 API
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://vitufinance.com'
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://bocail.com'
     const response = await fetch(`${API_BASE}/api/exchange`, {
       method: 'POST',
       headers: {

@@ -479,7 +479,7 @@ const checkTodayCheckin = async () => {
 // 获取WLD价格
 const fetchWldPrice = async () => {
   try {
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://vitufinance.com'
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://bocail.com'
     const response = await fetch(`${API_BASE}/api/market/ticker?symbols=["WLDUSDT"]`)
     const data = await response.json()
     

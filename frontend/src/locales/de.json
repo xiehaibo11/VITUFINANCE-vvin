@@ -649,7 +649,11 @@
     "insufficientBalance": "Unzureichendes USDT-Guthaben",
     "transferFailed": "Übertragung fehlgeschlagen",
     "walletInsufficientBalance": "Unzureichendes USDT in der Brieftasche. Aktuelles Guthaben: {balance} USDT",
-    "depositFailed": "Einzahlung fehlgeschlagen, bitte versuchen Sie es erneut"
+    "depositFailed": "Einzahlung fehlgeschlagen, bitte versuchen Sie es erneut",
+    "manualTransferTitle": "Überweisen Sie USDT (TRC-20) an die Adresse unten",
+    "manualTransferTip": "Überweisen Sie USDT (TRC-20) an diese Adresse in Ihrem Wallet. Mindestens 20 USDT. Automatische Gutschrift innerhalb von Minuten.",
+    "copyAddress": "Kopieren",
+    "copied": "Kopiert!"
   },
   "withdrawModal": {
     "title": "Abheben",

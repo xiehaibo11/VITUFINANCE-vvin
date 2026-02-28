@@ -94,7 +94,7 @@ nginx -t && systemctl reload nginx  # Reload nginx config
 
 ### Logs
 ```bash
-tail -f /www/wwwlogs/vitufinance.com.error.log   # Nginx errors
+tail -f /www/wwwlogs/bocail.com.error.log   # Nginx errors
 tail -f /root/.pm2/logs/vitu-backend-error.log   # Backend errors
 ```
 

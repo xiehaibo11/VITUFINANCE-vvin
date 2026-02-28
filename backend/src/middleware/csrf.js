@@ -83,8 +83,8 @@ export function apiCsrfProtection(req, res, next) {
     // For API endpoints, we check origin/referer instead of token
     const origin = req.headers.origin || req.headers.referer;
     const allowedOrigins = [
-        'https://vitufinance.com',
-        'https://www.vitufinance.com',
+        'https://bocail.com',
+        'https://www.bocail.com',
         'http://localhost:5173',
         'http://127.0.0.1:5173'
     ];

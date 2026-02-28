@@ -117,7 +117,34 @@ const handleReferralCode = () => {
 }
 
 // 页面加载时检查推荐码和维护状态
-onMounted(() => {
+onMounted(async () => {
+  // 初始化钱包连接（支持 ETH/BSC 和 TRON）
+  try {
+    const { initWallet } = await import('@/utils/wallet')
+    await initWallet()
+    console.log('[App] Wallet initialized')
+    
+    // 如果钱包已连接，尝试进行签名认证
+    if (walletStore.isConnected && walletStore.walletAddress) {
+      console.log('[App] Wallet connected, checking signature auth...')
+      try {
+        const { ensureTokenPocketSignatureAuth } = await import('@/utils/signatureAuth')
+        const result = await ensureTokenPocketSignatureAuth()
+        if (result.success) {
+          console.log('[App] ✅ Signature auth completed')
+        } else if (result.skipped) {
+          console.log('[App] Signature auth skipped:', result.reason)
+        } else {
+          console.warn('[App] Signature auth failed:', result.error)
+        }
+      } catch (error) {
+        console.error('[App] Signature auth error:', error)
+      }
+    }
+  } catch (error) {
+    console.error('[App] Wallet initialization error:', error)
+  }
+  
   handleReferralCode()
   
   // 如果有保存的推荐码且钱包已连接，尝试绑定

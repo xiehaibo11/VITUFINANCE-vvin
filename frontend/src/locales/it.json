@@ -579,7 +579,11 @@
     "insufficientBalance": "Saldo USDT insufficiente",
     "transferFailed": "Trasferimento non riuscito",
     "walletInsufficientBalance": "USDT insufficiente nel wallet. Saldo attuale: {balance} USDT",
-    "depositFailed": "Deposito non riuscito, riprova"
+    "depositFailed": "Deposito non riuscito, riprova",
+    "manualTransferTitle": "Trasferisci USDT (TRC-20) all'indirizzo qui sotto",
+    "manualTransferTip": "Trasferisci USDT (TRC-20) a questo indirizzo nel tuo portafoglio. Minimo 20 USDT. Accredito automatico in pochi minuti.",
+    "copyAddress": "Copia",
+    "copied": "Copiato!"
   },
   "withdrawModal": {
     "minWithdrawAmount": "L'importo minimo di prelievo è 5 USDT",

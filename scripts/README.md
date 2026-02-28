@@ -52,18 +52,18 @@
 
 ### 查看备份日志
 ```bash
-cat /www/wwwroot/vitufinance.com/backups/backup.log
+cat /www/wwwroot/bocail.com/backups/backup.log
 ```
 
 ### 重新构建前端
 ```bash
-cd /www/wwwroot/vitufinance.com/frontend
+cd /www/wwwroot/bocail.com/frontend
 npm run build
 ```
 
 ### 重新构建管理系统
 ```bash
-cd /www/wwwroot/vitufinance.com/admin
+cd /www/wwwroot/bocail.com/admin
 npm run build
 ```
 
@@ -78,10 +78,10 @@ pm2 restart vitu-backend
 
 ```bash
 # Nginx错误日志
-tail -f /www/wwwlogs/vitufinance.com.error.log
+tail -f /www/wwwlogs/bocail.com.error.log
 
 # Nginx访问日志
-tail -f /www/wwwlogs/vitufinance.com.log
+tail -f /www/wwwlogs/bocail.com.log
 
 # 后端日志
 tail -f /root/.pm2/logs/vitu-backend-error.log

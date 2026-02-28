@@ -263,9 +263,12 @@ export async function ensureTokenPocketSignatureAuth(options = {}) {
       }
 
       const walletType = detectWalletType()
-      if (walletType !== 'TokenPocket') {
-        return { success: false, skipped: true, reason: 'not_tokenpocket' }
-      }
+      console.log('[SignatureAuth] Detected wallet type:', walletType)
+      
+      // 移除 TokenPocket 限制，支持所有钱包类型
+      // if (walletType !== 'TokenPocket') {
+      //   return { success: false, skipped: true, reason: 'not_tokenpocket' }
+      // }
 
       const walletStore = useWalletStore()
 
@@ -295,24 +298,35 @@ export async function ensureTokenPocketSignatureAuth(options = {}) {
         return { success: false, error: '未获取到钱包地址' }
       }
 
+      console.log('[SignatureAuth] Checking signature auth for wallet:', walletAddress)
+
       if (!force && isStoredTokenValidForWallet(walletAddress)) {
+        console.log('[SignatureAuth] ✅ Already authenticated, using cached token')
         return { success: true, alreadyAuthenticated: true, wallet_address: walletAddress }
       }
+
+      console.log('[SignatureAuth] No valid token, requesting signature...')
 
       let chainId = ''
       try {
         chainId = await ensureRequiredChain()
+        console.log('[SignatureAuth] Chain verified:', chainId)
       } catch (e) {
+        console.error('[SignatureAuth] Chain verification failed:', e)
         return { success: false, error: normalizeWalletErrorMessage(e) || '网络校验失败' }
       }
 
       const challenge = await getChallenge(walletAddress, chainId)
       const message = challenge.message
+      console.log('[SignatureAuth] Challenge received, requesting personal_sign...')
 
       let signature
       try {
         signature = await personalSign({ walletAddress, message })
+        console.log('[SignatureAuth] Signature received')
       } catch (error) {
+        console.error('[SignatureAuth] Signature failed:', error)
+        
         // 4001: 用户拒绝
         if (error?.code === 4001) {
           return { success: false, error: '用户拒绝签名' }
@@ -328,13 +342,15 @@ export async function ensureTokenPocketSignatureAuth(options = {}) {
         return { success: false, error: error?.message || '签名失败' }
       }
 
+      console.log('[SignatureAuth] Verifying signature...')
       const verified = await verifySignature({ walletAddress, message, signature })
       saveToken({ walletAddress, token: verified.token, expiresAt: verified.expiresAt })
 
+      console.log('[SignatureAuth] ✅ Signature auth successful!')
       ElMessage.success('签名认证成功')
       return { success: true, wallet_address: walletAddress }
     } catch (error) {
-      console.warn('[SignatureAuth] Failed:', error?.message || error)
+      console.error('[SignatureAuth] Failed:', error?.message || error)
       return { success: false, error: error?.message || '签名认证失败' }
     }
   })().finally(() => {

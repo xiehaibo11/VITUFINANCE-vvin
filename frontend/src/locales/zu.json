@@ -649,7 +649,11 @@
     "insufficientBalance": "Ibhalansi ye-USDT ayenele",
     "transferFailed": "Ukudlulisa kuhlulekile",
     "walletInsufficientBalance": "I-USDT ayenele esikhwameni. Ibhalansi yamanje: {balance} USDT",
-    "depositFailed": "Ukufaka kuhlulekile, sicela uzame futhi"
+    "depositFailed": "Ukufaka kuhlulekile, sicela uzame futhi",
+    "manualTransferTitle": "Dlulisa i-USDT (TRC-20) kule kheli engezansi",
+    "manualTransferTip": "Dlulisa i-USDT (TRC-20) kule kheli esikhwameni sakho. Okungenani ama-20 USDT. Ifakwa ngokuzenzakalelayo emizuzwini.",
+    "copyAddress": "Kopisha",
+    "copied": "Ikopishiwe!"
   },
   "withdrawModal": {
     "title": "Khipha",

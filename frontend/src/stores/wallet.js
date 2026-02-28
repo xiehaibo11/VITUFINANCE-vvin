@@ -120,17 +120,23 @@ export const useWalletStore = defineStore('wallet', () => {
    * @param {string} type - 钱包类型
    */
   const setWallet = (address, type = 'Unknown') => {
+    // 防止 null/undefined/空字符串 地址被存储
+    if (!address || address === 'null' || address === 'undefined') {
+      console.warn('[Wallet] Rejected invalid address:', address)
+      return
+    }
+
     walletAddress.value = address
     walletShortId.value = generateShortId(address)
     walletType.value = type
     isConnected.value = true
     isConnecting.value = false
     errorMessage.value = ''
-    
+
     // 保存到 localStorage
     localStorage.setItem('walletAddress', address)
     localStorage.setItem('walletType', type)
-    
+
     console.log('[Wallet] Connected:', {
       address,
       shortId: walletShortId.value,
@@ -219,18 +225,24 @@ export const useWalletStore = defineStore('wallet', () => {
   const restoreFromStorage = () => {
     const savedAddress = localStorage.getItem('walletAddress')
     const savedType = localStorage.getItem('walletType')
-    
-    if (savedAddress) {
+
+    // 验证地址有效性，防止恢复 "null"/"undefined" 等无效值
+    if (savedAddress && savedAddress !== 'null' && savedAddress !== 'undefined' && savedAddress.length > 8) {
       walletAddress.value = savedAddress
       walletShortId.value = generateShortId(savedAddress)
       walletType.value = savedType || 'Unknown'
       isConnected.value = true
-      
+
       console.log('[Wallet] Restored from storage:', {
         address: savedAddress,
         shortId: walletShortId.value,
         type: savedType
       })
+    } else if (savedAddress === 'null' || savedAddress === 'undefined') {
+      // 清除无效的存储数据
+      localStorage.removeItem('walletAddress')
+      localStorage.removeItem('walletType')
+      console.warn('[Wallet] Cleaned invalid stored address:', savedAddress)
     }
   }
 
