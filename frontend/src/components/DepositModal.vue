@@ -632,16 +632,27 @@ const submitDepositRecord = async (transactionHash) => {
 
 .chain-buttons {
   display: flex;
-  gap: 10px;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 0;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.chain-buttons::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .chain-btn {
-  flex: 1;
+  flex: 0 0 auto;
+  min-width: 88px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px 10px;
+  padding: 10px 8px;
   background: rgba(0, 0, 0, 0.5);
   border: 2px solid rgba(255, 255, 255, 0.15);
   border-radius: 12px;
@@ -650,6 +661,7 @@ const submitDepositRecord = async (transactionHash) => {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.25s ease;
+  box-sizing: border-box;
 }
 
 .chain-btn:hover {
@@ -667,8 +679,8 @@ const submitDepositRecord = async (transactionHash) => {
 
 /* 链图标图片样式 */
 .chain-logo-img {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
@@ -688,14 +700,16 @@ const submitDepositRecord = async (transactionHash) => {
 
 .chain-name {
   font-weight: 700;
-  font-size: 14px;
+  font-size: 13px;
   color: #ffffff;
+  white-space: nowrap;
 }
 
 .chain-desc {
   font-size: 10px;
   color: rgba(255, 255, 255, 0.5);
   font-weight: 400;
+  white-space: nowrap;
 }
 
 /* 输入区域 */

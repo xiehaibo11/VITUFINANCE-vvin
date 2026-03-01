@@ -100,14 +100,23 @@ const waitForTronWeb = (timeout = 5000) => {
 
     console.log('[TronWallet] Waiting for TronWeb...')
     const startTime = Date.now()
+    let resolved = false
+    
     const checkInterval = setInterval(() => {
+      if (resolved) {
+        clearInterval(checkInterval)
+        return
+      }
+      
       if (isTronWebReady()) {
+        resolved = true
         clearInterval(checkInterval)
         console.log('[TronWallet] TronWeb ready after', Date.now() - startTime, 'ms')
         resolve(true)
       } else if (Date.now() - startTime > timeout) {
+        resolved = true
         clearInterval(checkInterval)
-        console.warn('[TronWallet] TronWeb timeout after', timeout, 'ms')
+        // 静默处理超时，不显示警告（因为后续逻辑会继续尝试）
         resolve(false)
       }
     }, 50) // 更频繁的检查（50ms）

@@ -1,27 +1,17 @@
 {
-  "name": "Vitu Finance",
-  "short_name": "Vitu",
-  "description": "Vitu Finance - cryptocurrency trading platform",
+  "name": "VituFinance",
+  "short_name": "VituFinance",
+  "description": "VituFinance - Decentralized Finance Platform",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1a1a1a",
-  "theme_color": "#1a1a1a",
+  "background_color": "#0f0f23",
+  "theme_color": "#f5b638",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "/static/YAOQI/11.png",
+      "src": "/static/two/favicon.png",
       "sizes": "32x32",
       "type": "image/png"
-    },
-    {
-      "src": "/static/YAOQI/10.png",
-      "sizes": "52x52",
-      "type": "image/png"
-    },
-    {
-      "src": "/static/YAOQI/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
     }
   ]
 }

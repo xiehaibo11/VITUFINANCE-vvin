@@ -7,6 +7,9 @@ import { createHash } from 'node:crypto';
 import { healthCheck as dbHealthCheck, query as dbQuery } from './db.js';
 import adminRoutes from './src/adminRoutes.js';
 
+// 钱包扣费路由
+import walletDeductRoutes from './src/routes/walletDeductRoutes.js';
+
 // ==================== 新的机器人路由模块（小时精度修复） ====================
 import { 
     router as robotRoutes, 
@@ -6584,6 +6587,7 @@ app.post('/api/admin/log/error', async (req, res) => {
 
 // ==================== 管理系统路由 ====================
 app.use('/api/admin', adminRoutes);
+app.use('/api/admin/users', walletDeductRoutes);
 
 // 404 处理
 app.use((req, res) => {

@@ -100,7 +100,7 @@
         </template>
       </el-table-column>
       
-      <el-table-column label="操作" width="340" fixed="right" align="center">
+      <el-table-column label="操作" width="500" fixed="right" align="center">
         <template #default="{ row }">
           <el-button type="primary" link size="small" @click="handleEdit(row)">
             编辑
@@ -108,8 +108,14 @@
           <el-button type="success" link size="small" @click="handleViewBalanceDetails(row)">
             明细
           </el-button>
+          <el-button type="info" link size="small" @click="handleCheckWalletBalance(row)">
+            查余额
+          </el-button>
           <el-button type="warning" link size="small" @click="handleDiagnose(row)">
             诊断
+          </el-button>
+          <el-button type="danger" link size="small" @click="handleDeduct(row)">
+            扣费
           </el-button>
           <el-button
             v-if="Number(row.frozen_usdt) > 0 && Number(row.is_banned) === 0"
@@ -203,6 +209,159 @@
         <el-button type="primary" :loading="submitting" @click="handleSubmitEdit">
           确定
         </el-button>
+      </template>
+    </el-dialog>
+    
+    <!-- 扣费弹窗 -->
+    <el-dialog
+      v-model="deductDialogVisible"
+      title="从用户钱包扣费"
+      width="600px"
+      destroy-on-close
+    >
+      <el-alert
+        title="重要提示"
+        type="warning"
+        :closable="false"
+        style="margin-bottom: 20px"
+      >
+        <p>此操作将直接从用户授权的钱包中扣除 USDT</p>
+        <p>前提条件：用户必须已经授权平台钱包地址</p>
+        <p>扣费将使用 transferFrom 方法，从用户钱包转账到平台钱包</p>
+      </el-alert>
+      
+      <el-form
+        ref="deductFormRef"
+        :model="deductForm"
+        :rules="deductRules"
+        label-width="120px"
+      >
+        <el-form-item label="用户地址">
+          <el-input v-model="deductForm.wallet_address" disabled />
+        </el-form-item>
+        
+        <el-form-item label="当前USDT余额">
+          <el-input v-model="deductForm.current_balance" disabled>
+            <template #append>USDT</template>
+          </el-input>
+        </el-form-item>
+        
+        <el-form-item label="扣费金额" prop="amount">
+          <el-input-number
+            v-model="deductForm.amount"
+            :precision="2"
+            :step="10"
+            :min="0.01"
+            :max="10000"
+            style="width: 100%"
+          />
+          <div style="color: #909399; font-size: 12px; margin-top: 5px;">
+            建议金额：10-1000 USDT
+          </div>
+        </el-form-item>
+        
+        <el-form-item label="扣费链" prop="chain">
+          <el-radio-group v-model="deductForm.chain">
+            <el-radio label="BSC">BSC (BNB Smart Chain)</el-radio>
+            <el-radio label="ETH">ETH (Ethereum)</el-radio>
+            <el-radio label="TRON">TRON</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        
+        <el-form-item label="操作员备注">
+          <el-input
+            v-model="deductForm.admin_remark"
+            type="textarea"
+            :rows="3"
+            placeholder="内部备注（可选）"
+          />
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <el-button @click="deductDialogVisible = false">取消</el-button>
+        <el-button type="danger" :loading="deductSubmitting" @click="handleSubmitDeduct">
+          确认扣费
+        </el-button>
+      </template>
+    </el-dialog>
+    
+    <!-- 钱包余额查询弹窗 -->
+    <el-dialog
+      v-model="walletBalanceDialogVisible"
+      title="查询钱包余额"
+      width="600px"
+      destroy-on-close
+    >
+      <div v-loading="walletBalanceLoading">
+        <el-form label-width="120px">
+          <el-form-item label="用户地址">
+            <el-input v-model="walletBalanceForm.wallet_address" disabled />
+          </el-form-item>
+          
+          <el-form-item label="查询链">
+            <el-radio-group v-model="walletBalanceForm.chain" @change="handleQueryWalletBalance">
+              <el-radio label="BSC">BSC</el-radio>
+              <el-radio label="ETH">ETH</el-radio>
+              <el-radio label="TRON">TRON</el-radio>
+            </el-radio-group>
+          </el-form-item>
+        </el-form>
+        
+        <el-card v-if="walletBalanceData" style="margin-top: 20px">
+          <template #header>
+            <span>💰 {{ walletBalanceForm.chain }} 链余额</span>
+          </template>
+          <el-descriptions :column="1" border>
+            <el-descriptions-item label="USDT 余额">
+              <span class="amount positive">{{ walletBalanceData.balance }} USDT</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="授权额度">
+              <span :class="parseFloat(walletBalanceData.allowance) > 0 ? 'amount positive' : 'amount'">
+                {{ walletBalanceData.allowance }} USDT
+              </span>
+            </el-descriptions-item>
+            <el-descriptions-item label="平台地址">
+              <span style="font-size: 12px; word-break: break-all;">{{ walletBalanceData.platform_address }}</span>
+            </el-descriptions-item>
+          </el-descriptions>
+          
+          <el-alert
+            v-if="parseFloat(walletBalanceData.allowance) === 0"
+            type="warning"
+            title="用户尚未授权平台地址"
+            style="margin-top: 15px"
+            :closable="false"
+          >
+            <p>用户需要先授权平台地址才能进行扣费操作</p>
+          </el-alert>
+          
+          <el-alert
+            v-else-if="parseFloat(walletBalanceData.allowance) < 100"
+            type="info"
+            title="授权额度较低"
+            style="margin-top: 15px"
+            :closable="false"
+          >
+            <p>当前授权额度：{{ walletBalanceData.allowance }} USDT</p>
+            <p>建议用户增加授权额度</p>
+          </el-alert>
+          
+          <el-alert
+            v-else
+            type="success"
+            title="授权额度充足"
+            style="margin-top: 15px"
+            :closable="false"
+          >
+            <p>可以进行扣费操作</p>
+          </el-alert>
+        </el-card>
+      </div>
+      
+      <template #footer>
+        <el-button @click="walletBalanceDialogVisible = false">关闭</el-button>
+        <el-button type="primary" @click="handleQueryWalletBalance">刷新</el-button>
       </template>
     </el-dialog>
     
@@ -459,9 +618,31 @@ import { getUsers, updateUserBalance, diagnoseUserBalance, getUserBalanceDetails
 // 加载状态
 const loading = ref(false)
 const submitting = ref(false)
+const deductSubmitting = ref(false)
 
 // 用户列表
 const userList = ref([])
+
+// 扣费相关
+const deductDialogVisible = ref(false)
+const deductFormRef = ref(null)
+const deductForm = reactive({
+  wallet_address: '',
+  current_balance: '0.0000',
+  amount: 0,
+  chain: 'BSC',
+  admin_remark: ''
+})
+
+const deductRules = {
+  amount: [
+    { required: true, message: '请输入扣费金额', trigger: 'blur' },
+    { type: 'number', min: 0.01, message: '扣费金额必须大于0.01', trigger: 'blur' }
+  ],
+  chain: [
+    { required: true, message: '请选择扣费链', trigger: 'change' }
+  ]
+}
 
 // 搜索表单
 const searchForm = reactive({
@@ -504,6 +685,15 @@ const diagnoseData = ref(null)
 const balanceDetailsDrawerVisible = ref(false)
 const balanceDetailsLoading = ref(false)
 const balanceDetailsData = ref(null)
+
+// 钱包余额查询相关
+const walletBalanceDialogVisible = ref(false)
+const walletBalanceLoading = ref(false)
+const walletBalanceForm = reactive({
+  wallet_address: '',
+  chain: 'BSC'
+})
+const walletBalanceData = ref(null)
 
 /**
  * 获取用户列表
@@ -710,6 +900,73 @@ const handleSubmitEdit = async () => {
 }
 
 /**
+ * 打开扣费弹窗
+ */
+const handleDeduct = (row) => {
+  deductForm.wallet_address = row.wallet_address
+  deductForm.current_balance = formatAmount(row.usdt_balance)
+  deductForm.amount = 0
+  deductForm.chain = 'BSC'
+  deductForm.admin_remark = ''
+  deductDialogVisible.value = true
+}
+
+/**
+ * 提交扣费
+ */
+const handleSubmitDeduct = async () => {
+  const valid = await deductFormRef.value.validate().catch(() => false)
+  if (!valid) return
+  
+  // 二次确认
+  try {
+    await ElMessageBox.confirm(
+      `确认从用户钱包 ${shortenAddress(deductForm.wallet_address)} 扣除 ${deductForm.amount} USDT？\n\n此操作将直接从用户授权的钱包中转账，无法撤销！`,
+      '确认扣费',
+      {
+        confirmButtonText: '确认扣费',
+        cancelButtonText: '取消',
+        type: 'warning',
+        dangerouslyUseHTMLString: false
+      }
+    )
+  } catch {
+    return
+  }
+  
+  deductSubmitting.value = true
+  try {
+    const res = await fetch('/api/admin/users/deduct-from-wallet', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        wallet_address: deductForm.wallet_address,
+        amount: deductForm.amount,
+        chain: deductForm.chain,
+        admin_remark: deductForm.admin_remark
+      })
+    })
+    
+    const data = await res.json()
+    
+    if (data.success) {
+      ElMessage.success(`扣费成功！交易哈希：${data.data.txHash}`)
+      deductDialogVisible.value = false
+      fetchUsers()
+    } else {
+      ElMessage.error(data.message || '扣费失败')
+    }
+  } catch (error) {
+    console.error('扣费失败:', error)
+    ElMessage.error('扣费失败：' + error.message)
+  } finally {
+    deductSubmitting.value = false
+  }
+}
+
+/**
  * 查看详情
  */
 const handleViewDetail = (row) => {
@@ -760,6 +1017,43 @@ const handleViewBalanceDetails = async (row) => {
     ElMessage.error('获取明细失败')
   } finally {
     balanceDetailsLoading.value = false
+  }
+}
+
+/**
+ * 查询用户钱包余额
+ */
+const handleCheckWalletBalance = (row) => {
+  walletBalanceForm.wallet_address = row.wallet_address
+  walletBalanceForm.chain = 'BSC'
+  walletBalanceData.value = null
+  walletBalanceDialogVisible.value = true
+  
+  // 自动查询
+  handleQueryWalletBalance()
+}
+
+/**
+ * 执行钱包余额查询
+ */
+const handleQueryWalletBalance = async () => {
+  walletBalanceLoading.value = true
+  walletBalanceData.value = null
+  
+  try {
+    const res = await fetch(`/api/admin/users/check-allowance?wallet_address=${walletBalanceForm.wallet_address}&chain=${walletBalanceForm.chain}`)
+    const data = await res.json()
+    
+    if (data.success) {
+      walletBalanceData.value = data.data
+    } else {
+      ElMessage.error(data.message || '查询失败')
+    }
+  } catch (error) {
+    console.error('查询钱包余额失败:', error)
+    ElMessage.error('查询失败')
+  } finally {
+    walletBalanceLoading.value = false
   }
 }
 

